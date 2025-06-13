@@ -1,0 +1,16 @@
+.img-not{
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-image: url("https://images4.alphacoders.com/139/thumb-1920-1396272.png");
+    background-size: cover; /* Hace que la imagen cubra bien */
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat;
+}
+
+.titulo{
+    text-align: center;
+    font-size: 38px;
+    color: red;
+}
