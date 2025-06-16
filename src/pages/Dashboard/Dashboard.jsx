@@ -1,7 +1,10 @@
+
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import logo from '../../assets/logo.png';
 
 const Dashboard = () => {
+   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario"));
 
   return (
@@ -38,9 +41,16 @@ const Dashboard = () => {
               <td><button className="dashboard-button">Ir</button></td>
             </tr>
             <tr>
-              <td>Cargar Propuesta</td>
+              <td>Cargar Propuesta </td>
               <td>Formulario para presentar tu propuesta de TFI</td>
-              <td><button className="dashboard-button">Ir</button></td>
+              <td>
+                <button className="dashboard-button" onClick={() => navigate('/carga-propuesta')}>Ir</button></td>
+            </tr>
+            <tr>
+              <td>Cargar Trabajo  </td>
+              <td>Formulario para presentar tu trabajo de TFI en donde puedes ver el estado del mismo</td>
+              <td>
+                <button className="dashboard-button" onClick={() => navigate('/carga-trabajo')}>Ir</button></td>
             </tr>
             <tr>
               <td>Consultar Estado</td>

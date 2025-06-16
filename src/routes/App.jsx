@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.css'
 import Login from '../pages/Login/Login';
+import Dashboard from '../pages/Dashboard/Dashboard'; 
+import CargaProyecto from '../pages/CargaProyecto'; 
+import CargaPropuesta from '../pages/CargaPropuesta'; 
+import CargaTrabajo from '../pages/CargaTrabajo'; 
 
-import Dashboard from '../pages/Dashboard/Dashboard'; // Asegurate que la ruta esté bien
 
 // dentro del componente App, dentro de <Routes>...
 <Route path="/dashboard" element={<Dashboard />} />
@@ -22,6 +25,9 @@ const App= ()=> {
             <Route exact path='/' element={<Login />} /> 
             <Route exact path='/login' element={<Login />} /> 
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/carga-proyecto" element={<CargaProyecto />} /> {/* ⬅️ AQUI */}
+            <Route path="/carga-propuesta" element={<CargaPropuesta />} />
+            <Route path="/carga-trabajo" element={<CargaTrabajo />} />
             <Route exact path='*' element={<NotFound/>} />
             
           </Routes>
