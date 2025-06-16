@@ -2,13 +2,29 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import logo from '../../assets/logo.png';
 
-const Login = () => {
+  const Login = () => {
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  /*const handleSubmit = (e) => {
     e.preventDefault();
     navigate('/dashboard');
   };
+*/
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  // Simulamos login con un usuario y rol
+  const usuarioSimulado = {
+    nombre: "Matías Ferreira",
+    rol: "Estudiante"
+  };
+
+  // Guardamos en localStorage
+  localStorage.setItem("usuario", JSON.stringify(usuarioSimulado));
+
+  // Redirigimos
+  navigate('/dashboard');
+};
 
   return (
     <div className="login-page">

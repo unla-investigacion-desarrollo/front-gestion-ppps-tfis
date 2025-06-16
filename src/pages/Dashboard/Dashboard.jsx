@@ -2,11 +2,23 @@ import './Dashboard.css';
 import logo from '../../assets/logo.png';
 
 const Dashboard = () => {
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
         <img src={logo} alt="UNLa Logo" className="dashboard-logo" />
         <h1>Gestión de Trabajo Final Anual</h1>
+        {usuario && (
+          <div className="usuario-info">
+            <button onClick={() => {
+  localStorage.removeItem("usuario");
+  navigate('/');
+}}>Cerrar sesión</button>
+            <p><strong>Usuario:</strong> {usuario.nombre}</p>
+            <p><strong>Rol:</strong> {usuario.rol}</p>
+          </div>
+        )}
       </header>
 
       <div className="dashboard-content">
