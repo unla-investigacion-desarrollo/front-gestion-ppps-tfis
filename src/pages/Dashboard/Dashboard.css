@@ -1,0 +1,41 @@
+.dashboard-content h2 {
+  margin-bottom: 1rem;
+}
+
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.dashboard-table th,
+.dashboard-table td {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  text-align: left;
+}
+
+.dashboard-table th {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.dashboard-button {
+  background-color: #64001D;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.dashboard-button:hover {
+  background-color: #80002b;
+}
+.usuario-info {
+  text-align: right;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+}

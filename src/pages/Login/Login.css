@@ -1,0 +1,74 @@
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  padding: 2rem;
+}
+
+.logo-container {
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 120px;
+  height: auto;
+}
+
+.login-box {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 320px;
+  text-align: center;
+}
+
+.login-title {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #800000; /* Bordó UNLa */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #660000;
+}
+
+.login-header {
+  width: 100%;
+  background-color: #eedfdd; /* color logo  UNLa */
+  padding: 1rem; /* más espacio arriba y abajo */
+  display: flex;
+  justify-content: center;
+  align-items: center; /* para centrar verticalmente el logo */
+}
+
+.logo-full {
+  max-width: 100%;
+  height: 180px; /* más alto que antes */
+  object-fit: contain;
+}
+
