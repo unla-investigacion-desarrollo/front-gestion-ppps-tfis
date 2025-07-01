@@ -57,6 +57,16 @@
   background-color: #660000;
 }
 
+.error-message {
+  color: #d32f2f;
+  background-color: #fde7e7;
+  padding: 0.8rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  border-left: 4px solid #d32f2f;
+}
+
 .login-header {
   width: 100%;
   background-color: #eedfdd; /* color logo  UNLa */
