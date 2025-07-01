@@ -6,34 +6,50 @@ import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard'; 
 import CargaProyecto from '../pages/CargaProyecto'; 
 import CargaPropuesta from '../pages/CargaPropuesta'; 
-import CargaTrabajo from '../pages/CargaTrabajo'; 
+import CargaTrabajo from '../pages/CargaTrabajo';
+import PrivateRoute from '../auth/PrivateRoute';
 
+const App = () => {
+  const [isAuthenticated, setIsAuth] = useState(true); // verificación autenticación para más adelante
 
-// dentro del componente App, dentro de <Routes>...
-<Route path="/dashboard" element={<Dashboard />} />
-
-
-const App= ()=> {
-  const [isAuthenticated, setIsAuth]=useState(true); // verificacion autenticacion para mas adelante.
-  
   return (
     <>
-       <BrowserRouter>
-      
-          <Routes>
-            {/* <Route exact path='/' element={<Main carrito={carrito} setCarrito={setCarrito}/>} /> */}
-            <Route exact path='/' element={<Login />} /> 
-            <Route exact path='/login' element={<Login />} /> 
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/carga-proyecto" element={<CargaProyecto />} /> {/* ⬅️ AQUI */}
-            <Route path="/carga-propuesta" element={<CargaPropuesta />} />
-            <Route path="/carga-trabajo" element={<CargaTrabajo />} />
-            <Route exact path='*' element={<NotFound/>} />
-            
-          </Routes>
+      <BrowserRouter>
+        <Routes>
+          {/* Rutas públicas */}
+          <Route exact path='/' element={<Login />} />
+          <Route exact path='/login' element={<Login />} />
+          
+          {/* Rutas protegidas */}
+          <Route path="/dashboard" element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/carga-proyecto" element={
+            <PrivateRoute>
+              <CargaProyecto />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/carga-propuesta" element={
+            <PrivateRoute>
+              <CargaPropuesta />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/carga-trabajo" element={
+            <PrivateRoute>
+              <CargaTrabajo />
+            </PrivateRoute>
+          } />
+          
+          <Route exact path='*' element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </>
   )
 };
 
-export default App
+export default App;
