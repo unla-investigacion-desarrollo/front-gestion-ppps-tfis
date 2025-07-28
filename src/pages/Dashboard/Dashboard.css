@@ -1,3 +1,45 @@
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  background: #f5f5f5; 
+}
+
+.dashboard-header {
+  grid-column: 1 / span 2;
+  background: #fff;
+  padding: 1.2rem 2rem 1.2rem 2rem;
+  display: flex;
+  gap: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  z-index: 2;
+  justify-content:space-between;
+  align-items: center;
+}
+
+.dashboard-logo {
+  height: 60px;
+  margin-right: 2rem;
+}
+
+.dashboard-main {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 3rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 100vh;
+}
+
+
 .dashboard-content h2 {
   margin-bottom: 1rem;
 }
@@ -38,4 +80,5 @@
   margin-top: 0.5rem;
   font-size: 0.9rem;
   color: #333;
+  align-content:center;
 }
