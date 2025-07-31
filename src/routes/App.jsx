@@ -19,6 +19,17 @@ const App = () => {
           {/* Rutas públicas */}
           <Route exact path='/' element={<Login />} />
           <Route exact path='/login' element={<Login />} />
+          <Route path="/carga-proyecto" element={
+              <CargaProyecto />
+          } />
+          
+          <Route path="/carga-propuesta" element={
+              <CargaPropuesta />
+          } />
+          
+          <Route path="/carga-trabajo" element={
+              <CargaTrabajo />
+          } />
           
           {/* Rutas protegidas */}
           <Route path="/dashboard" element={
@@ -27,7 +38,7 @@ const App = () => {
             </PrivateRoute>
           } />
           
-          <Route path="/carga-proyecto" element={
+         {/*  <Route path="/carga-proyecto" element={
             <PrivateRoute>
               <CargaProyecto />
             </PrivateRoute>
@@ -43,7 +54,7 @@ const App = () => {
             <PrivateRoute>
               <CargaTrabajo />
             </PrivateRoute>
-          } />
+          } /> */}
           
           <Route exact path='*' element={<NotFound />} />
         </Routes>
