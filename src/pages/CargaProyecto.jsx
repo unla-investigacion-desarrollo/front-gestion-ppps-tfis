@@ -1,6 +1,18 @@
 import './CargaProyecto.css';
+import { useState } from 'react';
 
 const CargaProyecto = () => {
+    const [fileInputs, setFileInputs] = useState([{ id: 1 }]);
+  
+    const addFileInput = () => {
+      setFileInputs([...fileInputs, { id: Date.now() }]);
+    };
+  
+    const removeFileInput = (id) => {
+      if (fileInputs.length > 1) { 
+        setFileInputs(fileInputs.filter(input => input.id !== id));
+      }
+    };
   return (
     <div className="carga-proyecto-page">
       <header className="carga-proyecto-header">
@@ -25,10 +37,28 @@ const CargaProyecto = () => {
         <button type="submit">Enviar Propuesta</button>
       </form>
 
-      <section className="upload-section">
+      <section className="carga-proyecto-section">
         <h2>Subida de Archivos</h2>
-        <input type="file" accept=".pdf" />
-        <button>Subir PDF</button>
+        {fileInputs.map((input, index) => (
+          <div key={input.id} className="file-input-container">
+            <input type="file" accept=".pdf" />
+            {index === fileInputs.length - 1 && (
+              <button type="button" className='upload-button add-button' onClick={addFileInput}>
+                +
+              </button>
+            )}
+            {fileInputs.length > 1 && (
+              <button 
+                type="button" 
+                className='upload-button remove-button' 
+                onClick={() => removeFileInput(input.id)}
+              >
+                -
+              </button>
+            )}
+          </div>
+        ))}
+        <button className="submit-button">Subir PDF</button>
       </section>
 
       <section className="estado-section">
