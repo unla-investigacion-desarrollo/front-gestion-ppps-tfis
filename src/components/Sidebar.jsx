@@ -8,6 +8,7 @@ const Sidebar = () => {
         <ul>
           <li><a href="/dashboard">Inicio</a></li>
           <li><a href="/carga-propuesta">Cargar Propuesta</a></li>
+          <li><a href="/carga-proyecto">Cargar Proyecto</a></li>
           <li><a href="/carga-trabajo">Cargar Trabajo</a></li>
           <li><a href="#">Consultar Estado</a></li>
           <li><a href="#">Subir Entregas</a></li>
