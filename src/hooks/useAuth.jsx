@@ -1,26 +1,29 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useEffect, createContext, useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  logout as logoutAction, 
+  loginUser,
+  selectIsAuthenticated 
+} from '../../redux/slices/authSlice';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  // Verificar si hay un token en localStorage al cargar la aplicación
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
+  const login = async (credentials) => {
+    try {
+      const result = await dispatch(loginUser(credentials)).unwrap();
+      return result;
+    } catch (error) {
+      // Re-lanzamos el error para que el componente que llama a login pueda manejarlo
+      throw error;
     }
-  }, []);
-
-  const login = (token) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
+    dispatch(logoutAction());
   };
 
   return (
