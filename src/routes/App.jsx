@@ -8,6 +8,7 @@ import CargaProyecto from '../pages/CargaProyecto';
 import CargaPropuesta from '../pages/CargaPropuesta'; 
 import CargaTrabajo from '../pages/CargaTrabajo';
 import PrivateRoute from '../auth/PrivateRoute';
+import Register from '../pages/Register/Register';
 
 const App = () => {
   const [isAuthenticated, setIsAuth] = useState(true); // verificación autenticación para más adelante
@@ -19,6 +20,9 @@ const App = () => {
           {/* Rutas públicas */}
           <Route exact path='/' element={<Login />} />
           <Route exact path='/login' element={<Login />} />
+          <Route path="/register" element={
+              <Register />
+          } />
           <Route path="/carga-proyecto" element={
               <CargaProyecto />
           } />
