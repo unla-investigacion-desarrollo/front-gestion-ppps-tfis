@@ -6,7 +6,7 @@ import logo from '../../assets/logo.png';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const usuario = JSON.parse(localStorage.getItem("user"));
 
   return (
     <div className="dashboard-layout">
@@ -16,11 +16,11 @@ const Dashboard = () => {
         {usuario && (
           <div className="usuario-info">
             <button onClick={() => {
-              localStorage.removeItem("usuario");
+              localStorage.removeItem("user");
               navigate('/');
             }}>Cerrar sesión</button>
-            <p><strong>Usuario:</strong> {usuario.nombre}</p>
-            <p><strong>Rol:</strong> {usuario.rol}</p>
+            <p><strong>Usuario:</strong> {usuario.name}</p>
+            <p><strong>Rol:</strong> {usuario.roles}</p>
           </div>
         )}
       </header>
