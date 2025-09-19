@@ -12,6 +12,17 @@ export const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
+  // Sincroniza logout entre pestañas probar que funcione cuando cierra sesion no debe verse dashboard
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key === 'token' && event.newValue === null) {
+        dispatch(logoutAction());
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [dispatch]);
+
   const login = async (credentials) => {
     try {
       const result = await dispatch(loginUser(credentials)).unwrap();
