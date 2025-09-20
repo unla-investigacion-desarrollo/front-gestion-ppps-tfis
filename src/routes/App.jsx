@@ -8,6 +8,7 @@ import CargaProyecto from '../pages/CargaProyecto';
 import CargaPropuesta from '../pages/CargaPropuesta'; 
 import CargaTrabajo from '../pages/CargaTrabajo';
 import PrivateRoute from '../auth/PrivateRoute';
+import AuthenticatedLayout from '../components/AuthenticatedLayout';
 
 const App = () => {
   const [isAuthenticated, setIsAuth] = useState(true); // verificación autenticación para más adelante
@@ -19,24 +20,39 @@ const App = () => {
           {/* Rutas públicas */}
           <Route exact path='/' element={<Login />} />
           <Route exact path='/login' element={<Login />} />
-          <Route path="/carga-proyecto" element={
-              <CargaProyecto />
-          } />
-          
-          <Route path="/carga-propuesta" element={
-              <CargaPropuesta />
-          } />
-          
-          <Route path="/carga-trabajo" element={
-              <CargaTrabajo />
-          } />
-          
           {/* Rutas protegidas */}
           <Route path="/dashboard" element={
             <PrivateRoute>
-              <Dashboard />
+              <AuthenticatedLayout>
+                <Dashboard />
+              </AuthenticatedLayout>
             </PrivateRoute>
           } />
+
+          <Route path="/carga-proyecto" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <CargaProyecto />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          
+          <Route path="/carga-propuesta" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <CargaPropuesta />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          
+          <Route path="/carga-trabajo" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <CargaTrabajo />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          
           
          {/*  <Route path="/carga-proyecto" element={
             <PrivateRoute>
