@@ -1,5 +1,6 @@
 import './CargaProyecto.css';
 import { useState } from 'react';
+import BackButton from '../components/BackButton';
 
 const CargaProyecto = () => {
     const [fileInputs, setFileInputs] = useState([{ id: 1 }]);
@@ -17,6 +18,9 @@ const CargaProyecto = () => {
     <div className="carga-proyecto-page">
       <header className="carga-proyecto-header">
         <h1>Cargar Propuesta de Trabajo Final Integrador</h1>
+        <div style={{ textAlign: 'left' }}>
+          <BackButton />
+        </div>
       </header>
 
       <form className="carga-proyecto-form">

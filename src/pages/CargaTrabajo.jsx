@@ -1,10 +1,14 @@
 import './CargaProyecto.css';
+import BackButton from '../components/BackButton';
 
 const CargaTrabajo = () => {
   return (
     <div className="carga-trabajo-page">
       <header className="carga-trabajo-header">
         <h1>Subir Entregas y Seguimiento del Proyecto</h1>
+        <div style={{ textAlign: 'left' }}>
+          <BackButton />
+        </div>
       </header>
 
       <section className="upload-section">
