@@ -21,6 +21,7 @@ const Register: React.FC = () => {
     cuil: '',
     sexo: '' as '' | 'F' | 'M',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,34 +30,21 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validación de DNI numérico
-    if (!form.dni || !/^\d{8}$/.test(form.dni)) {
-      alert('Por favor, ingresá un DNI válido de 8 dígitos.');
-      return;
-    }
-    // Validación de CUIL numérico (11 dígitos)
-    if (!form.cuil || !/^\d{11}$/.test(form.cuil)) {
-      alert('Por favor, ingresá un CUIL válido de 11 dígitos.');
-      return;
-    }
-    // Validación de dígito verificador de CUIL
-    if (!isValidCuil(form.cuil)) {
-      alert('El CUIL ingresado no es válido (dígito verificador incorrecto).');
-      return;
-    }
-    // Validar fecha de nacimiento
-    if (!form.fechaNacimiento) {
-      alert('Por favor, seleccioná tu fecha de nacimiento.');
-      return;
-    }
-    // Validar sexo seleccionado
-    if (!form.sexo) {
-      alert('Por favor, seleccioná tu sexo.');
-      return;
-    }
+    const newErrors: Record<string, string> = {};
+    if (!form.email) newErrors.email = 'El email es obligatorio';
+    if (!form.nombre) newErrors.nombre = 'El nombre es obligatorio';
+    if (!form.apellido) newErrors.apellido = 'El apellido es obligatorio';
+    if (!form.dni || !/^\d{8}$/.test(form.dni)) newErrors.dni = 'DNI debe tener 8 dígitos';
+    if (!form.cuil || !/^\d{11}$/.test(form.cuil)) newErrors.cuil = 'CUIL debe tener 11 dígitos';
+    if (form.cuil && !isValidCuil(form.cuil)) newErrors.cuil = 'CUIL inválido (dígito verificador)';
+    if (!form.fechaNacimiento) newErrors.fechaNacimiento = 'Fecha de nacimiento obligatoria';
+    if (!form.sexo) newErrors.sexo = 'Seleccioná tu sexo';
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
     try {
       await dispatch<any>(registerStudent({ ...form, sexo: form.sexo as 'F' | 'M' }));
-      alert('Registro enviado. Tu cuenta está pendiente de aprobación.');
+      // mensaje sutil arriba del form
+      window.alert('Registro enviado. Tu cuenta está pendiente de aprobación.');
       setForm({ email: '', nombre: '', apellido: '', dni: '', legajo: '', carrera: '', fechaNacimiento: '', cuil: '', sexo: '' });
       navigate('/login');
     } catch {}
@@ -77,12 +65,21 @@ const Register: React.FC = () => {
     <div className="unla-page" style={{ display: 'grid', placeItems: 'center' }}>
       <div className="unla-card" style={{ width: '100%', maxWidth: 560 }}>
         <h1>Registro de Estudiante</h1>
-        {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
+        {error && (
+          <div className="unla-hint error" style={{ marginBottom: 8 }}>
+            {error} — <a href="/help">Ver ayuda</a>
+          </div>
+        )}
         <form className="unla-form" onSubmit={handleSubmit}>
-          <input className="unla-input" name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+          <input className={`unla-input ${errors.email ? 'unla-error' : ''}`} name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} aria-invalid={!!errors.email} required />
+          {errors.email ? (
+            <div className="unla-hint error">{errors.email}</div>
+          ) : (
+            <div className="unla-hint">Usá tu email institucional si tenés</div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <input
-              className="unla-input"
+              className={`unla-input ${errors.nombre ? 'unla-error' : ''}`}
               name="nombre"
               placeholder="Nombre (solo letras)"
               value={form.nombre}
@@ -90,9 +87,10 @@ const Register: React.FC = () => {
                 const letters = e.target.value.replace(/[^\p{L}\s]/gu, '');
                 setForm((prev) => ({ ...prev, nombre: letters }));
               }}
+              aria-invalid={!!errors.nombre}
             />
             <input
-              className="unla-input"
+              className={`unla-input ${errors.apellido ? 'unla-error' : ''}`}
               name="apellido"
               placeholder="Apellido (solo letras)"
               value={form.apellido}
@@ -100,11 +98,16 @@ const Register: React.FC = () => {
                 const letters = e.target.value.replace(/[^\p{L}\s]/gu, '');
                 setForm((prev) => ({ ...prev, apellido: letters }));
               }}
+              aria-invalid={!!errors.apellido}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {errors.nombre && <div className="unla-hint error">{errors.nombre}</div>}
+            {errors.apellido && <div className="unla-hint error">{errors.apellido}</div>}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <input
-              className="unla-input"
+              className={`unla-input ${errors.dni ? 'unla-error' : ''}`}
               name="dni"
               placeholder="DNI (solo números)"
               value={form.dni}
@@ -112,22 +115,29 @@ const Register: React.FC = () => {
                 const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
                 setForm((prev) => ({ ...prev, dni: digits }));
               }}
+              aria-invalid={!!errors.dni}
               required
             />
             <input className="unla-input" name="legajo" placeholder="Legajo" value={form.legajo} onChange={handleChange} />
           </div>
+          {errors.dni ? (
+            <div className="unla-hint error">{errors.dni}</div>
+          ) : (
+            <div className="unla-hint">Debe contener exactamente 8 dígitos</div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <input
-              className="unla-input"
+              className={`unla-input ${errors.fechaNacimiento ? 'unla-error' : ''}`}
               name="fechaNacimiento"
               type="date"
               placeholder="Fecha de Nacimiento"
               value={form.fechaNacimiento}
               onChange={handleChange}
+              aria-invalid={!!errors.fechaNacimiento}
               required
             />
             <input
-              className="unla-input"
+              className={`unla-input ${errors.cuil ? 'unla-error' : ''}`}
               name="cuil"
               placeholder="CUIL (solo números)"
               value={form.cuil}
@@ -135,8 +145,21 @@ const Register: React.FC = () => {
                 const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
                 setForm((prev) => ({ ...prev, cuil: digits }));
               }}
+              aria-invalid={!!errors.cuil}
               required
             />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {errors.fechaNacimiento ? (
+              <div className="unla-hint error">{errors.fechaNacimiento}</div>
+            ) : (
+              <div className="unla-hint">Seleccioná día, mes y año</div>
+            )}
+            {errors.cuil ? (
+              <div className="unla-hint error">{errors.cuil}</div>
+            ) : (
+              <div className="unla-hint">Debe contener 11 dígitos (con dígito verificador válido)</div>
+            )}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <input
@@ -150,10 +173,11 @@ const Register: React.FC = () => {
               }}
             />
             <select
-              className="unla-input"
+              className={`unla-input ${errors.sexo ? 'unla-error' : ''}`}
               name="sexo"
               value={form.sexo}
               onChange={(e) => setForm((prev) => ({ ...prev, sexo: e.target.value as 'F' | 'M' | '' }))}
+              aria-invalid={!!errors.sexo}
               required
             >
               <option value="" disabled>Seleccioná sexo</option>
@@ -161,6 +185,7 @@ const Register: React.FC = () => {
               <option value="M">Masculino</option>
             </select>
           </div>
+          {errors.sexo && <div className="unla-hint error">{errors.sexo}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button className="unla-btn" type="submit" disabled={status === 'loading'}>
               {status === 'loading' ? 'Enviando...' : 'Registrarme'}

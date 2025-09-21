@@ -103,18 +103,27 @@ export const loginUser = createAsyncThunk<
           return rejectWithValue('Contraseña incorrecta');
         }
 
-        const roleMap: Record<string, string> = {
-          'DOCENTE': 'docente',
-          'ESTUDIANTE': 'estudiante',
-          'ADMIN': 'admin',
-          'SUPER_ADMIN': 'admin',
-        };
-        const mappedRole = roleMap[found.rol] || 'estudiante';
+        // Mapear roles evitando duplicados visuales
+        const rawRole = found.rol;
+        let roles: string[] = [];
+        switch (rawRole) {
+          case 'SUPER_ADMIN':
+            roles = ['SUPER_ADMIN', 'admin'];
+            break;
+          case 'ADMIN':
+            roles = ['ADMIN', 'admin'];
+            break;
+          case 'DOCENTE':
+            roles = ['DOCENTE'];
+            break;
+          default:
+            roles = ['ESTUDIANTE'];
+        }
         const mockUser = {
           id: found.id,
           email: found.email,
           name: [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email,
-          roles: [mappedRole],
+          roles,
         };
         const mockToken = 'mock-jwt-token';
         localStorage.setItem('token', mockToken);

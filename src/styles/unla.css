@@ -79,6 +79,8 @@
   background: var(--unla-surface);
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
+.unla-table-container { width: 100%; overflow-x: auto; }
+.unla-table.wide { min-width: 1200px; }
 .unla-table th, .unla-table td {
   border: 1px solid #ddd;
   padding: 0.8rem;
@@ -87,6 +89,9 @@
 .unla-table th {
   background: #e0e0e0;
   color: #333;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .unla-section-title {
