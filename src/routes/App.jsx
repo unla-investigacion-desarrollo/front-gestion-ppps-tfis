@@ -9,6 +9,11 @@ import CargaPropuesta from '../pages/CargaPropuesta';
 import CargaTrabajo from '../pages/CargaTrabajo';
 import PrivateRoute from '../auth/PrivateRoute';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
+import AdminRoute from '../auth/AdminRoute';
+import Register from '../pages/Register/Register';
+import UsersList from '../pages/Admin/Users/UsersList';
+import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
+import Help from '../pages/Help/Help';
 
 const App = () => {
   const [isAuthenticated, setIsAuth] = useState(true); // verificación autenticación para más adelante
@@ -20,6 +25,8 @@ const App = () => {
           {/* Rutas públicas */}
           <Route exact path='/' element={<Login />} />
           <Route exact path='/login' element={<Login />} />
+          <Route exact path='/register' element={<Register />} />
+          <Route exact path='/help' element={<Help />} />
           {/* Rutas protegidas */}
           <Route path="/dashboard" element={
             <PrivateRoute>
@@ -50,6 +57,26 @@ const App = () => {
               <AuthenticatedLayout>
                 <CargaTrabajo />
               </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+
+          {/* Rutas de administración */}
+          <Route path="/admin/users" element={
+            <PrivateRoute>
+              <AdminRoute>
+                <AuthenticatedLayout>
+                  <UsersList />
+                </AuthenticatedLayout>
+              </AdminRoute>
+            </PrivateRoute>
+          } />
+          <Route path="/admin/approvals" element={
+            <PrivateRoute>
+              <AdminRoute>
+                <AuthenticatedLayout>
+                  <ApprovalQueue />
+                </AuthenticatedLayout>
+              </AdminRoute>
             </PrivateRoute>
           } />
           

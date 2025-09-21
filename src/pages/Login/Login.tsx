@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
 import './Login.css';
 import logo from '../../assets/logo.png';
@@ -19,6 +19,8 @@ function LoginForm() {
     email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [capsLockOn, setCapsLockOn] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,6 +39,11 @@ function LoginForm() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handlePasswordKey = (e) => {
+    const isCaps = e.getModifierState && e.getModifierState('CapsLock');
+    setCapsLockOn(!!isCaps);
   };
 
   return (
@@ -64,15 +71,44 @@ function LoginForm() {
           </div>
           
           <div className="form-group">
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña" 
-              className="login-input" 
-              value={credentials.password}
-              onChange={handleChange}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Contraseña" 
+                className="login-input" 
+                value={credentials.password}
+                onChange={handleChange}
+                onKeyUp={handlePasswordKey}
+                onKeyDown={handlePasswordKey}
+                required
+                aria-label="Contraseña"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                onClick={() => setShowPassword(s => !s)}
+                style={{
+                  position: 'absolute',
+                  right: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64001D',
+                  fontWeight: 600
+                }}
+                title={showPassword ? 'Ocultar' : 'Mostrar'}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {capsLockOn && (
+              <small style={{ color: '#b30000' }}>
+                Mayúsculas activadas (Caps Lock)
+              </small>
+            )}
           </div>
           
           <button 
@@ -83,6 +119,18 @@ function LoginForm() {
             {loading === 'pending' ? 'Iniciando sesión...' : 'Ingresar'} 
           </button>
         </form>
+        <div style={{ marginTop: 12, textAlign: 'center' }}>
+          <small>
+            ¿Sos estudiante y todavía no tenés cuenta?{' '}
+            <Link to="/register">Registrate aquí</Link>
+          </small>
+        </div>
+        <div style={{ marginTop: 8, textAlign: 'center' }}>
+          <small>
+            ¿Necesitás ayuda para recuperar tu contraseña?{' '}
+            <Link to="/help">Ver ayuda</Link>
+          </small>
+        </div>
       </div>
     </div>
   );
