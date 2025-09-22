@@ -32,7 +32,10 @@ const AuthenticatedLayout = ({ children }) => {
         const t = setTimeout(() => setToast(null), 3000);
         return () => clearTimeout(t);
       }
-    } catch {}
+    } catch (err) {
+      // Puede fallar si sessionStorage no está disponible
+      void err;
+    }
     const onToast = (e) => {
       const payload = e?.detail || {};
       setToast({ message: payload.message || 'Operación realizada', type: payload.type || 'info' });
@@ -49,6 +52,9 @@ const AuthenticatedLayout = ({ children }) => {
         <span className="unla-title">Gestión TFI UNLa</span>
         <div className="spacer" />
         <Link to="/dashboard">Inicio</Link>
+        {(isAdmin || user?.roles?.includes('DOCENTE')) && (
+          <Link to="/admin/proposals">Propuestas</Link>
+        )}
         {isAdmin && (
           <>
             <Link to="/admin/users">Usuarios</Link>

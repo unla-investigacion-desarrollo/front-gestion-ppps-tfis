@@ -28,7 +28,7 @@ const useSessionReminder = (optionsOrMs = 15 * 60 * 1000) => { // 15 minutos por
     try {
       const evt = new Event('mousemove');
       document.dispatchEvent(evt);
-    } catch (e) {
+    } catch {
       // Fallback en navegadores antiguos
       const evt = document.createEvent('Event');
       evt.initEvent('mousemove', true, true);

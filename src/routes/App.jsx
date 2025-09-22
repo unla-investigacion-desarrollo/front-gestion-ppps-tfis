@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.css'
@@ -10,24 +9,27 @@ import CargaTrabajo from '../pages/CargaTrabajo';
 import PrivateRoute from '../auth/PrivateRoute';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
 import AdminRoute from '../auth/AdminRoute';
+import TeacherRoute from '../auth/TeacherRoute';
 import Register from '../pages/Register/Register';
 import UsersList from '../pages/Admin/Users/UsersList';
 import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
 import Help from '../pages/Help/Help';
 import ChangePassword from '../pages/Auth/ChangePassword';
+import ProposalsList from '../pages/Admin/Proposals/ProposalsList';
+import EstadoGeneral from '../pages/Estado/EstadoGeneral';
 
 const App = () => {
-  const [isAuthenticated, setIsAuth] = useState(true); // verificación autenticación para más adelante
+  
 
   return (
     <>
       <BrowserRouter>
         <Routes>
           {/* Rutas públicas */}
-          <Route exact path='/' element={<Login />} />
-          <Route exact path='/login' element={<Login />} />
-          <Route exact path='/register' element={<Register />} />
-          <Route exact path='/help' element={<Help />} />
+          <Route path='/' element={<Login />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Register />} />
+          <Route path='/help' element={<Help />} />
           {/* Rutas protegidas */}
           <Route path="/dashboard" element={
             <PrivateRoute>
@@ -69,6 +71,14 @@ const App = () => {
             </PrivateRoute>
           } />
 
+          <Route path="/estado" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <EstadoGeneral />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+
           {/* Rutas de administración */}
           <Route path="/admin/users" element={
             <PrivateRoute>
@@ -86,6 +96,16 @@ const App = () => {
                   <ApprovalQueue />
                 </AuthenticatedLayout>
               </AdminRoute>
+            </PrivateRoute>
+          } />
+
+          <Route path="/admin/proposals" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <ProposalsList />
+                </AuthenticatedLayout>
+              </TeacherRoute>
             </PrivateRoute>
           } />
           
@@ -108,7 +128,7 @@ const App = () => {
             </PrivateRoute>
           } /> */}
           
-          <Route exact path='*' element={<NotFound />} />
+          <Route path='*' element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </>

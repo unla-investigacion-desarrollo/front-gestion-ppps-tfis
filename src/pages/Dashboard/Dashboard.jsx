@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,6 +13,15 @@ const Dashboard = () => {
   const { logout } = useAuth();
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const lastProposal = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('proposals');
+      const arr = raw ? JSON.parse(raw) : [];
+      const mine = usuario ? arr.filter((p) => p.userId === usuario.id) : arr;
+      return mine.sort((a, b) => (b.uploadedAt || '').localeCompare(a.uploadedAt || ''))[0] || null;
+    } catch { return null; }
+  }, [usuario]);
+
   return (
     <div className="dashboard-layout">
       <header className="dashboard-header">
@@ -22,13 +31,35 @@ const Dashboard = () => {
           <div className="usuario-info">
             <button onClick={() => setShowConfirm(true)}>Cerrar sesión</button>
             <p><strong>Usuario:</strong> {usuario.name}</p>
-            <p><strong>Rol:</strong> {usuario.roles}</p>
+            <p><strong>Rol:</strong> {Array.isArray(usuario.roles) ? usuario.roles.join(', ') : usuario.roles}</p>
           </div>
         )}
       </header>
       <Sidebar />
       <main className="dashboard-main">
-        {/* Espacio en blanco para futuros componentes */}
+        {/* Estado de Propuesta */}
+        <div className="unla-card" style={{ marginBottom: 16 }}>
+          <h2>Propuesta</h2>
+          {lastProposal ? (
+            <div className="unla-list">
+              <div><strong>Último envío:</strong> {new Date(lastProposal.uploadedAt).toLocaleString()}</div>
+              <div><strong>Título:</strong> {lastProposal.titulo}</div>
+              <div><strong>Estado:</strong> <span className="unla-badge">{lastProposal.estado}</span></div>
+              {lastProposal.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastProposal.reason}</div>}
+              {lastProposal.note && <div className="unla-hint"><strong>Observación:</strong> {lastProposal.note}</div>}
+              <div style={{ marginTop: 8 }}>
+                <button className="unla-btn" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className="unla-hint">Aún no enviaste tu propuesta.</div>
+              <button className="unla-btn" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta</button>
+            </div>
+          )}
+        </div>
+
+        {/* Espacio reservado para otros módulos */}
       </main>
 
       {/* Modal de confirmación de cierre de sesión */}
