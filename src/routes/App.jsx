@@ -14,6 +14,7 @@ import Register from '../pages/Register/Register';
 import UsersList from '../pages/Admin/Users/UsersList';
 import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
 import Help from '../pages/Help/Help';
+import ChangePassword from '../pages/Auth/ChangePassword';
 
 const App = () => {
   const [isAuthenticated, setIsAuth] = useState(true); // verificación autenticación para más adelante
@@ -40,6 +41,14 @@ const App = () => {
             <PrivateRoute>
               <AuthenticatedLayout>
                 <CargaProyecto />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+
+          <Route path="/change-password" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <ChangePassword />
               </AuthenticatedLayout>
             </PrivateRoute>
           } />

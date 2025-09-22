@@ -124,6 +124,7 @@ export const loginUser = createAsyncThunk<
           email: found.email,
           name: [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email,
           roles,
+          mustChangePassword: !!found.mustChangePassword,
         };
         const mockToken = 'mock-jwt-token';
         localStorage.setItem('token', mockToken);
@@ -162,6 +163,19 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    setMustChangePassword: (state, action) => {
+      if (state.user) {
+        state.user = { ...state.user, mustChangePassword: action.payload } as any;
+        const stored = localStorage.getItem('user');
+        if (stored) {
+          try {
+            const u = JSON.parse(stored);
+            u.mustChangePassword = action.payload;
+            localStorage.setItem('user', JSON.stringify(u));
+          } catch {}
+        }
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -196,7 +210,7 @@ const authSlice = createSlice({
 });
 
 // Exportar acciones y reducer
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, setMustChangePassword } = authSlice.actions;
 export default authSlice.reducer;
 
 // Selectores
