@@ -89,7 +89,47 @@ export const loginUser = createAsyncThunk<
           token: mockToken 
         };
       } else {
-        return rejectWithValue('Credenciales incorrectas');
+        // Intento de login contra usuarios del mock en localStorage
+        const raw = localStorage.getItem('users');
+        const users: any[] = raw ? JSON.parse(raw) : [];
+        const found = users.find(u => (u.email || '').toLowerCase() === credentials.email.toLowerCase());
+        if (!found) {
+          return rejectWithValue('Usuario no encontrado');
+        }
+        if (found.estado !== 'active') {
+          return rejectWithValue('Usuario no activo. Requiere aprobación.');
+        }
+        if (!found.password || found.password !== credentials.password) {
+          return rejectWithValue('Contraseña incorrecta');
+        }
+
+        // Mapear roles evitando duplicados visuales
+        const rawRole = found.rol;
+        let roles: string[] = [];
+        switch (rawRole) {
+          case 'SUPER_ADMIN':
+            roles = ['SUPER_ADMIN', 'admin'];
+            break;
+          case 'ADMIN':
+            roles = ['ADMIN', 'admin'];
+            break;
+          case 'DOCENTE':
+            roles = ['DOCENTE'];
+            break;
+          default:
+            roles = ['ESTUDIANTE'];
+        }
+        const mockUser = {
+          id: found.id,
+          email: found.email,
+          name: [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email,
+          roles,
+        };
+        const mockToken = 'mock-jwt-token';
+        localStorage.setItem('token', mockToken);
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        localStorage.setItem('lastLogin', new Date().toISOString());
+        return { user: mockUser, token: mockToken };
       }
     } catch (error) {
       console.error('Error en login:', error);
