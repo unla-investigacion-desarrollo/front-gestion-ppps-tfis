@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerStudent, selectUsersStatus, selectUsersError } from '../../../redux/slices/usersSlice';
 import '../../styles/unla.css';
@@ -22,6 +22,48 @@ const Register: React.FC = () => {
     sexo: '' as '' | 'F' | 'M',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [emailCheck, setEmailCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
+  const [dniCheck, setDniCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
+
+  // Verificar disponibilidad de email (mock: localStorage)
+  useEffect(() => {
+    if (!form.email) {
+      setEmailCheck('idle');
+      return;
+    }
+    setEmailCheck('checking');
+    const handle = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem('users');
+        const users = raw ? JSON.parse(raw) : [];
+        const exists = users.some((u: any) => (u.email || '').toLowerCase() === form.email.toLowerCase());
+        setEmailCheck(exists ? 'taken' : 'free');
+      } catch {
+        setEmailCheck('free');
+      }
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [form.email]);
+
+  // Verificar disponibilidad de DNI (mock: localStorage) cuando tiene 8 dígitos
+  useEffect(() => {
+    if (!form.dni || form.dni.length !== 8) {
+      setDniCheck('idle');
+      return;
+    }
+    setDniCheck('checking');
+    const handle = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem('users');
+        const users = raw ? JSON.parse(raw) : [];
+        const exists = users.some((u: any) => (u.dni || '') === form.dni);
+        setDniCheck(exists ? 'taken' : 'free');
+      } catch {
+        setDniCheck('free');
+      }
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [form.dni]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,9 +74,11 @@ const Register: React.FC = () => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!form.email) newErrors.email = 'El email es obligatorio';
+    if (emailCheck === 'taken') newErrors.email = 'El email ya está en uso';
     if (!form.nombre) newErrors.nombre = 'El nombre es obligatorio';
     if (!form.apellido) newErrors.apellido = 'El apellido es obligatorio';
     if (!form.dni || !/^\d{8}$/.test(form.dni)) newErrors.dni = 'DNI debe tener 8 dígitos';
+    if (dniCheck === 'taken') newErrors.dni = 'El DNI ya está en uso';
     if (!form.cuil || !/^\d{11}$/.test(form.cuil)) newErrors.cuil = 'CUIL debe tener 11 dígitos';
     if (form.cuil && !isValidCuil(form.cuil)) newErrors.cuil = 'CUIL inválido (dígito verificador)';
     if (!form.fechaNacimiento) newErrors.fechaNacimiento = 'Fecha de nacimiento obligatoria';
@@ -71,9 +115,13 @@ const Register: React.FC = () => {
           </div>
         )}
         <form className="unla-form" onSubmit={handleSubmit}>
-          <input className={`unla-input ${errors.email ? 'unla-error' : ''}`} name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} aria-invalid={!!errors.email} required />
+          <input className={`unla-input ${errors.email || emailCheck === 'taken' ? 'unla-error' : ''}`} name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} aria-invalid={!!errors.email || emailCheck === 'taken'} required />
           {errors.email ? (
             <div className="unla-hint error">{errors.email}</div>
+          ) : emailCheck === 'taken' ? (
+            <div className="unla-hint error">El email ya está en uso. Si olvidaste tu contraseña, pedí al admin el reseteo. <a href="/help">Ver ayuda</a></div>
+          ) : emailCheck === 'checking' ? (
+            <div className="unla-hint">Verificando disponibilidad…</div>
           ) : (
             <div className="unla-hint">Usá tu email institucional si tenés</div>
           )}
@@ -107,7 +155,7 @@ const Register: React.FC = () => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <input
-              className={`unla-input ${errors.dni ? 'unla-error' : ''}`}
+              className={`unla-input ${(errors.dni || dniCheck === 'taken') ? 'unla-error' : ''}`}
               name="dni"
               placeholder="DNI (solo números)"
               value={form.dni}
@@ -115,13 +163,17 @@ const Register: React.FC = () => {
                 const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
                 setForm((prev) => ({ ...prev, dni: digits }));
               }}
-              aria-invalid={!!errors.dni}
+              aria-invalid={!!errors.dni || dniCheck === 'taken'}
               required
             />
             <input className="unla-input" name="legajo" placeholder="Legajo" value={form.legajo} onChange={handleChange} />
           </div>
           {errors.dni ? (
             <div className="unla-hint error">{errors.dni}</div>
+          ) : dniCheck === 'taken' ? (
+            <div className="unla-hint error">El DNI ya está en uso.</div>
+          ) : dniCheck === 'checking' ? (
+            <div className="unla-hint">Verificando DNI…</div>
           ) : (
             <div className="unla-hint">Debe contener exactamente 8 dígitos</div>
           )}

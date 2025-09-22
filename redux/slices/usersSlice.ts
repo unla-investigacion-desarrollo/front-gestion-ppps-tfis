@@ -19,6 +19,7 @@ export interface User {
   departamento?: string;
   categoria?: string;
   password?: string; // solo mock
+  mustChangePassword?: boolean; // fuerza cambio de contraseña en primer login
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
@@ -56,6 +57,65 @@ export const fetchUsers = createAsyncThunk<User[]>('users/fetch', async () => {
   // Mock: read from localStorage
   await new Promise((r) => setTimeout(r, 300));
   return loadUsers();
+});
+
+export const activateInvitedTeacher = createAsyncThunk<
+  User,
+  { id: string; password: string }
+>('users/activateInvitedTeacher', async ({ id, password }, { rejectWithValue }) => {
+  await new Promise((r) => setTimeout(r, 200));
+  const users = loadUsers();
+  const idx = users.findIndex((u) => u.id === id);
+  if (idx === -1) return rejectWithValue('Usuario no encontrado') as any;
+  const u = users[idx];
+  if (u.rol !== 'DOCENTE') return rejectWithValue('Solo docentes invitados pueden activarse') as any;
+  if (u.estado !== 'invited') return rejectWithValue('El usuario no está en estado invitado') as any;
+  if (!password || password.length < 4) return rejectWithValue('La contraseña debe tener al menos 4 caracteres') as any;
+  users[idx] = { ...u, estado: 'active', password, mustChangePassword: true, updatedAt: new Date().toISOString() };
+  saveUsers(users);
+  return users[idx];
+});
+
+export const changePassword = createAsyncThunk<
+  User,
+  { id: string; currentPassword: string; newPassword: string },
+  { rejectValue: string }
+>('users/changePassword', async ({ id, currentPassword, newPassword }, { rejectWithValue }) => {
+  await new Promise((r) => setTimeout(r, 200));
+  const users = loadUsers();
+  const idx = users.findIndex((u) => u.id === id);
+  if (idx === -1) return rejectWithValue('Usuario no encontrado') as any;
+  const u = users[idx];
+  if ((u.password || '') !== currentPassword) return rejectWithValue('Contraseña actual incorrecta') as any;
+  if (!newPassword || newPassword.length < 6) return rejectWithValue('La nueva contraseña debe tener al menos 6 caracteres') as any;
+  users[idx] = { ...u, password: newPassword, mustChangePassword: false, updatedAt: new Date().toISOString() };
+  saveUsers(users);
+  return users[idx];
+});
+
+export const toggleUserActivation = createAsyncThunk<
+  User,
+  { id: string; enable: boolean }
+>('users/toggleUserActivation', async ({ id, enable }, { rejectWithValue }) => {
+  await new Promise((r) => setTimeout(r, 200));
+  const users = loadUsers();
+  const idx = users.findIndex((u) => u.id === id);
+  if (idx === -1) return rejectWithValue('Usuario no encontrado') as any;
+  const u = users[idx];
+  if (enable) {
+    // Activar desde cualquier estado
+    let password = u.password;
+    if (!password) {
+      if (u.dni) password = `DNI${u.dni}`;
+      else password = 'temporal123';
+    }
+    users[idx] = { ...u, estado: 'active', password, updatedAt: new Date().toISOString() };
+  } else {
+    // Desactivar desde cualquier estado
+    users[idx] = { ...u, estado: 'disabled', updatedAt: new Date().toISOString() };
+  }
+  saveUsers(users);
+  return users[idx];
 });
 
 export const registerStudent = createAsyncThunk<
@@ -138,7 +198,7 @@ export const approveUser = createAsyncThunk<User, { id: string }>('users/approve
   if (idx === -1) throw new Error('Usuario no encontrado');
   const dni = users[idx].dni || '';
   const tempPassword = dni ? `DNI${dni}` : 'alumno123';
-  users[idx] = { ...users[idx], estado: 'active', password: tempPassword, updatedAt: new Date().toISOString() };
+  users[idx] = { ...users[idx], estado: 'active', password: tempPassword, mustChangePassword: true, updatedAt: new Date().toISOString() };
   saveUsers(users);
   return users[idx];
 });
@@ -213,6 +273,18 @@ const usersSlice = createSlice({
         state.list = state.list.filter(u => u.id !== action.payload);
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
+        const idx = state.list.findIndex((u) => u.id === action.payload.id);
+        if (idx !== -1) state.list[idx] = action.payload;
+      })
+      .addCase(activateInvitedTeacher.fulfilled, (state, action) => {
+        const idx = state.list.findIndex((u) => u.id === action.payload.id);
+        if (idx !== -1) state.list[idx] = action.payload;
+      })
+      .addCase(toggleUserActivation.fulfilled, (state, action) => {
+        const idx = state.list.findIndex((u) => u.id === action.payload.id);
+        if (idx !== -1) state.list[idx] = action.payload;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
         const idx = state.list.findIndex((u) => u.id === action.payload.id);
         if (idx !== -1) state.list[idx] = action.payload;
       });
