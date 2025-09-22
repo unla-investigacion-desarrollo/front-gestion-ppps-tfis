@@ -24,13 +24,8 @@ export const AuthProvider = ({ children }) => {
   }, [dispatch]);
 
   const login = async (credentials) => {
-    try {
-      const result = await dispatch(loginUser(credentials)).unwrap();
-      return result;
-    } catch (error) {
-      // Re-lanzamos el error para que el componente que llama a login pueda manejarlo
-      throw error;
-    }
+    // Devolvemos el resultado del thunk (o lanza si falla)
+    return dispatch(loginUser(credentials)).unwrap();
   };
 
   const logout = () => {
