@@ -14,6 +14,9 @@ const AuthenticatedLayout = ({ children }) => {
   } = useSessionReminder({ inactivityMs: 15 * 1000, reminderSeconds: 15 }); // 15s inactividad, 15s countdown
 
   const user = useSelector((state) => state.auth.user);
+  const displayName = user
+    ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
+    : '';
   const isAdmin = !!user && Array.isArray(user.roles) && (
     user.roles.includes('admin') ||
     user.roles.includes('ADMIN') ||
@@ -25,9 +28,11 @@ const AuthenticatedLayout = ({ children }) => {
   const [toast, setToast] = useState(null);
   useEffect(() => {
     try {
-      const msg = sessionStorage.getItem('toast');
+      const key = user ? `toast:${user.id}` : 'toast:anon';
+      const msg = sessionStorage.getItem(key) || sessionStorage.getItem('toast'); // compatibilidad vieja
       if (msg) {
         setToast({ message: msg, type: 'success' });
+        sessionStorage.removeItem(key);
         sessionStorage.removeItem('toast');
         const t = setTimeout(() => setToast(null), 3000);
         return () => clearTimeout(t);
@@ -44,12 +49,12 @@ const AuthenticatedLayout = ({ children }) => {
     };
     window.addEventListener('toast', onToast);
     return () => window.removeEventListener('toast', onToast);
-  }, []);
+  }, [user]);
 
   return (
     <>
       <header className="unla-header">
-        <span className="unla-title">Gestión TFI UNLa</span>
+        <span className="unla-title">{`Bienvenido${displayName ? ' ' + displayName : ''}`}</span>
         <div className="spacer" />
         <Link to="/dashboard">Inicio</Link>
         {(isAdmin || user?.roles?.includes('DOCENTE')) && (
@@ -62,7 +67,9 @@ const AuthenticatedLayout = ({ children }) => {
           </>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 12 }}>
-          <span style={{ opacity: 0.7 }}>{user ? user.email : ''}</span>
+          {user && !displayName && (
+            <span style={{ opacity: 0.7 }}>{user.email}</span>
+          )}
           {user && (
             <Link
               to="/change-password"

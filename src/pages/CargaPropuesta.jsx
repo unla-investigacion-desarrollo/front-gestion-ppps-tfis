@@ -1,20 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './CargaProyecto.css';
-import BackButton from '../components/BackButton';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../redux/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 const CargaPropuesta = () => {
   const user = useSelector(selectCurrentUser);
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     titulo: '',
+    tipo: '',
     descripcion: '',
     responsable: '',
     categoria: '',
     archivo: null,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [filterEstado, setFilterEstado] = useState(''); // '', aprobado, en_estudio, observado, rechazado
+  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' | 'asc'
   const [errors, setErrors] = useState({});
   const [detail, setDetail] = useState(null);
 
@@ -32,9 +36,19 @@ const CargaPropuesta = () => {
       const raw = localStorage.getItem('proposals');
       const arr = raw ? JSON.parse(raw) : [];
       const mine = user ? arr.filter((p) => p.userId === user.id) : arr;
-      return mine.sort((a, b) => (b.uploadedAt || '').localeCompare(a.uploadedAt || ''));
+      return mine;
     } catch { return []; }
   }, [user, submitting]);
+
+  const visibleSubmissions = useMemo(() => {
+    const filtered = filterEstado ? allSubmissions.filter((p) => p.estado === filterEstado) : allSubmissions;
+    const sorted = [...filtered].sort((a, b) => (
+      sortOrder === 'desc'
+        ? (b.uploadedAt || '').localeCompare(a.uploadedAt || '')
+        : (a.uploadedAt || '').localeCompare(b.uploadedAt || '')
+    ));
+    return sorted;
+  }, [allSubmissions, filterEstado, sortOrder]);
 
   // Notificación cuando cambia el estado de la última propuesta
   useEffect(() => {
@@ -59,13 +73,13 @@ const CargaPropuesta = () => {
   const validate = () => {
     const e = {};
     if (!form.titulo.trim()) e.titulo = 'El título es obligatorio';
+    if (!form.tipo) e.tipo = 'Seleccioná un tipo';
     if (!form.descripcion.trim() || form.descripcion.trim().length < 20) e.descripcion = 'La descripción debe tener al menos 20 caracteres';
     if (!form.responsable.trim()) e.responsable = 'El responsable es obligatorio';
     if (!form.categoria) e.categoria = 'Seleccioná una categoría';
     const f = form.archivo;
-    if (!f) {
-      e.archivo = 'Debés adjuntar el PDF de la propuesta';
-    } else {
+    // El archivo es OPCIONAL. Si se adjunta, validamos tipo y tamaño.
+    if (f) {
       const isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
       if (!isPdf) e.archivo = 'El archivo debe ser un PDF';
       const maxSize = 10 * 1024 * 1024; // 10MB
@@ -104,6 +118,7 @@ const CargaPropuesta = () => {
         id: `prop-${Date.now()}`,
         userId: user?.id || 'anon',
         titulo: form.titulo.trim(),
+        tipo: form.tipo,
         descripcion: form.descripcion.trim(),
         responsable: form.responsable.trim(),
         categoria: form.categoria,
@@ -126,14 +141,18 @@ const CargaPropuesta = () => {
       arr.push(payload);
       localStorage.setItem('proposals', JSON.stringify(arr));
 
-      // Toast
+      // Toast y redirección al dashboard (scoped por usuario)
       try {
-        const evt = new CustomEvent('toast', { detail: { message: 'Propuesta enviada correctamente', type: 'success' } });
-        window.dispatchEvent(evt);
+        // Guardamos en sessionStorage para que el Layout lo muestre al cargar
+        const key = user ? `toast:${user.id}` : 'toast:anon';
+        sessionStorage.setItem(key, 'Propuesta enviada correctamente');
       } catch { void 0; }
 
       // Reset form
-      setForm({ titulo: '', descripcion: '', responsable: '', categoria: '', archivo: null });
+      setForm({ titulo: '', tipo: '', descripcion: '', responsable: '', categoria: '', archivo: null });
+
+      // Redirigir al inicio (dashboard)
+      navigate('/dashboard');
     } catch {
       alert('Ocurrió un error al enviar la propuesta');
     } finally {
@@ -145,9 +164,6 @@ const CargaPropuesta = () => {
     <div className="carga-proyecto-page">
       <header className="carga-proyecto-header">
         <h1>Cargar Propuesta de Trabajo Final Integrador</h1>
-        <div style={{ textAlign: 'left' }}>
-          <BackButton />
-        </div>
       </header>
 
       <form className="carga-proyecto-form" onSubmit={handleSubmit}>
@@ -161,6 +177,14 @@ const CargaPropuesta = () => {
           onChange={handleChange}
         />
         {errors.titulo && <div className="unla-hint error">{errors.titulo}</div>}
+
+        <label htmlFor="tipo">Tipo</label>
+        <select id="tipo" name="tipo" value={form.tipo} onChange={handleChange}>
+          <option value="">Seleccione un tipo</option>
+          <option value="PRACTICAS PRE PROFESIONALES">PRACTICAS PRE PROFESIONALES</option>
+          <option value="TRABAJO FINAL INTEGRADOR">TRABAJO FINAL INTEGRADOR</option>
+        </select>
+        {errors.tipo && <div className="unla-hint error">{errors.tipo}</div>}
 
         <label htmlFor="descripcion">Descripción</label>
         <textarea
@@ -200,20 +224,29 @@ const CargaPropuesta = () => {
         )}
         {errors.archivo && <div className="unla-hint error">{errors.archivo}</div>}
 
-        <button type="submit" disabled={submitting}>{submitting ? 'Enviando…' : 'Enviar Propuesta'}</button>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+          <button type="button" className="unla-btn" onClick={() => navigate('/dashboard')}>
+            Salir
+          </button>
+          <button type="submit" disabled={submitting} className="unla-btn primary">
+            {submitting ? 'Enviando…' : 'Enviar Propuesta'}
+          </button>
+        </div>
       </form>
 
       {lastSubmission && (
         <div className="unla-card" style={{ marginTop: 16 }}>
           <h2>Último envío</h2>
           <div className="unla-list">
+            <div><strong>Último envío:</strong> {new Date(lastSubmission.uploadedAt).toLocaleString()}</div>
             <div><strong>Título:</strong> {lastSubmission.titulo}</div>
-            <div><strong>Categoría:</strong> {lastSubmission.categoria}</div>
-            <div><strong>Archivo:</strong> {lastSubmission.filename} ({(lastSubmission.filesize / 1024 / 1024).toFixed(2)} MB)</div>
-            <div><strong>Fecha:</strong> {new Date(lastSubmission.uploadedAt).toLocaleString()}</div>
+            <div><strong>Tipo:</strong> {lastSubmission.tipo || '-'}</div>
             <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(lastSubmission.estado) }}>{lastSubmission.estado}</span></div>
-            {lastSubmission.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {lastSubmission.reason}</div>}
+            {lastSubmission.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastSubmission.reason}</div>}
             {lastSubmission.note && <div className="unla-hint"><strong>Observación:</strong> {lastSubmission.note}</div>}
+            <div style={{ marginTop: 8 }}>
+              <button className="unla-btn" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
+            </div>
           </div>
         </div>
       )}
@@ -221,12 +254,26 @@ const CargaPropuesta = () => {
       {allSubmissions.length > 0 && (
         <div className="unla-card" style={{ marginTop: 16 }}>
           <h2>Historial de envíos</h2>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+            <label htmlFor="filtro-estado" style={{ fontSize: 14 }}>Estado:</label>
+            <select id="filtro-estado" className="unla-input" value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)} style={{ maxWidth: 220 }}>
+              <option value="">Todos</option>
+              <option value="aprobado">Aprobado</option>
+              <option value="en_estudio">En estudio</option>
+              <option value="observado">Observado</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
+            <button type="button" className="unla-btn" onClick={() => setSortOrder((s) => s === 'desc' ? 'asc' : 'desc')} title={sortOrder === 'desc' ? 'Más reciente primero' : 'Más antiguo primero'}>
+              {sortOrder === 'desc' ? 'Ordenar ⬇️' : 'Ordenar ⬆️'}
+            </button>
+          </div>
           <div className="unla-table-container">
             <table className="unla-table wide">
               <thead>
                 <tr>
                   <th>Fecha</th>
                   <th>Título</th>
+                  <th>Tipo</th>
                   <th>Categoría</th>
                   <th>Archivo</th>
                   <th>Estado</th>
@@ -235,10 +282,11 @@ const CargaPropuesta = () => {
                 </tr>
               </thead>
               <tbody>
-                {allSubmissions.map((p) => (
+                {visibleSubmissions.map((p) => (
                   <tr key={p.id}>
                     <td>{new Date(p.uploadedAt).toLocaleString()}</td>
                     <td>{p.titulo}</td>
+                    <td>{p.tipo || '-'}</td>
                     <td>{p.categoria}</td>
                     <td>{p.filename ? `${p.filename} (${(p.filesize / 1024 / 1024).toFixed(2)} MB)` : '-'}</td>
                     <td><span className="unla-badge" style={{ ...badgeStyle(p.estado) }}>{p.estado}</span></td>
@@ -250,15 +298,6 @@ const CargaPropuesta = () => {
                       <button
                         type="button"
                         className="unla-btn"
-                        title="Prefill con este envío"
-                        onClick={() => setForm({ titulo: p.titulo, descripcion: p.descripcion, responsable: p.responsable, categoria: p.categoria, archivo: null })}
-                      >
-                        Rellenar datos
-                      </button>
-                      <button
-                        type="button"
-                        className="unla-btn"
-                        style={{ marginLeft: 8 }}
                         onClick={() => setDetail(p)}
                       >
                         Ver detalle
