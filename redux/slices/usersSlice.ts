@@ -13,7 +13,7 @@ export interface User {
   dni?: string;
   fechaNacimiento?: string; // ISO string YYYY-MM-DD
   cuil?: string;
-  sexo?: 'F' | 'M';
+  sexo?: 'F' | 'M' | 'N';
   legajo?: string;
   carrera?: string;
   departamento?: string;
@@ -120,7 +120,7 @@ export const toggleUserActivation = createAsyncThunk<
 
 export const registerStudent = createAsyncThunk<
   User,
-  { email: string; nombre?: string; apellido?: string; legajo?: string; carrera?: string; dni: string; fechaNacimiento: string; cuil: string; sexo: 'F' | 'M' }
+  { email: string; nombre?: string; apellido?: string; legajo?: string; carrera?: string; dni: string; fechaNacimiento: string; cuil?: string; sexo: 'F' | 'M' | 'N' }
 >('users/registerStudent', async (payload) => {
   await new Promise((r) => setTimeout(r, 300));
   const users = loadUsers();

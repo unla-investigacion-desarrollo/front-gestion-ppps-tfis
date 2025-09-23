@@ -22,7 +22,14 @@ interface AuthState {
 
 // Estado inicial
 const initialState: AuthState = {
-  user: null,
+  user: (() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? (JSON.parse(raw) as User) : null;
+    } catch {
+      return null;
+    }
+  })(),
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
   loading: 'idle',
@@ -73,7 +80,7 @@ export const loginUser = createAsyncThunk<
           id: '1',
           email: credentials.email,
           name: 'Usuario de Prueba',
-          roles: ['admin']
+          roles: ['SUPER_ADMIN']
         };
         
         // Token simulado

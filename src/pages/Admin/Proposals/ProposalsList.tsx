@@ -52,7 +52,7 @@ interface UserRef {
 const ProposalsList: React.FC = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [users, setUsers] = useState<UserRef[]>([]);
-  const [filters, setFilters] = useState({ q: '', estado: 'ALL', categoria: 'ALL' });
+  const [filters, setFilters] = useState({ q: '', estado: 'ALL', categoria: 'ALL', tipo: 'ALL' });
   const [sort, setSort] = useState<{ key: 'uploadedAt' | 'titulo'; dir: 'asc' | 'desc' }>({ key: 'uploadedAt', dir: 'desc' });
   const [detail, setDetail] = useState<Proposal | null>(null);
   const currentUser = useMemo(() => {
@@ -111,7 +111,8 @@ const ProposalsList: React.FC = () => {
         const matchesQ = !q || [p.titulo, p.descripcion, joinEmail(p.userId)].join(' ').toLowerCase().includes(q);
         const matchesEstado = filters.estado === 'ALL' || p.estado === filters.estado;
         const matchesCat = filters.categoria === 'ALL' || p.categoria === filters.categoria;
-        return matchesQ && matchesEstado && matchesCat;
+        const matchesTipo = filters.tipo === 'ALL' || (p as any).tipo === filters.tipo;
+        return matchesQ && matchesEstado && matchesCat && matchesTipo;
       })
       .sort((a, b) => {
         const dir = sort.dir === 'asc' ? 1 : -1;
@@ -139,18 +140,27 @@ const ProposalsList: React.FC = () => {
     if (action === 'rechazado') {
       const reason = prompt('Motivo del rechazo:');
       if (!reason) return;
-      const nextHistory = [...(p.history || []), { at: new Date().toISOString(), action: 'rechazado', by, from: p.estado, to: 'rechazado', reason }];
+      const nextHistory: NonNullable<Proposal['history']> = [
+        ...(p.history || []),
+        { at: new Date().toISOString(), action: 'rechazado' as const, by, from: p.estado, to: 'rechazado', reason }
+      ];
       updateProposal(p.id, { estado: 'rechazado', reason, history: nextHistory });
       return;
     }
     if (action === 'observado') {
       const note = prompt('Observación para el estudiante:');
       if (!note) return;
-      const nextHistory = [...(p.history || []), { at: new Date().toISOString(), action: 'observado', by, from: p.estado, to: 'observado', note }];
+      const nextHistory: NonNullable<Proposal['history']> = [
+        ...(p.history || []),
+        { at: new Date().toISOString(), action: 'observado' as const, by, from: p.estado, to: 'observado', note }
+      ];
       updateProposal(p.id, { estado: 'observado', note, history: nextHistory });
       return;
     }
-    const nextHistory = [...(p.history || []), { at: new Date().toISOString(), action, by, from: p.estado, to: action }];
+    const nextHistory: NonNullable<Proposal['history']> = [
+      ...(p.history || []),
+      { at: new Date().toISOString(), action: action as Proposal['estado'], by, from: p.estado, to: action }
+    ];
     updateProposal(p.id, { estado: action, history: nextHistory });
   };
 
@@ -171,7 +181,7 @@ const ProposalsList: React.FC = () => {
         <h1>Propuestas</h1>
 
         <h2 className="unla-section-title">Filtros</h2>
-        <div className="unla-form" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div className="unla-form" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
           <input
             className="unla-input"
             placeholder="Buscar por título, descripción o email"
@@ -192,6 +202,11 @@ const ProposalsList: React.FC = () => {
             <option value="investigacion">Investigación</option>
             <option value="extension">Extensión</option>
           </select>
+          <select className="unla-input" value={filters.tipo} onChange={(e) => setFilters(f => ({ ...f, tipo: e.target.value }))}>
+            <option value="ALL">Tipo: todos</option>
+            <option value="PRACTICAS PRE PROFESIONALES">PRACTICAS PRE PROFESIONALES</option>
+            <option value="TRABAJO FINAL INTEGRADOR">TRABAJO FINAL INTEGRADOR</option>
+          </select>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '6px 0 10px' }}>
@@ -209,6 +224,7 @@ const ProposalsList: React.FC = () => {
             <thead>
               <tr>
                 <th>Título</th>
+                <th>Tipo</th>
                 <th>Email</th>
                 <th>Categoría</th>
                 <th>Archivo</th>
@@ -221,6 +237,7 @@ const ProposalsList: React.FC = () => {
               {filtered.map((p) => (
                 <tr key={p.id}>
                   <td>{p.titulo}</td>
+                  <td>{(p as any).tipo || '-'}</td>
                   <td>{joinEmail(p.userId)}</td>
                   <td>{p.categoria}</td>
                   <td>{p.filename ? `${p.filename} (${fmtSize(p.filesize)})` : '-'}</td>
@@ -263,6 +280,7 @@ const ProposalsList: React.FC = () => {
             <div className="unla-list" style={{ maxHeight: 420, overflow: 'auto' }}>
               <div><strong>Título:</strong> {detail.titulo}</div>
               <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
+              <div><strong>Tipo:</strong> {(detail as any).tipo || '-'}</div>
               <div><strong>Responsable:</strong> {detail.responsable}</div>
               <div><strong>Categoría:</strong> {detail.categoria}</div>
               <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize/1024/1024).toFixed(2)} MB)</div>

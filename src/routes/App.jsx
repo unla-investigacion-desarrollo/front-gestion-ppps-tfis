@@ -5,11 +5,11 @@ import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard'; 
 import CargaProyecto from '../pages/CargaProyecto'; 
 import CargaPropuesta from '../pages/CargaPropuesta'; 
-import CargaTrabajo from '../pages/CargaTrabajo';
 import PrivateRoute from '../auth/PrivateRoute';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
 import AdminRoute from '../auth/AdminRoute';
 import TeacherRoute from '../auth/TeacherRoute';
+import StudentRoute from '../auth/StudentRoute';
 import Register from '../pages/Register/Register';
 import UsersList from '../pages/Admin/Users/UsersList';
 import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
@@ -57,19 +57,14 @@ const App = () => {
           
           <Route path="/carga-propuesta" element={
             <PrivateRoute>
-              <AuthenticatedLayout>
-                <CargaPropuesta />
-              </AuthenticatedLayout>
+              <StudentRoute>
+                <AuthenticatedLayout>
+                  <CargaPropuesta />
+                </AuthenticatedLayout>
+              </StudentRoute>
             </PrivateRoute>
           } />
           
-          <Route path="/carga-trabajo" element={
-            <PrivateRoute>
-              <AuthenticatedLayout>
-                <CargaTrabajo />
-              </AuthenticatedLayout>
-            </PrivateRoute>
-          } />
 
           <Route path="/estado" element={
             <PrivateRoute>
@@ -109,24 +104,6 @@ const App = () => {
             </PrivateRoute>
           } />
           
-          
-         {/*  <Route path="/carga-proyecto" element={
-            <PrivateRoute>
-              <CargaProyecto />
-            </PrivateRoute>
-          } />
-          
-          <Route path="/carga-propuesta" element={
-            <PrivateRoute>
-              <CargaPropuesta />
-            </PrivateRoute>
-          } />
-          
-          <Route path="/carga-trabajo" element={
-            <PrivateRoute>
-              <CargaTrabajo />
-            </PrivateRoute>
-          } /> */}
           
           <Route path='*' element={<NotFound />} />
         </Routes>
