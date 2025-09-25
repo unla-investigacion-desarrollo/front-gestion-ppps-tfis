@@ -153,7 +153,7 @@ export const registerStudent = createAsyncThunk<
 
 export const createOrInviteTeacher = createAsyncThunk<
   User,
-  { email: string; nombre?: string; apellido?: string; departamento?: string; categoria?: string; invite?: boolean; createdBy?: string; password?: string; dni?: string; sexo?: 'F' | 'M' }
+  { email: string; nombre?: string; apellido?: string; invite?: boolean; createdBy?: string; password?: string; dni?: string; sexo?: 'F' | 'M'; rol?: Extract<UserRole, 'DOCENTE' | 'ADMIN'> }
 >('users/createOrInviteTeacher', async (payload) => {
   await new Promise((r) => setTimeout(r, 300));
   const users = loadUsers();
@@ -173,18 +173,20 @@ export const createOrInviteTeacher = createAsyncThunk<
     email: payload.email,
     nombre: payload.nombre,
     apellido: payload.apellido,
-    rol: 'DOCENTE',
+    rol: payload.rol ?? 'DOCENTE',
     estado: payload.invite ? 'invited' : 'active',
     dni: payload.dni,
     sexo: payload.sexo,
-    departamento: payload.departamento,
-    categoria: payload.categoria,
     createdAt: now,
     updatedAt: now,
     createdBy: payload.createdBy,
   };
   if (!payload.invite && payload.password) {
     user.password = payload.password;
+  }
+  // Forzar cambio de contraseña en el primer inicio para ADMIN
+  if (user.rol === 'ADMIN') {
+    user.mustChangePassword = true;
   }
   const updated = [...users, user];
   saveUsers(updated);
