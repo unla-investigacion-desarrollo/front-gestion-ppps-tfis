@@ -21,7 +21,6 @@ const UsersList: React.FC = () => {
     nombre: '',
     apellido: '',
     dni: '',
-    sexo: '' as '' | 'F' | 'M',
     invite: true,
     password: '',
     rol: 'DOCENTE' as 'DOCENTE' | 'ADMIN',
@@ -120,19 +119,17 @@ const UsersList: React.FC = () => {
     if (!form.nombre || /[^\p{L}\s]/gu.test(form.nombre)) { alert('Nombre debe contener solo letras'); return; }
     if (!form.apellido || /[^\p{L}\s]/gu.test(form.apellido)) { alert('Apellido debe contener solo letras'); return; }
     if (!/^\d{8}$/.test(form.dni)) { alert('DNI debe tener 8 dígitos'); return; }
-    if (!form.sexo) { alert('Seleccioná el sexo'); return; }
     if (dniCheckTeach === 'taken') { alert('El DNI ya está en uso'); return; }
     await dispatch<any>(createOrInviteTeacher({ 
       email: form.email,
       nombre: form.nombre,
       apellido: form.apellido,
       dni: form.dni,
-      sexo: form.sexo as 'F' | 'M',
       invite: form.invite,
       password: form.invite ? undefined : form.password,
       rol: form.rol,
     }));
-    setForm({ email: '', nombre: '', apellido: '', dni: '', sexo: '', invite: true, password: '', rol: 'DOCENTE' });
+    setForm({ email: '', nombre: '', apellido: '', dni: '', invite: true, password: '', rol: 'DOCENTE' });
   };
 
   return (
@@ -195,17 +192,6 @@ const UsersList: React.FC = () => {
               <div className="unla-hint">Debe contener exactamente 8 dígitos</div>
             )}
           </div>
-          <select
-            className="unla-input"
-            name="sexo"
-            value={form.sexo}
-            onChange={(e) => setForm((prev) => ({ ...prev, sexo: e.target.value as 'F' | 'M' | '' }))}
-            required
-          >
-            <option value="" disabled>Seleccioná sexo</option>
-            <option value="F">Femenino</option>
-            <option value="M">Masculino</option>
-          </select>
           {/* Campos 'departamento' y 'categoria' eliminados */}
           {form.rol === 'DOCENTE' && (
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -289,12 +275,8 @@ const UsersList: React.FC = () => {
               {showActionsColumn && <th>Acciones</th>}
               <th>Contraseña</th>
               <th>DNI</th>
-              <th>Sexo</th>
               {/* Columnas Departamento y Categoría eliminadas */}
               <th>Legajo</th>
-              <th>Carrera</th>
-              <th>Fecha Nac.</th>
-              <th>CUIL</th>
             </tr>
           </thead>
           <tbody>
@@ -410,12 +392,8 @@ const UsersList: React.FC = () => {
                 )}
                 <td>{(isAdminOnly && (u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN')) ? '-' : (u.password ?? '-')}</td>
                 <td>{u.dni ?? '-'}</td>
-                <td>{u.sexo ?? '-'}</td>
                 {/* Datos de Departamento y Categoría eliminados */}
                 <td>{u.legajo ?? '-'}</td>
-                <td>{u.carrera ?? '-'}</td>
-                <td>{u.fechaNacimiento ?? '-'}</td>
-                <td>{u.cuil ?? '-'}</td>
               </tr>
               ))}
           </tbody>
