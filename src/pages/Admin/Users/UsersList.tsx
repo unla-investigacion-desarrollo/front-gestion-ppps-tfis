@@ -325,7 +325,7 @@ const UsersList: React.FC = () => {
                 Estado {sort.key === 'estado' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
               </th>
               {showActionsColumn && <th>Acciones</th>}
-              <th>Contraseña</th>
+              {isSuperAdmin && <th>Contraseña</th>}
               <th>DNI</th>
               <th>Legajo</th>
             </tr>
@@ -388,7 +388,12 @@ const UsersList: React.FC = () => {
                                 onClick={async () => {
                                   const res = await dispatch<any>(resetPassword({ id: u.id }));
                                   if (res && res.payload) {
-                                    alert(`Contraseña reseteada a: DNI${u.dni}`);
+                                    if (isSuperAdmin) {
+                                      const nuevaPass = res.payload.password || (u.dni ? `DNI${u.dni}` : 'alumno123');
+                                      alert(`Contraseña reseteada a: ${nuevaPass}`);
+                                    } else {
+                                      alert('Contraseña reseteada correctamente');
+                                    }
                                   }
                                 }}
                               >
@@ -436,7 +441,45 @@ const UsersList: React.FC = () => {
                       </div>
                     </td>
                   )}
-                  <td>{(isAdminOnly && (u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN')) ? '-' : (u.password ?? '-')}</td>
+                  {isSuperAdmin && (
+                    <td
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      onClick={e => {
+                        const el = e.currentTarget;
+                        el.textContent = u.password ?? '-';
+                        el.dataset.revealed = 'true';
+                        el.style.userSelect = 'text';
+                      }}
+                      onContextMenu={e => {
+                        e.preventDefault();
+                        const el = e.currentTarget;
+                        if (el.dataset.revealed !== 'true') {
+                          el.textContent = u.password ?? '-';
+                          el.dataset.revealed = 'true';
+                          el.style.userSelect = 'text';
+                        }
+                        // Seleccionar el texto para facilitar el copiado
+                        const range = document.createRange();
+                        range.selectNodeContents(el);
+                        const sel = window.getSelection();
+                        if (sel) {
+                          sel.removeAllRanges();
+                          sel.addRange(range);
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget;
+                        el.textContent = '••••••••';
+                        el.dataset.revealed = 'false';
+                        el.style.userSelect = 'none';
+                        const sel = window.getSelection();
+                        if (sel) sel.removeAllRanges();
+                      }}
+                      data-revealed="false"
+                    >
+                      ••••••••
+                    </td>
+                  )}
                   <td>{u.dni ?? '-'}</td>
                   <td>{u.legajo ?? '-'}</td>
                 </tr>

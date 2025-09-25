@@ -37,7 +37,12 @@ const Dashboard = () => {
           <div className="usuario-info">
             <button onClick={() => setShowConfirm(true)}>Cerrar sesión</button>
             <p><strong>Usuario:</strong> {usuario.name}</p>
-            <p><strong>Rol:</strong> {Array.isArray(usuario.roles) ? usuario.roles.join(', ') : usuario.roles}</p>
+            <p><strong>Rol:</strong> {Array.isArray(usuario.roles) ?
+              Array.from(new Set(usuario.roles.map(r => r.toLowerCase())))
+                .map(r => r.charAt(0).toUpperCase() + r.slice(1).toLowerCase())
+                .join(', ')
+              : (usuario.roles ? usuario.roles.charAt(0).toUpperCase() + usuario.roles.slice(1).toLowerCase() : '')
+            }</p>
           </div>
         )}
       </header>
