@@ -140,89 +140,140 @@ const UsersList: React.FC = () => {
         <h1>Usuarios</h1>
 
         <h2 className="unla-section-title">{isSuperAdmin ? 'Crear/Invitar Admin o Docente' : 'Crear/Invitar Docente'}</h2>
-        <form className="unla-form" onSubmit={handleSubmit} style={{ gridTemplateColumns: '1fr 1fr', display: 'grid' as const }}>
+        <form className="row g-3" onSubmit={handleSubmit}>
           {isSuperAdmin && (
-            <select
-              className="unla-input"
-              name="rol"
-              value={form.rol}
-              onChange={(e) => setForm((prev) => ({ ...prev, rol: e.target.value as 'DOCENTE' | 'ADMIN', invite: e.target.value === 'DOCENTE' ? prev.invite : false }))}
-              required
-            >
-              <option value="DOCENTE">Docente</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <div className="col-md-6">
+              <select
+                className="form-select"
+                name="rol"
+                value={form.rol}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    rol: e.target.value as 'DOCENTE' | 'ADMIN',
+                    invite: e.target.value === 'DOCENTE' ? prev.invite : false,
+                  }))
+                }
+                required
+              >
+                <option value="DOCENTE">Docente</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
           )}
-          <input className="unla-input" name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
-          <div style={{ gridColumn: '1 / -1' }}>
-            {form.email.trim() && emailCheck === 'taken' ? (
-              <div className="unla-hint error">El email ya está en uso.</div>
-            ) : form.email.trim() && emailCheck === 'checking' ? (
-              <div className="unla-hint">Verificando email…</div>
-            ) : (
-              <div className="unla-hint">Ingresá un email válido. No debe estar registrado.</div>
-            )}
+
+          <div className="col-md-6">
+            <input
+              className="form-control"
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+            <div className="form-text">
+              {form.email.trim() && emailCheck === 'taken'
+                ? "❌ El email ya está en uso."
+                : form.email.trim() && emailCheck === 'checking'
+                ? "⏳ Verificando email…"
+                : "Ingresá un email válido. No debe estar registrado."}
+            </div>
           </div>
-          <input
-            className="unla-input"
-            name="nombre"
-            placeholder="Nombre (solo letras)"
-            value={form.nombre}
-            onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value.replace(/[^\p{L}\s]/gu, '') }))}
-          />
-          <input
-            className="unla-input"
-            name="apellido"
-            placeholder="Apellido (solo letras)"
-            value={form.apellido}
-            onChange={(e) => setForm((prev) => ({ ...prev, apellido: e.target.value.replace(/[^\p{L}\s]/gu, '') }))}
-          />
-          <input
-            className="unla-input"
-            name="dni"
-            placeholder="DNI (8 dígitos)"
-            value={form.dni}
-            onChange={(e) => setForm((prev) => ({ ...prev, dni: e.target.value.replace(/\D/g, '').slice(0, 8) }))}
-            required
-          />
-          <div style={{ gridColumn: '1 / -1' }}>
-            {form.dni.length === 8 && dniCheckTeach === 'taken' ? (
-              <div className="unla-hint error">El DNI ya está en uso.</div>
-            ) : form.dni.length === 8 && dniCheckTeach === 'checking' ? (
-              <div className="unla-hint">Verificando DNI…</div>
-            ) : (
-              <div className="unla-hint">Debe contener exactamente 8 dígitos</div>
-            )}
+
+          <div className="col-md-6">
+            <input
+              className="form-control"
+              name="nombre"
+              placeholder="Nombre (solo letras)"
+              value={form.nombre}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  nombre: e.target.value.replace(/[^\p{L}\s]/gu, ""),
+                }))
+              }
+            />
           </div>
-          {/* Campos 'departamento' y 'categoria' eliminados */}
-          {form.rol === 'DOCENTE' && (
-            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+
+          <div className="col-md-6">
+            <input
+              className="form-control"
+              name="apellido"
+              placeholder="Apellido (solo letras)"
+              value={form.apellido}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  apellido: e.target.value.replace(/[^\p{L}\s]/gu, ""),
+                }))
+              }
+            />
+          </div>
+
+          <div className="col-md-6">
+            <input
+              className="form-control"
+              name="dni"
+              placeholder="DNI (8 dígitos)"
+              value={form.dni}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  dni: e.target.value.replace(/\D/g, "").slice(0, 8),
+                }))
+              }
+              required
+            />
+            <div className="form-text">
+              {form.dni.length === 8 && dniCheckTeach === "taken"
+                ? "❌ El DNI ya está en uso."
+                : form.dni.length === 8 && dniCheckTeach === "checking"
+                ? "⏳ Verificando DNI…"
+                : "Debe contener exactamente 8 dígitos"}
+            </div>
+          </div>
+
+          {form.rol === "DOCENTE" && (
+            <div className="col-12">
+              <div className="form-check">
                 <input
                   type="checkbox"
+                  className="form-check-input"
+                  id="inviteCheck"
                   checked={form.invite}
                   onChange={(e) => setForm((prev) => ({ ...prev, invite: e.target.checked }))}
                 />
-                Invitar por email (sin contraseña)
-              </label>
+                <label className="form-check-label" htmlFor="inviteCheck">
+                  Invitar por email (sin contraseña)
+                </label>
+              </div>
             </div>
           )}
+
           {!form.invite && (
-            <input
-              className="unla-input"
-              name="password"
-              placeholder="Contraseña inicial (definida por admin)"
-              value={form.password}
-              onChange={handleChange}
-              type="text"
-              required
-              style={{ gridColumn: '1 / -1' }}
-            />
+            <div className="col-12">
+              <input
+                className="form-control"
+                name="password"
+                placeholder="Contraseña inicial (definida por admin)"
+                value={form.password}
+                onChange={handleChange}
+                type="text"
+                required
+              />
+            </div>
           )}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <button className="unla-btn" type="submit">{form.invite ? `Invitar ${form.rol === 'DOCENTE' ? 'Docente' : 'Usuario'}` : `Crear ${form.rol === 'DOCENTE' ? 'Docente' : 'Admin'}`}</button>
+
+          <div className="col-12">
+            <button className="btn btn-primary" type="submit">
+              {form.invite
+                ? `Invitar ${form.rol === "DOCENTE" ? "Docente" : "Usuario"}`
+                : `Crear ${form.rol === "DOCENTE" ? "Docente" : "Admin"}`}
+            </button>
           </div>
         </form>
+
 
         <h2 className="unla-section-title">Filtros</h2>
         <div className="unla-form" style={{ gridTemplateColumns: '2fr 1fr 1fr', display: 'grid' as const, marginBottom: 12 }}>
