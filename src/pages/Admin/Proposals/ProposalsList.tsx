@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../../../styles/unla.css';
+import { useDispatch } from 'react-redux';
+import { createProject } from '../../../../redux/slices/projectsSlice';
 
 // Simple helpers to interact with localStorage safely
 function readJSON<T>(key: string, fallback: T): T {
@@ -39,6 +41,7 @@ interface Proposal {
     note?: string;
     reason?: string;
   }>;
+  projectId?: string;
 }
 
 interface UserRef {
@@ -50,11 +53,13 @@ interface UserRef {
 }
 
 const ProposalsList: React.FC = () => {
+  const dispatch = useDispatch<any>();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [users, setUsers] = useState<UserRef[]>([]);
   const [filters, setFilters] = useState({ q: '', estado: 'ALL', categoria: 'ALL', tipo: 'ALL' });
   const [sort, setSort] = useState<{ key: 'uploadedAt' | 'titulo'; dir: 'asc' | 'desc' }>({ key: 'uploadedAt', dir: 'desc' });
   const [detail, setDetail] = useState<Proposal | null>(null);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
   const currentUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
   }, []);
@@ -123,6 +128,54 @@ const ProposalsList: React.FC = () => {
       });
   }, [proposals, filters, sort, usersById]);
 
+  // Selección y eliminación en lote
+  const toggleOne = (id: string) => setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
+  const clearSelection = () => setSelected({});
+  const areAllVisibleSelected = filtered.length > 0 && filtered.every((p) => selected[p.id]);
+  const toggleAllVisible = () => {
+    if (areAllVisibleSelected) {
+      const next = { ...selected };
+      filtered.forEach((p) => { delete next[p.id]; });
+      setSelected(next);
+    } else {
+      const next = { ...selected };
+      filtered.forEach((p) => { next[p.id] = true; });
+      setSelected(next);
+    }
+  };
+
+  type DeletedLog = { id: string; by: { id: string; email?: string | null }; at: string; snapshot?: Partial<Proposal> };
+  const pushDeletedLog = (entries: DeletedLog[]) => {
+    try {
+      const raw = localStorage.getItem('proposalsDeletedLog');
+      const arr = raw ? JSON.parse(raw) as DeletedLog[] : [];
+      const next = [...arr, ...entries];
+      localStorage.setItem('proposalsDeletedLog', JSON.stringify(next));
+    } catch {}
+  };
+
+  const deleteSelected = () => {
+    const ids = filtered.map((p) => p.id).filter((id) => selected[id]);
+    if (ids.length === 0) return;
+    const ok = window.confirm(`¿Eliminar ${ids.length} propuesta(s)? Esta acción no se puede deshacer.`);
+    if (!ok) return;
+    setProposals((prev) => {
+      const by = { id: String(currentUser?.id || ''), email: currentUser?.email };
+      const logs: DeletedLog[] = prev
+        .filter((p) => ids.includes(p.id))
+        .map((p) => ({ id: p.id, by, at: new Date().toISOString(), snapshot: { titulo: p.titulo, userId: p.userId, uploadedAt: p.uploadedAt, estado: p.estado, categoria: p.categoria } }));
+      const next = prev.filter((p) => !ids.includes(p.id));
+      writeJSON('proposals', next);
+      pushDeletedLog(logs);
+      try {
+        const evt = new CustomEvent('toast', { detail: { message: `Eliminadas ${ids.length} propuesta(s)`, type: 'success' } });
+        window.dispatchEvent(evt);
+      } catch {}
+      return next;
+    });
+    clearSelection();
+  };
+
   const updateProposal = (id: string, patch: Partial<Proposal>) => {
     setProposals(prev => {
       const next = prev.map(p => (p.id === id ? { ...p, ...patch } : p));
@@ -162,6 +215,25 @@ const ProposalsList: React.FC = () => {
       { at: new Date().toISOString(), action: action as Proposal['estado'], by, from: p.estado, to: action }
     ];
     updateProposal(p.id, { estado: action, history: nextHistory });
+
+    // Si se aprueba, crear proyecto (si no existe) y linkear
+    if (action === 'aprobado') {
+      // Evitar duplicar proyectos si ya fue creado
+      if (!p.projectId && currentUser?.id) {
+        (async () => {
+          const res = await dispatch(createProject({
+            teacherId: String(currentUser.id),
+            titulo: p.titulo,
+            descripcion: p.descripcion,
+            categoria: p.categoria,
+          }));
+          if (!(res as any).error) {
+            const projId = (res as any).payload?.id as string;
+            updateProposal(p.id, { projectId: projId });
+          }
+        })();
+      }
+    }
   };
 
   const fmtSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
@@ -217,12 +289,26 @@ const ProposalsList: React.FC = () => {
           <button className="unla-btn" type="button" onClick={() => setSort(s => ({ key: 'titulo', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
             Título {sort.key === 'titulo' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
           </button>
+          {Object.values(selected).some(Boolean) && (
+            <>
+              <span style={{ color: 'var(--unla-muted)' }}>|</span>
+              <button className="unla-btn" type="button" onClick={deleteSelected} style={{ background: '#c62828' }}>
+                Eliminar seleccionadas
+              </button>
+              <button className="unla-btn" type="button" onClick={clearSelection}>
+                Limpiar selección
+              </button>
+            </>
+          )}
         </div>
 
         <div className="unla-table-container">
           <table className="unla-table wide">
             <thead>
               <tr>
+                <th style={{ width: 36 }}>
+                  <input type="checkbox" aria-label="Seleccionar todas" checked={areAllVisibleSelected} onChange={toggleAllVisible} />
+                </th>
                 <th>Título</th>
                 <th>Tipo</th>
                 <th>Email</th>
@@ -236,6 +322,14 @@ const ProposalsList: React.FC = () => {
             <tbody>
               {filtered.map((p) => (
                 <tr key={p.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={`Seleccionar ${p.titulo}`}
+                      checked={!!selected[p.id]}
+                      onChange={() => toggleOne(p.id)}
+                    />
+                  </td>
                   <td>{p.titulo}</td>
                   <td>{(p as any).tipo || '-'}</td>
                   <td>{joinEmail(p.userId)}</td>

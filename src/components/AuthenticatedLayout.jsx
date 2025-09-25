@@ -24,32 +24,63 @@ const AuthenticatedLayout = ({ children }) => {
   );
   const mustChange = !!user?.mustChangePassword;
 
-  // Simple toast handling (reads sessionStorage 'toast')
+  // Toast handling con cola por usuario (localStorage 'userNotifications')
   const [toast, setToast] = useState(null);
+  const USER_NOTIFICATIONS_KEY = 'userNotifications';
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  };
+
+  const popNextUserNotification = (userId) => {
+    try {
+      const raw = localStorage.getItem(USER_NOTIFICATIONS_KEY);
+      if (!raw) return null;
+      const map = JSON.parse(raw) || {};
+      const list = Array.isArray(map[userId]) ? map[userId] : [];
+      if (list.length === 0) return null;
+      const next = list.shift();
+      map[userId] = list;
+      localStorage.setItem(USER_NOTIFICATIONS_KEY, JSON.stringify(map));
+      return next || null;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
+    // 1) Intentar mostrar lo que venga por sessionStorage (flujo previo)
     try {
       const key = user ? `toast:${user.id}` : 'toast:anon';
       const msg = sessionStorage.getItem(key) || sessionStorage.getItem('toast'); // compatibilidad vieja
       if (msg) {
-        setToast({ message: msg, type: 'success' });
+        showToast(msg, 'success');
         sessionStorage.removeItem(key);
         sessionStorage.removeItem('toast');
-        const t = setTimeout(() => setToast(null), 3000);
-        return () => clearTimeout(t);
       }
     } catch (err) {
-      // Puede fallar si sessionStorage no está disponible
       void err;
     }
+    // 2) Listener para eventos de toast
     const onToast = (e) => {
       const payload = e?.detail || {};
-      setToast({ message: payload.message || 'Operación realizada', type: payload.type || 'info' });
-      const t = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(t);
+      showToast(payload.message || 'Operación realizada', payload.type || 'info');
     };
     window.addEventListener('toast', onToast);
     return () => window.removeEventListener('toast', onToast);
   }, [user]);
+
+  // Cuando no hay un toast visible, intentar sacar el próximo de la cola del usuario
+  useEffect(() => {
+    if (!toast && user?.id) {
+      const nextMsg = popNextUserNotification(user.id);
+      if (nextMsg) {
+        showToast(nextMsg, 'success');
+      }
+    }
+  }, [toast, user]);
 
   return (
     <>
@@ -58,12 +89,17 @@ const AuthenticatedLayout = ({ children }) => {
         <div className="spacer" />
         <Link to="/dashboard">Inicio</Link>
         {(isAdmin || user?.roles?.includes('DOCENTE')) && (
-          <Link to="/admin/proposals">Propuestas</Link>
+          <>
+            <Link to="/admin/proposals">Propuestas</Link>
+            <Link to="/docente/proyectos">Proyectos</Link>
+            <Link to="/docente/entregas">Entregas</Link>
+          </>
         )}
         {isAdmin && (
           <>
             <Link to="/admin/users">Usuarios</Link>
             <Link to="/admin/approvals">Aprobaciones</Link>
+            <Link to="/admin/outbox">Outbox</Link>
           </>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 12 }}>

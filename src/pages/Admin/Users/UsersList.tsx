@@ -1,25 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, selectUsers, createOrInviteTeacher, deleteUser, resetPassword, activateInvitedTeacher, toggleUserActivation } from '../../../../redux/slices/usersSlice';
+import { selectCurrentUser } from '../../../../redux/slices/authSlice';
 import '../../../styles/unla.css';
 
 const UsersList: React.FC = () => {
   const dispatch = useDispatch();
   const users = useSelector(selectUsers);
+  const currentUser = useSelector(selectCurrentUser);
+  const isSuperAdmin = !!currentUser?.roles?.includes('SUPER_ADMIN');
+  const isAdminOnly = !!currentUser?.roles?.includes('ADMIN') && !isSuperAdmin;
+  const canManage = (targetRole: string) => {
+    if (isSuperAdmin) return true;
+    if (isAdminOnly) return targetRole === 'DOCENTE' || targetRole === 'ESTUDIANTE';
+    return false;
+  };
+  const showActionsColumn = users.some((u) => canManage(u.rol));
   const [form, setForm] = useState({
     email: '',
     nombre: '',
     apellido: '',
     dni: '',
     sexo: '' as '' | 'F' | 'M',
-    departamento: '',
-    categoria: '',
     invite: true,
-    password: ''
+    password: '',
+    rol: 'DOCENTE' as 'DOCENTE' | 'ADMIN',
   });
   const [filters, setFilters] = useState({ q: '', rol: 'ALL', estado: 'ALL' });
   const [activatePw, setActivatePw] = useState<Record<string, string>>({});
   const [dniCheckTeach, setDniCheckTeach] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
+  const [emailCheck, setEmailCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' }>({ key: 'email', dir: 'asc' });
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -53,6 +63,27 @@ const UsersList: React.FC = () => {
     return () => clearTimeout(handle);
   }, [form.dni]);
 
+  // Debounced Email availability check
+  useEffect(() => {
+    const email = (form.email || '').trim().toLowerCase();
+    if (!email) {
+      setEmailCheck('idle');
+      return;
+    }
+    setEmailCheck('checking');
+    const handle = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem('users');
+        const users = raw ? JSON.parse(raw) : [];
+        const exists = users.some((u: any) => (u.email || '').toLowerCase() === email);
+        setEmailCheck(exists ? 'taken' : 'free');
+      } catch {
+        setEmailCheck('free');
+      }
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [form.email]);
+
   const toggleSort = (key: string) => {
     setSort((prev) => ({
       key,
@@ -85,6 +116,7 @@ const UsersList: React.FC = () => {
     e.preventDefault();
     // Validaciones básicas
     if (!form.email) { alert('Email es obligatorio'); return; }
+    if (emailCheck === 'taken') { alert('El email ya está en uso'); return; }
     if (!form.nombre || /[^\p{L}\s]/gu.test(form.nombre)) { alert('Nombre debe contener solo letras'); return; }
     if (!form.apellido || /[^\p{L}\s]/gu.test(form.apellido)) { alert('Apellido debe contener solo letras'); return; }
     if (!/^\d{8}$/.test(form.dni)) { alert('DNI debe tener 8 dígitos'); return; }
@@ -96,12 +128,11 @@ const UsersList: React.FC = () => {
       apellido: form.apellido,
       dni: form.dni,
       sexo: form.sexo as 'F' | 'M',
-      departamento: form.departamento,
-      categoria: form.categoria,
       invite: form.invite,
       password: form.invite ? undefined : form.password,
+      rol: form.rol,
     }));
-    setForm({ email: '', nombre: '', apellido: '', dni: '', sexo: '', departamento: '', categoria: '', invite: true, password: '' });
+    setForm({ email: '', nombre: '', apellido: '', dni: '', sexo: '', invite: true, password: '', rol: 'DOCENTE' });
   };
 
   return (
@@ -109,9 +140,30 @@ const UsersList: React.FC = () => {
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <h1>Usuarios</h1>
 
-        <h2 className="unla-section-title">Crear/Invitar Docente</h2>
+        <h2 className="unla-section-title">{isSuperAdmin ? 'Crear/Invitar Admin o Docente' : 'Crear/Invitar Docente'}</h2>
         <form className="unla-form" onSubmit={handleSubmit} style={{ gridTemplateColumns: '1fr 1fr', display: 'grid' as const }}>
+          {isSuperAdmin && (
+            <select
+              className="unla-input"
+              name="rol"
+              value={form.rol}
+              onChange={(e) => setForm((prev) => ({ ...prev, rol: e.target.value as 'DOCENTE' | 'ADMIN', invite: e.target.value === 'DOCENTE' ? prev.invite : false }))}
+              required
+            >
+              <option value="DOCENTE">Docente</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          )}
           <input className="unla-input" name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+          <div style={{ gridColumn: '1 / -1' }}>
+            {form.email.trim() && emailCheck === 'taken' ? (
+              <div className="unla-hint error">El email ya está en uso.</div>
+            ) : form.email.trim() && emailCheck === 'checking' ? (
+              <div className="unla-hint">Verificando email…</div>
+            ) : (
+              <div className="unla-hint">Ingresá un email válido. No debe estar registrado.</div>
+            )}
+          </div>
           <input
             className="unla-input"
             name="nombre"
@@ -154,18 +206,19 @@ const UsersList: React.FC = () => {
             <option value="F">Femenino</option>
             <option value="M">Masculino</option>
           </select>
-          <input className="unla-input" name="departamento" placeholder="Departamento" value={form.departamento} onChange={handleChange} />
-          <input className="unla-input" name="categoria" placeholder="Categoría" value={form.categoria} onChange={handleChange} />
-          <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={form.invite}
-                onChange={(e) => setForm((prev) => ({ ...prev, invite: e.target.checked }))}
-              />
-              Invitar por email (sin contraseña)
-            </label>
-          </div>
+          {/* Campos 'departamento' y 'categoria' eliminados */}
+          {form.rol === 'DOCENTE' && (
+            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={form.invite}
+                  onChange={(e) => setForm((prev) => ({ ...prev, invite: e.target.checked }))}
+                />
+                Invitar por email (sin contraseña)
+              </label>
+            </div>
+          )}
           {!form.invite && (
             <input
               className="unla-input"
@@ -179,7 +232,7 @@ const UsersList: React.FC = () => {
             />
           )}
           <div style={{ gridColumn: '1 / -1' }}>
-            <button className="unla-btn" type="submit">{form.invite ? 'Invitar Docente' : 'Crear Docente'}</button>
+            <button className="unla-btn" type="submit">{form.invite ? `Invitar ${form.rol === 'DOCENTE' ? 'Docente' : 'Usuario'}` : `Crear ${form.rol === 'DOCENTE' ? 'Docente' : 'Admin'}`}</button>
           </div>
         </form>
 
@@ -233,12 +286,11 @@ const UsersList: React.FC = () => {
               <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('estado')}>
                 Estado {sort.key === 'estado' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
               </th>
-              <th>Acciones</th>
+              {showActionsColumn && <th>Acciones</th>}
               <th>Contraseña</th>
               <th>DNI</th>
               <th>Sexo</th>
-              <th>Departamento</th>
-              <th>Categoría</th>
+              {/* Columnas Departamento y Categoría eliminadas */}
               <th>Legajo</th>
               <th>Carrera</th>
               <th>Fecha Nac.</th>
@@ -265,8 +317,11 @@ const UsersList: React.FC = () => {
                 <td>{[u.nombre, u.apellido].filter(Boolean).join(' ')}</td>
                 <td>{u.rol}</td>
                 <td>{u.estado}</td>
+                {showActionsColumn && (
                 <td>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                    {canManage(u.rol) && (
+                      <>
                     {u.rol === 'DOCENTE' && u.estado === 'invited' && (
                       <>
                         <input
@@ -348,13 +403,15 @@ const UsersList: React.FC = () => {
                     >
                       🗑️ Eliminar
                     </button>
+                      </>
+                    )}
                   </div>
                 </td>
-                <td>{u.password ?? '-'}</td>
+                )}
+                <td>{(isAdminOnly && (u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN')) ? '-' : (u.password ?? '-')}</td>
                 <td>{u.dni ?? '-'}</td>
                 <td>{u.sexo ?? '-'}</td>
-                <td>{u.departamento ?? '-'}</td>
-                <td>{u.categoria ?? '-'}</td>
+                {/* Datos de Departamento y Categoría eliminados */}
                 <td>{u.legajo ?? '-'}</td>
                 <td>{u.carrera ?? '-'}</td>
                 <td>{u.fechaNacimiento ?? '-'}</td>

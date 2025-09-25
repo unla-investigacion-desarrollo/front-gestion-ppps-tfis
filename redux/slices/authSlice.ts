@@ -201,13 +201,33 @@ const authSlice = createSlice({
         // Actualizar localStorage con la información del usuario
         localStorage.setItem('user', JSON.stringify(action.payload.user));
         localStorage.setItem('lastLogin', state.lastLogin);
+        // Mover una notificación pendiente del usuario a sessionStorage para mostrar como toast
+        try {
+          const userId = action.payload.user?.id as string | undefined;
+          if (userId) {
+            const key = 'userNotifications';
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const map = JSON.parse(raw) as Record<string, string[]>;
+              const list = Array.isArray(map[userId]) ? map[userId] : [];
+              if (list.length > 0) {
+                const message = list.shift() as string;
+                map[userId] = list;
+                localStorage.setItem(key, JSON.stringify(map));
+                sessionStorage.setItem(`toast:${userId}`, message);
+              }
+            }
+          }
+        } catch {
+          // ignorar errores de almacenamiento
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = 'failed';
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.error = action.payload ?? 'Error desconocido';
+        state.error = (action.payload as string) ?? 'Error desconocido';
         // Limpiar localStorage en caso de error
         localStorage.removeItem('token');
         localStorage.removeItem('user');
