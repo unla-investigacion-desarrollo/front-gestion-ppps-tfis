@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, selectUsers, createOrInviteTeacher, deleteUser, resetPassword, activateInvitedTeacher, toggleUserActivation } from '../../../../redux/slices/usersSlice';
 import { selectCurrentUser } from '../../../../redux/slices/authSlice';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../../../styles/unla.css';
 
 const UsersList: React.FC = () => {
@@ -256,9 +258,8 @@ const UsersList: React.FC = () => {
         </div>
 
         <h2 className="unla-section-title">Listado</h2>
-        <div className="unla-table-container">
-        <table className="unla-table wide">
-          <thead>
+        <table className="table table-striped table-hover table-bordered">
+          <thead className="table-dark">
             <tr>
               <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('email')}>
                 Email {sort.key === 'email' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
@@ -275,7 +276,6 @@ const UsersList: React.FC = () => {
               {showActionsColumn && <th>Acciones</th>}
               <th>Contraseña</th>
               <th>DNI</th>
-              {/* Columnas Departamento y Categoría eliminadas */}
               <th>Legajo</th>
             </tr>
           </thead>
@@ -294,111 +294,105 @@ const UsersList: React.FC = () => {
               })
               .slice((page - 1) * pageSize, page * pageSize)
               .map((u) => (
-              <tr key={u.id}>
-                <td>{u.email}</td>
-                <td>{[u.nombre, u.apellido].filter(Boolean).join(' ')}</td>
-                <td>{u.rol}</td>
-                <td>{u.estado}</td>
-                {showActionsColumn && (
-                <td>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                    {canManage(u.rol) && (
-                      <>
-                    {u.rol === 'DOCENTE' && u.estado === 'invited' && (
-                      <>
-                        <input
-                          className="unla-input"
-                          placeholder="Contraseña inicial"
-                          value={activatePw[u.id] || ''}
-                          onChange={(e) => setActivatePw((m) => ({ ...m, [u.id]: e.target.value }))}
-                          style={{ maxWidth: 200 }}
-                        />
-                        <button
-                          type="button"
-                          className="unla-btn"
-                          title="Activar docente invitado"
-                          onClick={async () => {
-                            const pwd = (activatePw[u.id] || '').trim();
-                            if (pwd.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
-                            const res = await dispatch<any>(activateInvitedTeacher({ id: u.id, password: pwd }));
-                            if (res && !res.error) {
-                              setActivatePw((m) => ({ ...m, [u.id]: '' }));
-                              alert('Docente activado correctamente');
-                            }
-                          }}
-                        >
-                          ✔️ Activar
-                        </button>
-                      </>
-                    )}
-                    {u.dni && (
-                      <button
-                        type="button"
-                        className="unla-btn"
-                        title="Resetear contraseña a DNI + número"
-                        onClick={async () => {
-                          const res = await dispatch<any>(resetPassword({ id: u.id }));
-                          if (res && res.payload) {
-                            alert(`Contraseña reseteada a: DNI${u.dni}`);
-                          }
-                        }}
-                      >
-                        ♻️ Resetear
-                      </button>
-                    )}
-                    {u.estado === 'active' ? (
-                      <button
-                        type="button"
-                        className="unla-btn"
-                        title="Desactivar cuenta"
-                        onClick={async () => {
-                          const ok = confirm('¿Desactivar esta cuenta?');
-                          if (!ok) return;
-                          await dispatch<any>(toggleUserActivation({ id: u.id, enable: false }));
-                        }}
-                      >
-                        ⛔ Desactivar
-                      </button>
-                    ) : (u.estado === 'disabled' || u.estado === 'rejected') ? (
-                      <button
-                        type="button"
-                        className="unla-btn"
-                        title="Activar cuenta"
-                        onClick={async () => {
-                          const ok = confirm('¿Activar esta cuenta?');
-                          if (!ok) return;
-                          await dispatch<any>(toggleUserActivation({ id: u.id, enable: true }));
-                        }}
-                      >
-                        ✅ Activar
-                      </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      className="unla-btn"
-                      title="Eliminar usuario"
-                      onClick={async () => {
-                        if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
-                          await dispatch<any>(deleteUser({ id: u.id }));
-                        }
-                      }}
-                    >
-                      🗑️ Eliminar
-                    </button>
-                      </>
-                    )}
-                  </div>
-                </td>
-                )}
-                <td>{(isAdminOnly && (u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN')) ? '-' : (u.password ?? '-')}</td>
-                <td>{u.dni ?? '-'}</td>
-                {/* Datos de Departamento y Categoría eliminados */}
-                <td>{u.legajo ?? '-'}</td>
-              </tr>
+                <tr key={u.id}>
+                  <td>{u.email}</td>
+                  <td>{[u.nombre, u.apellido].filter(Boolean).join(' ')}</td>
+                  <td>{u.rol}</td>
+                  <td>{u.estado}</td>
+                  {showActionsColumn && (
+                    <td>
+                      <div className="d-flex flex-wrap gap-2 align-items-center">
+                        {canManage(u.rol) && (
+                          <>
+                            {u.rol === 'DOCENTE' && u.estado === 'invited' && (
+                              <>
+                                <input
+                                  className="form-control"
+                                  placeholder="Contraseña inicial"
+                                  value={activatePw[u.id] || ''}
+                                  onChange={(e) => setActivatePw((m) => ({ ...m, [u.id]: e.target.value }))}
+                                  style={{ maxWidth: 200 }}
+                                />
+                                <button
+                                  type="button"
+                                  className="btn btn-success"
+                                  onClick={async () => {
+                                    const pwd = (activatePw[u.id] || '').trim();
+                                    if (pwd.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
+                                    const res = await dispatch<any>(activateInvitedTeacher({ id: u.id, password: pwd }));
+                                    if (res && !res.error) {
+                                      setActivatePw((m) => ({ ...m, [u.id]: '' }));
+                                      alert('Docente activado correctamente');
+                                    }
+                                  }}
+                                >
+                                  Activar
+                                </button>
+                              </>
+                            )}
+                            {u.dni && (
+                              <button
+                                type="button"
+                                className="btn btn-warning"
+                                onClick={async () => {
+                                  const res = await dispatch<any>(resetPassword({ id: u.id }));
+                                  if (res && res.payload) {
+                                    alert(`Contraseña reseteada a: DNI${u.dni}`);
+                                  }
+                                }}
+                              >
+                                Resetear
+                              </button>
+                            )}
+                            {u.estado === 'active' ? (
+                              <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={async () => {
+                                  const ok = confirm('¿Desactivar esta cuenta?');
+                                  if (!ok) return;
+                                  await dispatch<any>(toggleUserActivation({ id: u.id, enable: false }));
+                                }}
+                              >
+                                Desactivar
+                              </button>
+                            ) : (u.estado === 'disabled' || u.estado === 'rejected') ? (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={async () => {
+                                  const ok = confirm('¿Activar esta cuenta?');
+                                  if (!ok) return;
+                                  await dispatch<any>(toggleUserActivation({ id: u.id, enable: true }));
+                                }}
+                              >
+                                Activar
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger"
+                              onClick={async () => {
+                                if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
+                                  await dispatch<any>(deleteUser({ id: u.id }));
+                                }
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                  <td>{(isAdminOnly && (u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN')) ? '-' : (u.password ?? '-')}</td>
+                  <td>{u.dni ?? '-'}</td>
+                  <td>{u.legajo ?? '-'}</td>
+                </tr>
               ))}
           </tbody>
         </table>
-        </div>
+
         {/* Pagination */}
         {(() => {
           const filteredCount = users.filter((u) => {
