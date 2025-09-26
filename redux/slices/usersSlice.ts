@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
-export type UserStatus = 'pending' | 'active' | 'rejected' | 'invited' | 'disabled';
+export type UserStatus = 'pending' | 'active' | 'rejected' | 'invited' | 'disabled' | 'papelera';
 
 export interface User {
   id: string;
@@ -218,8 +218,10 @@ export const rejectUser = createAsyncThunk<User, { id: string }>('users/reject',
 export const deleteUser = createAsyncThunk<string, { id: string }>('users/delete', async ({ id }) => {
   await new Promise((r) => setTimeout(r, 200));
   const users = loadUsers();
-  const updated = users.filter(u => u.id !== id);
-  saveUsers(updated);
+  const idx = users.findIndex(u => u.id === id);
+  if (idx === -1) throw new Error('Usuario no encontrado');
+  users[idx] = { ...users[idx], estado: 'papelera', updatedAt: new Date().toISOString() };
+  saveUsers(users);
   return id;
 });
 
@@ -272,7 +274,8 @@ const usersSlice = createSlice({
         if (idx !== -1) state.list[idx] = action.payload;
       })
       .addCase(deleteUser.fulfilled, (state, action: PayloadAction<string>) => {
-        state.list = state.list.filter(u => u.id !== action.payload);
+        const idx = state.list.findIndex(u => u.id === action.payload);
+        if (idx !== -1) state.list[idx].estado = 'papelera';
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
         const idx = state.list.findIndex((u) => u.id === action.payload.id);
