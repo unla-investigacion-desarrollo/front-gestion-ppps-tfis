@@ -134,6 +134,23 @@ const UsersList: React.FC = () => {
     setForm({ email: '', nombre: '', apellido: '', dni: '', invite: true, password: '', rol: 'DOCENTE' });
   };
 
+  // --- FILTRO DE USUARIOS PARA LA TABLA ---
+  const filteredUsers = users
+    .filter((u) => {
+      const q = filters.q.trim().toLowerCase();
+      const matchesQ = !q || [u.email, u.nombre, u.apellido].filter(Boolean).join(' ').toLowerCase().includes(q);
+      const matchesRol = filters.rol === 'ALL' || u.rol === filters.rol;
+      const matchesEstado = filters.estado === 'papelera'
+        ? u.estado === 'papelera'
+        : (filters.estado === 'ALL' || u.estado === filters.estado) && u.estado !== 'papelera';
+      return matchesQ && matchesRol && matchesEstado;
+    })
+    .sort((a, b) => {
+      const dir = sort.dir === 'asc' ? 1 : -1;
+      return dir * compare(a, b, sort.key);
+    })
+    .slice((page - 1) * pageSize, page * pageSize);
+
   return (
     <div className="unla-page">
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
@@ -305,10 +322,20 @@ const UsersList: React.FC = () => {
             <option value="invited">Invitado</option>
             <option value="rejected">Rechazado</option>
             <option value="disabled">Deshabilitado</option>
+            <option value="papelera">Papelera</option>
           </select>
         </div>
 
-        <h2 className="unla-section-title">Listado</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+          <h2 className="unla-section-title" style={{ margin: 0 }}>Listado</h2>
+          <button
+            className="btn btn-secondary"
+            style={{ fontWeight: 600, padding: '6px 18px' }}
+            onClick={() => setFilters(f => ({ ...f, estado: f.estado === 'papelera' ? 'ALL' : 'papelera' }))}
+          >
+            {filters.estado === 'papelera' ? 'Ver activos' : 'Ver papelera'}
+          </button>
+        </div>
         <table className="table table-striped table-hover table-bordered">
           <thead className="table-dark">
             <tr>
@@ -325,122 +352,198 @@ const UsersList: React.FC = () => {
                 Estado {sort.key === 'estado' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
               </th>
               {showActionsColumn && <th>Acciones</th>}
-              <th>Contraseña</th>
+              {isSuperAdmin && <th>Contraseña</th>}
               <th>DNI</th>
               <th>Legajo</th>
             </tr>
           </thead>
           <tbody>
-            {users
-              .filter((u) => {
-                const q = filters.q.trim().toLowerCase();
-                const matchesQ = !q || [u.email, u.nombre, u.apellido].filter(Boolean).join(' ').toLowerCase().includes(q);
-                const matchesRol = filters.rol === 'ALL' || u.rol === filters.rol;
-                const matchesEstado = filters.estado === 'ALL' || u.estado === filters.estado;
-                return matchesQ && matchesRol && matchesEstado;
-              })
-              .sort((a, b) => {
-                const dir = sort.dir === 'asc' ? 1 : -1;
-                return dir * compare(a, b, sort.key);
-              })
-              .slice((page - 1) * pageSize, page * pageSize)
-              .map((u) => (
-                <tr key={u.id}>
-                  <td>{u.email}</td>
-                  <td>{[u.nombre, u.apellido].filter(Boolean).join(' ')}</td>
-                  <td>{u.rol}</td>
-                  <td>{u.estado}</td>
-                  {showActionsColumn && (
-                    <td>
-                      <div className="d-flex flex-wrap gap-2 align-items-center">
-                        {canManage(u.rol) && (
-                          <>
-                            {u.rol === 'DOCENTE' && u.estado === 'invited' && (
-                              <>
-                                <input
-                                  className="form-control"
-                                  placeholder="Contraseña inicial"
-                                  value={activatePw[u.id] || ''}
-                                  onChange={(e) => setActivatePw((m) => ({ ...m, [u.id]: e.target.value }))}
-                                  style={{ maxWidth: 200 }}
-                                />
-                                <button
-                                  type="button"
-                                  className="btn btn-success"
-                                  onClick={async () => {
-                                    const pwd = (activatePw[u.id] || '').trim();
-                                    if (pwd.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
-                                    const res = await dispatch<any>(activateInvitedTeacher({ id: u.id, password: pwd }));
-                                    if (res && !res.error) {
-                                      setActivatePw((m) => ({ ...m, [u.id]: '' }));
-                                      alert('Docente activado correctamente');
-                                    }
-                                  }}
-                                >
-                                  Activar
-                                </button>
-                              </>
-                            )}
-                            {u.dni && (
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={isSuperAdmin ? 9 : 8} style={{ textAlign: 'center', color: '#888' }}>
+                  {filters.estado === 'papelera' ? 'La papelera está vacía.' : 'No hay usuarios para mostrar.'}
+                </td>
+              </tr>
+            ) : filteredUsers.map((u) => (
+              <tr key={u.id}>
+                <td>{u.email}</td>
+                <td>{[u.nombre, u.apellido].filter(Boolean).join(' ')}</td>
+                <td>{u.rol}</td>
+                <td>{u.estado}</td>
+                {showActionsColumn && (
+                  <td>
+                    <div className="d-flex flex-wrap gap-2 align-items-center">
+                      {canManage(u.rol) && (
+                        <React.Fragment>
+                          {/* Acciones para usuarios en papelera: solo mostrar Restaurar y Eliminar definitivamente */}
+                          {u.estado === 'papelera' ? (
+                            <>
                               <button
                                 type="button"
-                                className="btn btn-warning"
+                                className="btn btn-success"
                                 onClick={async () => {
-                                  const res = await dispatch<any>(resetPassword({ id: u.id }));
-                                  if (res && res.payload) {
-                                    alert(`Contraseña reseteada a: DNI${u.dni}`);
+                                  // Restaurar usuario
+                                  const updated = { ...u, estado: 'active', updatedAt: new Date().toISOString() };
+                                  const raw = localStorage.getItem('users');
+                                  const users = raw ? JSON.parse(raw) : [];
+                                  const idx = users.findIndex((user: any) => user.id === u.id);
+                                  if (idx !== -1) {
+                                    users[idx] = updated;
+                                    localStorage.setItem('users', JSON.stringify(users));
+                                    dispatch<any>(fetchUsers());
                                   }
                                 }}
                               >
-                                Resetear
+                                Restaurar
                               </button>
-                            )}
-                            {u.estado === 'active' ? (
                               <button
                                 type="button"
                                 className="btn btn-danger"
                                 onClick={async () => {
-                                  const ok = confirm('¿Desactivar esta cuenta?');
-                                  if (!ok) return;
-                                  await dispatch<any>(toggleUserActivation({ id: u.id, enable: false }));
+                                  if (window.confirm('¿Eliminar definitivamente este usuario?')) {
+                                    const raw = localStorage.getItem('users');
+                                    const users = raw ? JSON.parse(raw) : [];
+                                    const updated = users.filter((user: any) => user.id !== u.id);
+                                    localStorage.setItem('users', JSON.stringify(updated));
+                                    dispatch<any>(fetchUsers());
+                                  }
                                 }}
                               >
-                                Desactivar
+                                Eliminar definitivamente
                               </button>
-                            ) : (u.estado === 'disabled' || u.estado === 'rejected') ? (
+                            </>
+                          ) : null}
+                          {/* Acciones originales para usuarios no en papelera */}
+                          {u.estado !== 'papelera' && u.rol === 'DOCENTE' && u.estado === 'invited' && (
+                            <React.Fragment>
+                              <input
+                                className="form-control"
+                                placeholder="Contraseña inicial"
+                                value={activatePw[u.id] || ''}
+                                onChange={(e) => setActivatePw((m) => ({ ...m, [u.id]: e.target.value }))}
+                                style={{ maxWidth: 200 }}
+                              />
                               <button
                                 type="button"
-                                className="btn btn-primary"
+                                className="btn btn-success"
                                 onClick={async () => {
-                                  const ok = confirm('¿Activar esta cuenta?');
-                                  if (!ok) return;
-                                  await dispatch<any>(toggleUserActivation({ id: u.id, enable: true }));
+                                  const pwd = (activatePw[u.id] || '').trim();
+                                  if (pwd.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
+                                  const res = await dispatch<any>(activateInvitedTeacher({ id: u.id, password: pwd }));
+                                  if (res && !res.error) {
+                                    setActivatePw((m) => ({ ...m, [u.id]: '' }));
+                                    alert('Docente activado correctamente');
+                                  }
                                 }}
                               >
                                 Activar
                               </button>
-                            ) : null}
+                            </React.Fragment>
+                          )}
+                          {u.dni && (
                             <button
                               type="button"
-                              className="btn btn-outline-danger"
+                              className="btn btn-warning"
                               onClick={async () => {
-                                if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
-                                  await dispatch<any>(deleteUser({ id: u.id }));
+                                const res = await dispatch<any>(resetPassword({ id: u.id }));
+                                if (res && res.payload) {
+                                  if (isSuperAdmin) {
+                                    const nuevaPass = res.payload.password || (u.dni ? `DNI${u.dni}` : 'alumno123');
+                                    alert(`Contraseña reseteada a: ${nuevaPass}`);
+                                  } else {
+                                    alert('Contraseña reseteada correctamente');
+                                  }
                                 }
                               }}
                             >
-                              Eliminar
+                              Resetear
                             </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                  <td>{(isAdminOnly && (u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN')) ? '-' : (u.password ?? '-')}</td>
-                  <td>{u.dni ?? '-'}</td>
-                  <td>{u.legajo ?? '-'}</td>
-                </tr>
-              ))}
+                          )}
+                          {u.estado === 'active' ? (
+                            <button
+                              type="button"
+                              className="btn btn-danger"
+                              onClick={async () => {
+                                const ok = confirm('¿Desactivar esta cuenta?');
+                                if (!ok) return;
+                                await dispatch<any>(toggleUserActivation({ id: u.id, enable: false }));
+                              }}
+                            >
+                              Desactivar
+                            </button>
+                          ) : (u.estado === 'disabled' || u.estado === 'rejected') ? (
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={async () => {
+                                const ok = confirm('¿Activar esta cuenta?');
+                                if (!ok) return;
+                                await dispatch<any>(toggleUserActivation({ id: u.id, enable: true }));
+                              }}
+                            >
+                              Activar
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger"
+                            onClick={async () => {
+                              if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
+                                await dispatch<any>(deleteUser({ id: u.id }));
+                              }
+                            }}
+                          >
+                            Eliminar
+                          </button>
+                        </React.Fragment>
+                      )}
+                    </div>
+                  </td>
+                )}
+                {isSuperAdmin && (
+                  <td
+                    style={{ cursor: 'pointer', userSelect: 'none' }}
+                    onClick={e => {
+                      const el = e.currentTarget;
+                      el.textContent = u.password ?? '-';
+                      el.dataset.revealed = 'true';
+                      el.style.userSelect = 'text';
+                    }}
+                    onContextMenu={e => {
+                      e.preventDefault();
+                      const el = e.currentTarget;
+                      if (el.dataset.revealed !== 'true') {
+                        el.textContent = u.password ?? '-';
+                        el.dataset.revealed = 'true';
+                        el.style.userSelect = 'text';
+                      }
+                      // Seleccionar el texto para facilitar el copiado
+                      const range = document.createRange();
+                      range.selectNodeContents(el);
+                      const sel = window.getSelection();
+                      if (sel) {
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      const el = e.currentTarget;
+                      el.textContent = '••••••••';
+                      el.dataset.revealed = 'false';
+                      el.style.userSelect = 'none';
+                      const sel = window.getSelection();
+                      if (sel) sel.removeAllRanges();
+                    }}
+                    data-revealed="false"
+                  >
+                    ••••••••
+                  </td>
+                )}
+                <td>{u.dni ?? '-'}</td>
+                <td>{u.legajo ?? '-'}</td>
+              </tr>
+            ))}
+                {/* BLOQUE DUPLICADO ELIMINADO: el render de filas ya está dentro del map principal */}
           </tbody>
         </table>
 
