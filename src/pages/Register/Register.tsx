@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { registerStudent, selectUsersStatus, selectUsersError } from '../../../redux/slices/usersSlice';
 import '../../styles/unla.css';
 import { useNavigate } from 'react-router-dom';
-import { CARRERAS } from '../../constants/carreras';
+import './Register.css';
+
 
 const Register: React.FC = () => {
   const dispatch = useDispatch();
@@ -16,9 +17,7 @@ const Register: React.FC = () => {
     nombre: '',
     apellido: '',
     dni: '',
-    carrera: '',
     fechaNacimiento: '',
-    sexo: '' as '' | 'F' | 'M' | 'N',
   };
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -98,7 +97,6 @@ const Register: React.FC = () => {
     if (!form.apellido) newErrors.apellido = 'El apellido es obligatorio';
     if (!form.dni || !/^\d{8}$/.test(form.dni)) newErrors.dni = 'DNI debe tener 8 dígitos';
     if (dniCheck === 'taken') newErrors.dni = 'El DNI ya está en uso';
-    if (!form.carrera) newErrors.carrera = 'Seleccioná tu carrera';
     if (!form.fechaNacimiento) {
       newErrors.fechaNacimiento = 'Fecha de nacimiento obligatoria';
     } else if (isFutureDate(form.fechaNacimiento)) {
@@ -106,11 +104,10 @@ const Register: React.FC = () => {
     } else if (getAge(form.fechaNacimiento) < 18) {
       newErrors.fechaNacimiento = 'Debés tener al menos 18 años';
     }
-    if (!form.sexo) newErrors.sexo = 'Seleccioná tu sexo';
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     try {
-      await dispatch<any>(registerStudent({ ...form, sexo: form.sexo as 'F' | 'M' | 'N' }));
+      await dispatch<any>(registerStudent({ ...form}));
       // mensaje sutil arriba del form
       window.alert('Registro enviado. Tu cuenta está pendiente de aprobación.');
       setForm(initialForm);
@@ -122,195 +119,155 @@ const Register: React.FC = () => {
 
 
   return (
-    <div className="unla-page" style={{ display: 'grid', placeItems: 'center' }}>
-      <div className="unla-card" style={{ width: '100%', maxWidth: 560 }}>
-        <h1>Registro de Estudiante</h1>
-        {error && (
-          <div className="unla-hint error" style={{ marginBottom: 8 }}>
-            {error} — <a href="/help">Ver ayuda</a>
-          </div>
-        )}
-        <form className="unla-form" onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div>
-              <label htmlFor="nombre" className="unla-label">Nombre</label>
-              <input
-                id="nombre"
-                className={`unla-input ${errors.nombre ? 'unla-error' : ''}`}
-                name="nombre"
-                placeholder="Nombre (solo letras)"
-                value={form.nombre}
-                onChange={(e) => {
-                  const letters = e.target.value.replace(/[^\p{L}\s]/gu, '');
-                  setForm((prev) => ({ ...prev, nombre: letters }));
-                }}
-                aria-invalid={!!errors.nombre}
-              />
-            </div>
-            <div>
-              <label htmlFor="apellido" className="unla-label">Apellido</label>
-              <input
-                id="apellido"
-                className={`unla-input ${errors.apellido ? 'unla-error' : ''}`}
-                name="apellido"
-                placeholder="Apellido (solo letras)"
-                value={form.apellido}
-                onChange={(e) => {
-                  const letters = e.target.value.replace(/[^\p{L}\s]/gu, '');
-                  setForm((prev) => ({ ...prev, apellido: letters }));
-                }}
-                aria-invalid={!!errors.apellido}
-              />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {errors.nombre && <div className="unla-hint error">{errors.nombre}</div>}
-            {errors.apellido && <div className="unla-hint error">{errors.apellido}</div>}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div>
-              <label htmlFor="email" className="unla-label">Email</label>
-              <input
-                id="email"
-                className={`unla-input ${errors.email || emailCheck === 'taken' ? 'unla-error' : ''}`}
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={form.email}
-                onChange={handleChange}
-                aria-invalid={!!errors.email || emailCheck === 'taken'}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="dni" className="unla-label">DNI</label>
-              <input
-                id="dni"
-                className={`unla-input ${(errors.dni || dniCheck === 'taken') ? 'unla-error' : ''}`}
-                name="dni"
-                placeholder="DNI (solo números)"
-                value={form.dni}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
-                  setForm((prev) => ({ ...prev, dni: digits }));
-                }}
-                aria-invalid={!!errors.dni || dniCheck === 'taken'}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="fechaNacimiento" className="unla-label">Fecha de Nacimiento</label>
-              <input
-                id="fechaNacimiento"
-                className={`unla-input ${errors.fechaNacimiento ? 'unla-error' : ''}`}
-                name="fechaNacimiento"
-                type="date"
-                placeholder="Fecha de Nacimiento"
-                value={form.fechaNacimiento}
-                onChange={handleChange}
-                max={new Date().toISOString().split('T')[0]}
-                aria-invalid={!!errors.fechaNacimiento}
-                required
-              />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            {errors.email ? (
-              <div className="unla-hint error">{errors.email}</div>
-            ) : emailCheck === 'taken' ? (
-              <div className="unla-hint error">El email ya está en uso. Si olvidaste tu contraseña, pedí al admin el reseteo. <a href="/help">Ver ayuda</a></div>
-            ) : emailCheck === 'checking' ? (
-              <div className="unla-hint">Verificando disponibilidad…</div>
-            ) : (
-              <div className="unla-hint">Usá tu email institucional si tenés</div>
-            )}
-            {errors.dni ? (
-              <div className="unla-hint error">{errors.dni}</div>
-            ) : dniCheck === 'taken' ? (
-              <div className="unla-hint error">El DNI ya está en uso.</div>
-            ) : dniCheck === 'checking' ? (
-              <div className="unla-hint">Verificando DNI…</div>
-            ) : (
-              <div className="unla-hint">Debe contener exactamente 8 dígitos</div>
-            )}
-            {errors.fechaNacimiento ? (
-              <div className="unla-hint error">{errors.fechaNacimiento}</div>
-            ) : (
-              <div className="unla-hint">Seleccioná día, mes y año</div>
-            )}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div>
-              <label htmlFor="carrera" className="unla-label">Carrera</label>
-              <select
-                id="carrera"
-                className={`unla-input ${errors.carrera ? 'unla-error' : ''}`}
-                name="carrera"
-                value={form.carrera}
-                onChange={(e) => setForm((prev) => ({ ...prev, carrera: e.target.value }))}
-                aria-invalid={!!errors.carrera}
-                required
-              >
-                <option value="" disabled>Seleccioná tu carrera</option>
-                {CARRERAS.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="sexo" className="unla-label">Sexo</label>
-              <select
-                id="sexo"
-                className={`unla-input ${errors.sexo ? 'unla-error' : ''}`}
-                name="sexo"
-                value={form.sexo}
-                onChange={(e) => setForm((prev) => ({ ...prev, sexo: e.target.value as 'F' | 'M' | 'N' | '' }))}
-                aria-invalid={!!errors.sexo}
-                required
-              >
-                <option value="" disabled>Seleccioná sexo</option>
-                <option value="F">Femenino</option>
-                <option value="M">Masculino</option>
-                <option value="N">Prefiero no decirlo</option>
-              </select>
+      <div className="background d-flex justify-content-center align-items-center vh-100">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-12 col-md-10 col-lg-8">
+              <div className="card shadow-sm">
+                <div className="card-body p-4">
+                  <h3 className="mb-4 text-center">Registro de Estudiante</h3>
+    
+                  {error && (
+                    <div className="alert alert-danger mb-3">
+                      {error} — <a href="/help">Ver ayuda</a>
+                    </div>
+                  )}
+    
+                  <form onSubmit={handleSubmit} noValidate>
+                    {/* Nombre y Apellido */}
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label htmlFor="nombre" className="form-label">Nombre</label>
+                        <input
+                          type="text"
+                          id="nombre"
+                          name="nombre"
+                          className={`form-control ${errors.nombre ? 'is-invalid' : ''}`}
+                          placeholder="Nombre"
+                          value={form.nombre}
+                          onChange={(e) => {
+                            const letters = e.target.value.replace(/[^\p{L}\s]/gu, '');
+                            setForm((prev) => ({ ...prev, nombre: letters }));
+                          }}
+                        />
+                        {errors.nombre && <div className="invalid-feedback">{errors.nombre}</div>}
+                      </div>
+    
+                      <div className="col-md-6">
+                        <label htmlFor="apellido" className="form-label">Apellido</label>
+                        <input
+                          type="text"
+                          id="apellido"
+                          name="apellido"
+                          className={`form-control ${errors.apellido ? 'is-invalid' : ''}`}
+                          placeholder="Apellido"
+                          value={form.apellido}
+                          onChange={(e) => {
+                            const letters = e.target.value.replace(/[^\p{L}\s]/gu, '');
+                            setForm((prev) => ({ ...prev, apellido: letters }));
+                          }}
+                        />
+                        {errors.apellido && <div className="invalid-feedback">{errors.apellido}</div>}
+                      </div>
+                    </div>
+    
+                    {/* Email, DNI y Fecha */}
+                    <div className="row g-3 mt-2">
+                      <div className="col-md-4">
+                        <label htmlFor="email" className="form-label">Email</label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          className={`form-control ${(errors.email || emailCheck === 'taken') ? 'is-invalid' : ''}`}
+                          value={form.email}
+                          onChange={handleChange}
+                          required
+                        />
+                        {errors.email ? (
+                          <div className="invalid-feedback">{errors.email}</div>
+                        ) : emailCheck === 'taken' ? (
+                          <div className="invalid-feedback">
+                            El email ya está en uso. <a href="/help">Ver ayuda</a>
+                          </div>
+                        ) : emailCheck === 'checking' ? (
+                          <div className="form-text text-muted">Verificando…</div>
+                        ) : (
+                          <div className="form-text">Usá tu email institucional</div>
+                        )}
+                      </div>
+    
+                      <div className="col-md-4">
+                        <label htmlFor="dni" className="form-label">DNI</label>
+                        <input
+                          type="text"
+                          id="dni"
+                          name="dni"
+                          className={`form-control ${(errors.dni || dniCheck === 'taken') ? 'is-invalid' : ''}`}
+                          placeholder="8 dígitos"
+                          value={form.dni}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+                            setForm((prev) => ({ ...prev, dni: digits }));
+                          }}
+                          required
+                        />
+                        {errors.dni ? (
+                          <div className="invalid-feedback">{errors.dni}</div>
+                        ) : dniCheck === 'taken' ? (
+                          <div className="invalid-feedback">El DNI ya está en uso.</div>
+                        ) : dniCheck === 'checking' ? (
+                          <div className="form-text text-muted">Verificando…</div>
+                        ) : (
+                          <div className="form-text">Exactamente 8 números</div>
+                        )}
+                      </div>
+    
+                      <div className="col-md-4">
+                        <label htmlFor="fechaNacimiento" className="form-label">Fecha de Nacimiento</label>
+                        <input
+                          type="date"
+                          id="fechaNacimiento"
+                          name="fechaNacimiento"
+                          className={`form-control ${errors.fechaNacimiento ? 'is-invalid' : ''}`}
+                          value={form.fechaNacimiento}
+                          onChange={handleChange}
+                          max={new Date().toISOString().split('T')[0]}
+                          required
+                        />
+                        {errors.fechaNacimiento ? (
+                          <div className="invalid-feedback">{errors.fechaNacimiento}</div>
+                        ) : (
+                          <div className="form-text">Seleccioná día, mes y año</div>
+                        )}
+                      </div>
+                    </div>
+    
+                    {/* Botones */}
+                    <div className="d-flex gap-2 mt-4">
+                      <button
+                        type="submit"
+                        className="btn btn-danger w-50"
+                        disabled={status === 'loading'}
+                      >
+                        {status === 'loading' ? 'Enviando…' : 'Registrarme'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary w-50"
+                        onClick={() => navigate('/login')}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {errors.carrera && <div className="unla-hint error">{errors.carrera}</div>}
-            {errors.sexo && <div className="unla-hint error">{errors.sexo}</div>}
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="unla-btn" type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Enviando...' : 'Registrarme'}
-            </button>
-            <button
-              type="button"
-              className="unla-btn"
-              onClick={() => navigate('/login')}
-              style={{ background: '#777' }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="unla-btn"
-              onClick={() => {
-                setForm(initialForm);
-                setErrors({});
-                setEmailCheck('idle');
-                setDniCheck('idle');
-              }}
-              style={{ background: '#999', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}
-              aria-label="Limpiar formulario"
-              title="Limpiar formulario"
-            >
-              <span role="img" aria-hidden="true">🧹</span>
-              <span>Limpiar</span>
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
+
   );
 };
 

@@ -120,7 +120,7 @@ export const toggleUserActivation = createAsyncThunk<
 
 export const registerStudent = createAsyncThunk<
   User,
-  { email: string; nombre?: string; apellido?: string; legajo?: string; carrera?: string; dni: string; fechaNacimiento: string; cuil?: string; sexo: 'F' | 'M' | 'N' }
+  { email: string; nombre?: string; apellido?: string; legajo?: string; dni: string; fechaNacimiento: string; cuil?: string; }
 >('users/registerStudent', async (payload) => {
   await new Promise((r) => setTimeout(r, 300));
   const users = loadUsers();
@@ -140,9 +140,7 @@ export const registerStudent = createAsyncThunk<
     dni: payload.dni,
     fechaNacimiento: payload.fechaNacimiento,
     cuil: payload.cuil,
-    sexo: payload.sexo,
     legajo: payload.legajo,
-    carrera: payload.carrera,
     createdAt: now,
     updatedAt: now,
   };
@@ -176,7 +174,6 @@ export const createOrInviteTeacher = createAsyncThunk<
     rol: payload.rol ?? 'DOCENTE',
     estado: payload.invite ? 'invited' : 'active',
     dni: payload.dni,
-    sexo: payload.sexo,
     createdAt: now,
     updatedAt: now,
     createdBy: payload.createdBy,
