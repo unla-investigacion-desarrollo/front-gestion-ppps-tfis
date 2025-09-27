@@ -22,7 +22,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     try {
@@ -33,7 +33,7 @@ function LoginForm() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCredentials(prev => ({
       ...prev,
@@ -41,13 +41,13 @@ function LoginForm() {
     }));
   };
 
-  const handlePasswordKey = (e) => {
+  const handlePasswordKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const isCaps = e.getModifierState && e.getModifierState('CapsLock');
     setCapsLockOn(!!isCaps);
   };
 
   return (
-    <div className="login-page"> 
+  <div className="login-page background"> 
       <header className="login-header">
         <img src={logo} alt="Logo UNLa" className="logo-full" />
       </header>

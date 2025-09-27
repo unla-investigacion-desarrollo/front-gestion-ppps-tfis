@@ -4,8 +4,12 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #f9f9f9;
   padding: 2rem;
+}
+
+.background {
+  background-image: url("../../assets/fondo-rojo.jpg");
+  background-size: cover;
 }
 
 .logo-container {
