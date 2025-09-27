@@ -274,7 +274,7 @@ const DeliveriesReview: React.FC = () => {
     {/* Modal Detalle */}
     {detail && (
       <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-        <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 700, width: '92%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+        <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 800, width: '95%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
           <h3>Detalle de entrega</h3>
           <div className="unla-list" style={{ maxHeight: 420, overflow: 'auto' }}>
             <div><strong>Fecha:</strong> {new Date(detail!.uploadedAt).toLocaleString()}</div>
@@ -284,6 +284,45 @@ const DeliveriesReview: React.FC = () => {
             <div><strong>Link:</strong> {detail!.link ? <a href={detail!.link} target="_blank" rel="noreferrer">Abrir</a> : '—'}</div>
             <div><strong>Observación actual:</strong><br />{detail!.teacherNote || '—'}</div>
             {detail!.reviewedAt && <div><strong>Últ. revisión:</strong> {new Date(detail!.reviewedAt).toLocaleString()}</div>}
+            {/* Visor PDF automático */}
+            {(() => {
+              // Si hay link de Drive
+              if (detail?.link && detail.link.includes('drive.google.com')) {
+                // Extraer ID de Drive
+                const match = detail.link.match(/\/file\/d\/([\w-]+)/);
+                const driveId = match ? match[1] : null;
+                if (driveId) {
+                  return (
+                    <div style={{ margin: '16px 0' }}>
+                      <iframe
+                        src={`https://drive.google.com/file/d/${driveId}/preview`}
+                        title="Drive PDF"
+                        width="100%"
+                        height="80vh"
+                        style={{ border: '1px solid #ccc', borderRadius: 6, minHeight: '400px', maxHeight: '80vh' }}
+                        allow="autoplay"
+                      />
+                    </div>
+                  );
+                }
+              }
+              // Si es PDF local (simulado por filename)
+              if (detail?.filename && detail.filename.toLowerCase().endsWith('.pdf') && detail.link) {
+                return (
+                  <div style={{ margin: '16px 0' }}>
+                    <iframe
+                      src={detail.link}
+                      title="PDF Entrega"
+                      width="100%"
+                      height="80vh"
+                      style={{ border: '1px solid #ccc', borderRadius: 6, minHeight: '400px', maxHeight: '80vh' }}
+                      allow="autoplay"
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
           <button className="unla-btn" type="button" onClick={() => setDetail(null)}>Cerrar</button>
         </div>
@@ -320,7 +359,60 @@ const DeliveriesReview: React.FC = () => {
               {sorted.map(ev => (
                 <li key={ev.id} style={{ marginBottom: 8 }}>
                   <div style={{ fontSize: 12, opacity: 0.7 }}>{new Date(ev.at).toLocaleString()} • {userNameOrEmail(ev.by)}</div>
-                  {ev.type === 'message' && <div>{ev.data?.text}</div>}
+                  {ev.type === 'message' && (
+                    <div>
+                      {(() => {
+                        // Detectar links en el texto
+                        const text = ev.data?.text || '';
+                        const urlRegex = /(https?:\/\/[^\s]+)/g;
+                        const parts = text.split(urlRegex);
+                        return parts.map((part: string, idx: number) => {
+                          if (urlRegex.test(part)) {
+                            return (
+                              <a
+                                key={idx}
+                                href="#"
+                                style={{ color: '#64001D', textDecoration: 'underline', marginRight: 4 }}
+                                onClick={e => {
+                                  e.preventDefault();
+                                  // Abrir visor PDF/Drive en modal
+                                  let showDetail = null;
+                                  if (part.includes('drive.google.com')) {
+                                    const match = part.match(/\/file\/d\/([\w-]+)/);
+                                    const driveId = match ? match[1] : null;
+                                    if (driveId) {
+                                      showDetail = {
+                                        id: `msg-drive-${Date.now()}`,
+                                        projectId: currentProject?.id || '',
+                                        studentId: ev.by,
+                                        uploadedAt: ev.at,
+                                        filename: '',
+                                        link: `https://drive.google.com/file/d/${driveId}/preview`,
+                                      };
+                                    }
+                                  } else if (part.toLowerCase().endsWith('.pdf')) {
+                                    showDetail = {
+                                      id: `msg-pdf-${Date.now()}`,
+                                      projectId: currentProject?.id || '',
+                                      studentId: ev.by,
+                                      uploadedAt: ev.at,
+                                      filename: part.split('/').pop() || '',
+                                      link: part,
+                                    };
+                                  }
+                                  if (showDetail) setDetail(showDetail as Delivery);
+                                  else window.open(part, '_blank');
+                                }}
+                              >
+                                {part}
+                              </a>
+                            );
+                          }
+                          return part;
+                        });
+                      })()}
+                    </div>
+                  )}
                   {ev.type === 'delivery' && (
                     <div>
                       <strong>Entrega:</strong> {ev.data?.filename ? `${ev.data.filename} (${((ev.data.filesize || 0)/1024/1024).toFixed(2)} MB)` : (ev.data?.link || 'sin archivo')}
