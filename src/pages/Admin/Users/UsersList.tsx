@@ -375,7 +375,6 @@ const UsersList: React.FC = () => {
                     <div className="d-flex flex-wrap gap-2 align-items-center">
                       {canManage(u.rol) && (
                         <React.Fragment>
-                          {/* Acciones para usuarios en papelera: solo mostrar Restaurar y Eliminar definitivamente */}
                           {u.estado === 'papelera' ? (
                             <>
                               <button
@@ -412,89 +411,92 @@ const UsersList: React.FC = () => {
                                 Eliminar definitivamente
                               </button>
                             </>
-                          ) : null}
-                          {/* Acciones originales para usuarios no en papelera */}
-                          {u.estado !== 'papelera' && u.rol === 'DOCENTE' && u.estado === 'invited' && (
-                            <React.Fragment>
-                              <input
-                                className="form-control"
-                                placeholder="Contraseña inicial"
-                                value={activatePw[u.id] || ''}
-                                onChange={(e) => setActivatePw((m) => ({ ...m, [u.id]: e.target.value }))}
-                                style={{ maxWidth: 200 }}
-                              />
+                          ) : (
+                            <>
+                              {/* Acciones originales para usuarios no en papelera */}
+                              {u.rol === 'DOCENTE' && u.estado === 'invited' && (
+                                <React.Fragment>
+                                  <input
+                                    className="form-control"
+                                    placeholder="Contraseña inicial"
+                                    value={activatePw[u.id] || ''}
+                                    onChange={(e) => setActivatePw((m) => ({ ...m, [u.id]: e.target.value }))}
+                                    style={{ maxWidth: 200 }}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="btn btn-success"
+                                    onClick={async () => {
+                                      const pwd = (activatePw[u.id] || '').trim();
+                                      if (pwd.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
+                                      const res = await dispatch<any>(activateInvitedTeacher({ id: u.id, password: pwd }));
+                                      if (res && !res.error) {
+                                        setActivatePw((m) => ({ ...m, [u.id]: '' }));
+                                        alert('Docente activado correctamente');
+                                      }
+                                    }}
+                                  >
+                                    Activar
+                                  </button>
+                                </React.Fragment>
+                              )}
+                              {u.dni && (
+                                <button
+                                  type="button"
+                                  className="btn btn-warning"
+                                  onClick={async () => {
+                                    const res = await dispatch<any>(resetPassword({ id: u.id }));
+                                    if (res && res.payload) {
+                                      if (isSuperAdmin) {
+                                        const nuevaPass = res.payload.password || (u.dni ? `DNI${u.dni}` : 'alumno123');
+                                        alert(`Contraseña reseteada a: ${nuevaPass}`);
+                                      } else {
+                                        alert('Contraseña reseteada correctamente');
+                                      }
+                                    }
+                                  }}
+                                >
+                                  Resetear
+                                </button>
+                              )}
+                              {u.estado === 'active' ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-danger"
+                                  onClick={async () => {
+                                    const ok = confirm('¿Desactivar esta cuenta?');
+                                    if (!ok) return;
+                                    await dispatch<any>(toggleUserActivation({ id: u.id, enable: false }));
+                                  }}
+                                >
+                                  Desactivar
+                                </button>
+                              ) : (u.estado === 'disabled' || u.estado === 'rejected') ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-primary"
+                                  onClick={async () => {
+                                    const ok = confirm('¿Activar esta cuenta?');
+                                    if (!ok) return;
+                                    await dispatch<any>(toggleUserActivation({ id: u.id, enable: true }));
+                                  }}
+                                >
+                                  Activar
+                                </button>
+                              ) : null}
                               <button
                                 type="button"
-                                className="btn btn-success"
+                                className="btn btn-outline-danger"
                                 onClick={async () => {
-                                  const pwd = (activatePw[u.id] || '').trim();
-                                  if (pwd.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
-                                  const res = await dispatch<any>(activateInvitedTeacher({ id: u.id, password: pwd }));
-                                  if (res && !res.error) {
-                                    setActivatePw((m) => ({ ...m, [u.id]: '' }));
-                                    alert('Docente activado correctamente');
+                                  if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
+                                    await dispatch<any>(deleteUser({ id: u.id }));
                                   }
                                 }}
                               >
-                                Activar
+                                Eliminar
                               </button>
-                            </React.Fragment>
+                            </>
                           )}
-                          {u.dni && (
-                            <button
-                              type="button"
-                              className="btn btn-warning"
-                              onClick={async () => {
-                                const res = await dispatch<any>(resetPassword({ id: u.id }));
-                                if (res && res.payload) {
-                                  if (isSuperAdmin) {
-                                    const nuevaPass = res.payload.password || (u.dni ? `DNI${u.dni}` : 'alumno123');
-                                    alert(`Contraseña reseteada a: ${nuevaPass}`);
-                                  } else {
-                                    alert('Contraseña reseteada correctamente');
-                                  }
-                                }
-                              }}
-                            >
-                              Resetear
-                            </button>
-                          )}
-                          {u.estado === 'active' ? (
-                            <button
-                              type="button"
-                              className="btn btn-danger"
-                              onClick={async () => {
-                                const ok = confirm('¿Desactivar esta cuenta?');
-                                if (!ok) return;
-                                await dispatch<any>(toggleUserActivation({ id: u.id, enable: false }));
-                              }}
-                            >
-                              Desactivar
-                            </button>
-                          ) : (u.estado === 'disabled' || u.estado === 'rejected') ? (
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              onClick={async () => {
-                                const ok = confirm('¿Activar esta cuenta?');
-                                if (!ok) return;
-                                await dispatch<any>(toggleUserActivation({ id: u.id, enable: true }));
-                              }}
-                            >
-                              Activar
-                            </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            className="btn btn-outline-danger"
-                            onClick={async () => {
-                              if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
-                                await dispatch<any>(deleteUser({ id: u.id }));
-                              }
-                            }}
-                          >
-                            Eliminar
-                          </button>
                         </React.Fragment>
                       )}
                     </div>

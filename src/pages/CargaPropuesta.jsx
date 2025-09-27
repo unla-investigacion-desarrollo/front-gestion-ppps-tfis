@@ -314,7 +314,7 @@ const CargaPropuesta = () => {
       {/* Modal de detalle */}
       {detail && (
         <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 640, width: '90%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+          <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 800, width: '95%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
             <h3>Detalle de propuesta</h3>
             <div className="unla-list" style={{ maxHeight: 360, overflow: 'auto' }}>
               <div><strong>Título:</strong> {detail.titulo}</div>
@@ -326,6 +326,32 @@ const CargaPropuesta = () => {
               <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(detail.estado) }}>{detail.estado}</span></div>
               {detail.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {detail.reason}</div>}
               {detail.note && <div className="unla-hint"><strong>Observación:</strong> {detail.note}</div>}
+              {/* Visor PDF si hay archivo o link de Drive */}
+              {detail.pdfUrl && (
+                <div style={{ margin: '16px 0' }}>
+                  <iframe
+                    src={detail.pdfUrl}
+                    title="PDF Propuesta"
+                    width="100%"
+                    height="400px"
+                    style={{ border: '1px solid #ccc', borderRadius: 6 }}
+                    allow="autoplay"
+                  />
+                </div>
+              )}
+              {/* Si el archivo es de Drive, mostrar visor de Drive */}
+              {detail.driveUrl && (
+                <div style={{ margin: '16px 0' }}>
+                  <iframe
+                    src={`https://drive.google.com/file/d/${detail.driveUrl}/preview`}
+                    title="Drive PDF"
+                    width="100%"
+                    height="400px"
+                    style={{ border: '1px solid #ccc', borderRadius: 6 }}
+                    allow="autoplay"
+                  />
+                </div>
+              )}
               {Array.isArray(detail.history) && detail.history.length > 0 && (
                 <div style={{ marginTop: 12 }}>
                   <h4>Historial de acciones</h4>
