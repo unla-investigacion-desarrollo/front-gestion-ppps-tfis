@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import '../../../styles/unla.css';
+import bgImage from '../../../assets/fondo-rojo.jpg';
 
 type OutboxEmail = {
   to: string; // Typically userId or email
@@ -36,19 +37,28 @@ const Outbox: React.FC = () => {
   };
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <h1 style={{ margin: 0 }}>Bandeja de salida</h1>
           <div className="spacer" />
-          <button className="unla-btn" type="button" onClick={exportCsv} disabled={emails.length === 0}>Exportar CSV</button>
+          <button className="btn btn-outline-secondary" type="button" onClick={exportCsv} disabled={emails.length === 0}>Exportar CSV</button>
         </div>
         {emails.length === 0 ? (
           <div className="unla-hint" style={{ marginTop: 10 }}>No hay emails simulados en la bandeja de salida.</div>
         ) : (
           <div className="unla-table-container" style={{ marginTop: 12 }}>
-            <table className="unla-table wide">
-              <thead>
+            <table className="table table-striped table-hover table-bordered">
+              <thead className="table-dark">
                 <tr>
                   <th>Fecha</th>
                   <th>Para</th>

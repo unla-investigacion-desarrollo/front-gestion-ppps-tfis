@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changePassword } from '../../../redux/slices/usersSlice';
 import { selectCurrentUser, setMustChangePassword } from '../../../redux/slices/authSlice';
 import '../../styles/unla.css';
+import bgImage from '../../assets/fondo-rojo.jpg';
 
 const ChangePassword = () => {
   const user = useSelector(selectCurrentUser) as any;
@@ -59,7 +60,18 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="unla-page" style={{ display: 'grid', placeItems: 'center' }}>
+    <div
+      className="unla-page"
+      style={{
+        display: 'grid',
+        placeItems: 'center',
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', maxWidth: 560 }}>
         <h1>Cambiar contraseña</h1>
         {user?.mustChangePassword && (
@@ -72,7 +84,7 @@ const ChangePassword = () => {
         <form className="unla-form" onSubmit={handleSubmit}>
           <div style={{ position: 'relative' }}>
             <input
-              className="unla-input"
+              className="form-control"
               type={show.current ? 'text' : 'password'}
               placeholder="Contraseña actual"
               value={form.currentPassword}
@@ -83,7 +95,7 @@ const ChangePassword = () => {
           </div>
           <div style={{ position: 'relative' }}>
             <input
-              className="unla-input"
+              className="form-control"
               type={show.next ? 'text' : 'password'}
               placeholder="Nueva contraseña (min 6)"
               value={form.newPassword}
@@ -109,7 +121,7 @@ const ChangePassword = () => {
           </div>
           <div style={{ position: 'relative' }}>
             <input
-              className="unla-input"
+              className="form-control"
               type={show.confirm ? 'text' : 'password'}
               placeholder="Confirmar nueva contraseña"
               value={form.confirmPassword}
@@ -122,10 +134,10 @@ const ChangePassword = () => {
             {form.confirmPassword ? (confirmMatches ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden') : 'Repetí la nueva contraseña'}
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="unla-btn" type="submit">Guardar</button>
+            <button className="btn btn-primary" type="submit">Guardar</button>
             <button
               type="button"
-              className="unla-btn"
+              className="btn btn-secondary"
               onClick={() => navigate('/dashboard')}
               style={{ background: '#777' }}
             >

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import '../../styles/unla.css';
+import bgImage from '../../assets/fondo-rojo.jpg';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { selectProjects } from '../../../redux/slices/projectsSlice';
@@ -24,7 +25,16 @@ const MyProjects: React.FC = () => {
   if (!me) return null;
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <h1>Mis Proyectos</h1>
         {myProjects.length === 0 ? (
@@ -33,8 +43,8 @@ const MyProjects: React.FC = () => {
           </div>
         ) : (
           <div className="unla-table-container" style={{ marginTop: 12 }}>
-            <table className="unla-table wide">
-              <thead>
+            <table className="table table-striped table-hover table-bordered">
+              <thead className="table-dark">
                 <tr>
                   <th>Título</th>
                   <th>Descripción</th>

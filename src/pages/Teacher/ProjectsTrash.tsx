@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import '../../styles/unla.css';
+import bgImage from '../../assets/fondo-rojo.jpg';
 import { useDispatch, useSelector } from 'react-redux';
 import { restoreProject, purgeProject, Project } from '../../../redux/slices/projectsSlice';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
@@ -26,7 +27,16 @@ const ProjectsTrash: React.FC = () => {
   const items = useMemo(() => readTrash().sort((a, b) => (b.deletedAt || '').localeCompare(a.deletedAt || '')), []);
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <h1 style={{ margin: 0 }}>Papelera de Proyectos</h1>
@@ -37,8 +47,8 @@ const ProjectsTrash: React.FC = () => {
           <div className="unla-hint" style={{ marginTop: 10 }}>La Papelera está vacía.</div>
         ) : (
           <div className="unla-table-container" style={{ marginTop: 12 }}>
-            <table className="unla-table wide">
-              <thead>
+            <table className="table table-striped table-hover table-bordered">
+              <thead className="table-dark">
                 <tr>
                   <th>Título</th>
                   <th>Docente</th>
@@ -55,7 +65,7 @@ const ProjectsTrash: React.FC = () => {
                     <td>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
-                          className="unla-btn"
+                          className="btn btn-success btn-sm"
                           type="button"
                           onClick={async () => {
                             const res = await dispatch(restoreProject({ projectId: p.id }));
@@ -69,9 +79,8 @@ const ProjectsTrash: React.FC = () => {
                           Restaurar
                         </button>
                         <button
-                          className="unla-btn"
+                          className="btn btn-danger btn-sm"
                           type="button"
-                          style={{ background: '#c62828' }}
                           onClick={async () => {
                             const ok = window.confirm('¿Eliminar definitivamente este proyecto? Esta acción no se puede deshacer.');
                             if (!ok) return;

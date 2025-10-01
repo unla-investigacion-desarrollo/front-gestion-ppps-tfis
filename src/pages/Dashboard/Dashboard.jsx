@@ -1,5 +1,6 @@
 
 import { useMemo, useState } from 'react';
+import bgImage from '../../assets/fondo-rojo.jpg';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { useAuth } from '../../hooks/useAuth';
@@ -29,13 +30,13 @@ const Dashboard = () => {
   }, [usuario]);
 
   return (
-    <div className="dashboard-layout">
+    <div className="dashboard-layout" style={{ minHeight: '100vh', backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <header className="dashboard-header">
         <img src={logo} alt="UNLa Logo" className="dashboard-logo" />
         <h1>Gestión de Trabajo Final Anual</h1>
         {usuario && (
           <div className="usuario-info">
-            <button onClick={() => setShowConfirm(true)}>Cerrar sesión</button>
+            <button className="btn btn-danger btn-sm" onClick={() => setShowConfirm(true)}>Cerrar sesión</button>
             <p><strong>Usuario:</strong> {usuario.name}</p>
             <p><strong>Rol:</strong> {Array.isArray(usuario.roles) ?
               Array.from(new Set(usuario.roles.map(r => r.toLowerCase())))
@@ -60,13 +61,13 @@ const Dashboard = () => {
                 {lastProposal.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastProposal.reason}</div>}
                 {lastProposal.note && <div className="unla-hint"><strong>Observación:</strong> {lastProposal.note}</div>}
                 <div style={{ marginTop: 8 }}>
-                  <button className="unla-btn" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
+                  <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
                 </div>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div className="unla-hint">Aún no enviaste tu propuesta.</div>
-                <button className="unla-btn" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta</button>
+                <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta</button>
               </div>
             )}
           </div>

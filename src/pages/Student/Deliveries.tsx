@@ -317,6 +317,7 @@ const StudentDeliveries: React.FC = () => {
       </div>
     </div>
     {/* Modal Detalle */}
+    {detail && (
       <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
         <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 700, width: '92%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
           <h3>Detalle de entrega</h3>

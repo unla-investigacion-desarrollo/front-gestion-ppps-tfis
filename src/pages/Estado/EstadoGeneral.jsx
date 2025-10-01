@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import '../../styles/unla.css';
+import bgImage from '../../assets/fondo-rojo.jpg';
 import BackButton from '../../components/BackButton';
 
 const badgeStyle = (estado) => {
@@ -48,7 +49,16 @@ const EstadoGeneral = () => {
   }, [queue, myLast]);
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <BackButton />
@@ -79,8 +89,8 @@ const EstadoGeneral = () => {
 
         <h2 className="unla-section-title">Cola de propuestas (pendientes)</h2>
         <div className="unla-table-container">
-          <table className="unla-table wide">
-            <thead>
+          <table className="table table-striped table-hover table-bordered">
+            <thead className="table-dark">
               <tr>
                 <th>#</th>
                 <th>Fecha</th>

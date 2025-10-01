@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './CargaProyecto.css';
+import bgImage from '../assets/fondo-rojo.jpg';
+
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
@@ -158,7 +160,16 @@ const CargaPropuesta = () => {
   };
 
   return (
-    <div className="carga-proyecto-page">
+    <div
+      className="carga-proyecto-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <header className="carga-proyecto-header">
         <h1>Cargar Propuesta de Trabajo Final Integrador</h1>
       </header>
@@ -166,6 +177,7 @@ const CargaPropuesta = () => {
       <form className="carga-proyecto-form" onSubmit={handleSubmit}>
         <label htmlFor="titulo">Título del Proyecto</label>
         <input
+          className="form-control"
           type="text"
           id="titulo"
           name="titulo"
@@ -176,7 +188,7 @@ const CargaPropuesta = () => {
         {errors.titulo && <div className="unla-hint error">{errors.titulo}</div>}
 
         <label htmlFor="tipo">Tipo</label>
-        <select id="tipo" name="tipo" value={form.tipo} onChange={handleChange}>
+        <select className="form-select" id="tipo" name="tipo" value={form.tipo} onChange={handleChange}>
           <option value="">Seleccione un tipo</option>
           <option value="PRACTICAS PRE PROFESIONALES">PRACTICAS PRE PROFESIONALES</option>
           <option value="TRABAJO FINAL INTEGRADOR">TRABAJO FINAL INTEGRADOR</option>
@@ -186,6 +198,7 @@ const CargaPropuesta = () => {
 
         <label htmlFor="descripcion">Descripción</label>
         <textarea
+          className="form-control"
           id="descripcion"
           name="descripcion"
           rows="5"
@@ -198,7 +211,7 @@ const CargaPropuesta = () => {
         
 
         <label htmlFor="categoria">Categoría</label>
-        <select id="categoria" name="categoria" value={form.categoria} onChange={handleChange}>
+        <select className="form-select" id="categoria" name="categoria" value={form.categoria} onChange={handleChange}>
           <option value="">Seleccione una categoría</option>
           <option value="desarrollo">Desarrollo</option>
           <option value="investigacion">Investigación</option>
@@ -207,17 +220,17 @@ const CargaPropuesta = () => {
         {errors.categoria && <div className="unla-hint error">{errors.categoria}</div>}
 
         <label htmlFor="archivo">Adjuntar Propuesta (PDF)</label>
-        <input type="file" id="archivo" name="archivo" accept="application/pdf" onChange={handleChange} />
+        <input className="form-control" type="file" id="archivo" name="archivo" accept="application/pdf" onChange={handleChange} />
         {form.archivo && (
           <div className="unla-hint">Archivo: {form.archivo.name} • {(form.archivo.size / 1024 / 1024).toFixed(2)} MB</div>
         )}
         {errors.archivo && <div className="unla-hint error">{errors.archivo}</div>}
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-          <button type="button" className="unla-btn" onClick={() => navigate('/dashboard')}>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate('/dashboard')}>
             Salir
           </button>
-          <button type="submit" disabled={submitting} className="unla-btn primary">
+          <button type="submit" disabled={submitting} className="btn btn-primary">
             {submitting ? 'Enviando…' : 'Enviar Propuesta'}
           </button>
         </div>
@@ -234,7 +247,7 @@ const CargaPropuesta = () => {
             {lastSubmission.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastSubmission.reason}</div>}
             {lastSubmission.note && <div className="unla-hint"><strong>Observación:</strong> {lastSubmission.note}</div>}
             <div style={{ marginTop: 8 }}>
-              <button className="unla-btn" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
+              <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
             </div>
           </div>
         </div>
@@ -245,20 +258,20 @@ const CargaPropuesta = () => {
           <h2>Historial de envíos</h2>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
             <label htmlFor="filtro-estado" style={{ fontSize: 14 }}>Estado:</label>
-            <select id="filtro-estado" className="unla-input" value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)} style={{ maxWidth: 220 }}>
+            <select id="filtro-estado" className="form-select" value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)} style={{ maxWidth: 220 }}>
               <option value="">Todos</option>
               <option value="aprobado">Aprobado</option>
               <option value="en_estudio">En estudio</option>
               <option value="observado">Observado</option>
               <option value="rechazado">Rechazado</option>
             </select>
-            <button type="button" className="unla-btn" onClick={() => setSortOrder((s) => s === 'desc' ? 'asc' : 'desc')} title={sortOrder === 'desc' ? 'Más reciente primero' : 'Más antiguo primero'}>
+            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setSortOrder((s) => s === 'desc' ? 'asc' : 'desc')} title={sortOrder === 'desc' ? 'Más reciente primero' : 'Más antiguo primero'}>
               {sortOrder === 'desc' ? 'Ordenar ⬇️' : 'Ordenar ⬆️'}
             </button>
           </div>
           <div className="unla-table-container">
-            <table className="unla-table wide">
-              <thead>
+            <table className="table table-striped table-hover table-bordered">
+              <thead className="table-dark">
                 <tr>
                   <th>Fecha</th>
                   <th>Título</th>
@@ -281,12 +294,11 @@ const CargaPropuesta = () => {
                     <td><span className="unla-badge" style={{ ...badgeStyle(p.estado) }}>{p.estado}</span></td>
                     <td>
                       {p.reason && <div className="unla-hint error">Rechazo: {p.reason}</div>}
-                      {p.note && <div className="unla-hint">Obs.: {p.note}</div>}
                     </td>
                     <td>
                       <button
                         type="button"
-                        className="unla-btn"
+                        className="btn btn-info btn-sm"
                         onClick={() => setDetail(p)}
                       >
                         Ver detalle
@@ -298,72 +310,67 @@ const CargaPropuesta = () => {
             </table>
           </div>
         </div>
-      )}
-
-      {/* Modal de detalle */}
-      {detail && (
-        <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 800, width: '95%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <h3>Detalle de propuesta</h3>
-            <div className="unla-list" style={{ maxHeight: 360, overflow: 'auto' }}>
-              <div><strong>Título:</strong> {detail.titulo}</div>
-              <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
-              
-              <div><strong>Categoría:</strong> {detail.categoria}</div>
-              <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize/1024/1024).toFixed(2)} MB)</div>
-              <div><strong>Fecha:</strong> {new Date(detail.uploadedAt).toLocaleString()}</div>
-              <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(detail.estado) }}>{detail.estado}</span></div>
-              {detail.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {detail.reason}</div>}
-              {detail.note && <div className="unla-hint"><strong>Observación:</strong> {detail.note}</div>}
-              {/* Visor PDF si hay archivo o link de Drive */}
-              {detail.pdfUrl && (
-                <div style={{ margin: '16px 0' }}>
-                  <iframe
-                    src={detail.pdfUrl}
-                    title="PDF Propuesta"
-                    width="100%"
-                    height="400px"
-                    style={{ border: '1px solid #ccc', borderRadius: 6 }}
-                    allow="autoplay"
-                  />
-                </div>
-              )}
-              {/* Si el archivo es de Drive, mostrar visor de Drive */}
-              {detail.driveUrl && (
-                <div style={{ margin: '16px 0' }}>
-                  <iframe
-                    src={`https://drive.google.com/file/d/${detail.driveUrl}/preview`}
-                    title="Drive PDF"
-                    width="100%"
-                    height="400px"
-                    style={{ border: '1px solid #ccc', borderRadius: 6 }}
-                    allow="autoplay"
-                  />
-                </div>
-              )}
-              {Array.isArray(detail.history) && detail.history.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <h4>Historial de acciones</h4>
-                  <ul className="unla-list" style={{ paddingLeft: 18 }}>
-                    {[...detail.history].sort((a,b) => (a.at||'').localeCompare(b.at||'')).map((h, idx) => (
-                      <li key={`${h.at}-${idx}`}>
-                        <strong>{new Date(h.at).toLocaleString()}:</strong> {h.action}
-                        {h.from && h.to && <span> (de {h.from || '—'} a {h.to})</span>}
-                        {h.by?.email && <span> • por {h.by.email}</span>}
-                        {h.note && <div className="unla-hint">Obs.: {h.note}</div>}
-                        {h.reason && <div className="unla-hint error">Motivo: {h.reason}</div>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-              <button className="unla-btn" type="button" onClick={() => setDetail(null)}>Cerrar</button>
+        )}
+        {detail && (
+          <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+            <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 800, width: '95%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+              <h3>Detalle de propuesta</h3>
+              <div className="unla-list" style={{ maxHeight: 360, overflow: 'auto' }}>
+                <div><strong>Título:</strong> {detail.titulo}</div>
+                <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
+                <div><strong>Categoría:</strong> {detail.categoria}</div>
+                <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize/1024/1024).toFixed(2)} MB)</div>
+                <div><strong>Fecha:</strong> {new Date(detail.uploadedAt).toLocaleString()}</div>
+                <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(detail.estado) }}>{detail.estado}</span></div>
+                {detail.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {detail.reason}</div>}
+                {detail.note && <div className="unla-hint"><strong>Observación:</strong> {detail.note}</div>}
+                {detail.pdfUrl && (
+                  <div style={{ margin: '16px 0' }}>
+                    <iframe
+                      src={detail.pdfUrl}
+                      title="PDF Propuesta"
+                      width="100%"
+                      height="400px"
+                      style={{ border: '1px solid #ccc', borderRadius: 6 }}
+                      allow="autoplay"
+                    />
+                  </div>
+                )}
+                {detail.driveUrl && (
+                  <div style={{ margin: '16px 0' }}>
+                    <iframe
+                      src={`https://drive.google.com/file/d/${detail.driveUrl}/preview`}
+                      title="Drive PDF"
+                      width="100%"
+                      height="400px"
+                      style={{ border: '1px solid #ccc', borderRadius: 6 }}
+                      allow="autoplay"
+                    />
+                  </div>
+                )}
+                {Array.isArray(detail.history) && detail.history.length > 0 && (
+                  <div style={{ marginTop: 12 }}>
+                    <h4>Historial de acciones</h4>
+                    <ul className="unla-list" style={{ paddingLeft: 18 }}>
+                      {[...detail.history].sort((a,b) => (a.at||'').localeCompare(b.at||'')).map((h, idx) => (
+                        <li key={`${h.at}-${idx}`}>
+                          <strong>{new Date(h.at).toLocaleString()}:</strong> {h.action}
+                          {h.from && h.to && <span> (de {h.from || '—'} a {h.to})</span>}
+                          {h.by?.email && <span> • por {h.by.email}</span>}
+                          {h.note && <div className="unla-hint">Obs.: {h.note}</div>}
+                          {h.reason && <div className="unla-hint error">Motivo: {h.reason}</div>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };
