@@ -20,8 +20,12 @@ const Sidebar = () => {
             </>
           )}
           <li><Link to="#">Consultar Estado</Link></li>
-          <li><Link to="#">Observaciones</Link></li>
-          <li><Link to="#">Resoluciones</Link></li>
+          {!isStudent && (
+            <>
+              <li><Link to="#">Observaciones</Link></li>
+              <li><Link to="#">Resoluciones</Link></li>
+            </>
+          )}
         </ul>
       </nav>
     </aside>

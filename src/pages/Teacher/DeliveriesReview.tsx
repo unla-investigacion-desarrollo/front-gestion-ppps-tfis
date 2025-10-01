@@ -5,6 +5,7 @@ import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { selectProjectsByTeacher } from '../../../redux/slices/projectsSlice';
 import { selectUsers } from '../../../redux/slices/usersSlice';
 import { useLocation } from 'react-router-dom';
+import bgImage from '../../assets/fondo-rojo.jpg';
 
 // Local storage helpers compartidos con alumnos
 const KEY = 'deliveries';
@@ -166,7 +167,16 @@ const DeliveriesReview: React.FC = () => {
 
   return (
     <>
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <h1>Entregas de mis Proyectos</h1>
         {projects.length === 0 ? (
@@ -244,7 +254,7 @@ const DeliveriesReview: React.FC = () => {
                             onChange={(e) => setNotes(m => ({ ...m, [d.id]: e.target.value }))}
                           />
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                            <button className="unla-btn" type="button" onClick={() => saveNote(d.id)}>Guardar</button>
+                            <button className="btn btn-primary btn-sm" type="button" onClick={() => saveNote(d.id)}>Guardar</button>
                             {d.teacherNote && (
                               <span className="unla-hint">Últ. rev.: {d.reviewedAt ? new Date(d.reviewedAt).toLocaleString() : ''}</span>
                             )}
@@ -252,7 +262,7 @@ const DeliveriesReview: React.FC = () => {
                         </div>
                       </td>
                       <td>
-                        <button className="unla-btn" type="button" onClick={() => setDetail(d)}>Ver detalle</button>
+                        <button className="btn btn-info btn-sm" type="button" onClick={() => setDetail(d)}>Ver detalle</button>
                       </td>
                     </tr>
                   ))}
@@ -324,7 +334,7 @@ const DeliveriesReview: React.FC = () => {
               return null;
             })()}
           </div>
-          <button className="unla-btn" type="button" onClick={() => setDetail(null)}>Cerrar</button>
+          <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
         </div>
       </div>
     )}
@@ -345,7 +355,7 @@ const DeliveriesReview: React.FC = () => {
           <label className="unla-label" htmlFor="msgBox">Nuevo mensaje al equipo/estudiantes</label>
           <textarea id="msgBox" className="unla-input" rows={3} placeholder="Escribí un mensaje para el equipo" value={msg} onChange={(e) => setMsg(e.target.value)} />
           <div style={{ marginTop: 8 }}>
-            <button className="unla-btn" type="submit" disabled={!currentProject?.id || !msg.trim()}>Enviar</button>
+            <button className="btn btn-primary btn-sm" type="submit" disabled={!currentProject?.id || !msg.trim()}>Enviar</button>
           </div>
         </form>
 

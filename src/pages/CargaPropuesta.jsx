@@ -12,7 +12,6 @@ const CargaPropuesta = () => {
     titulo: '',
     tipo: '',
     descripcion: '',
-    responsable: '',
     categoria: '',
     archivo: null,
   });
@@ -75,7 +74,6 @@ const CargaPropuesta = () => {
     if (!form.titulo.trim()) e.titulo = 'El título es obligatorio';
     if (!form.tipo) e.tipo = 'Seleccioná un tipo';
     if (!form.descripcion.trim() || form.descripcion.trim().length < 20) e.descripcion = 'La descripción debe tener al menos 20 caracteres';
-    if (!form.responsable.trim()) e.responsable = 'El responsable es obligatorio';
     if (!form.categoria) e.categoria = 'Seleccioná una categoría';
     const f = form.archivo;
     // El archivo es OPCIONAL. Si se adjunta, validamos tipo y tamaño.
@@ -120,7 +118,6 @@ const CargaPropuesta = () => {
         titulo: form.titulo.trim(),
         tipo: form.tipo,
         descripcion: form.descripcion.trim(),
-        responsable: form.responsable.trim(),
         categoria: form.categoria,
         estado: 'enviado',
         filename: form.archivo?.name || '',
@@ -149,7 +146,7 @@ const CargaPropuesta = () => {
       } catch { void 0; }
 
       // Reset form
-      setForm({ titulo: '', tipo: '', descripcion: '', responsable: '', categoria: '', archivo: null });
+      setForm({ titulo: '', tipo: '', descripcion: '', categoria: '', archivo: null });
 
       // Redirigir al inicio (dashboard)
       navigate('/dashboard');
@@ -183,6 +180,7 @@ const CargaPropuesta = () => {
           <option value="">Seleccione un tipo</option>
           <option value="PRACTICAS PRE PROFESIONALES">PRACTICAS PRE PROFESIONALES</option>
           <option value="TRABAJO FINAL INTEGRADOR">TRABAJO FINAL INTEGRADOR</option>
+          <option value="PRACTICAS PRE PROFESIONALES + TRABAJO FINAL INTEGRADOR">PRACTICAS PRE PROFESIONALES + TRABAJO FINAL INTEGRADOR</option>
         </select>
         {errors.tipo && <div className="unla-hint error">{errors.tipo}</div>}
 
@@ -197,16 +195,7 @@ const CargaPropuesta = () => {
         />
         {errors.descripcion && <div className="unla-hint error">{errors.descripcion}</div>}
 
-        <label htmlFor="responsable">Responsable</label>
-        <input
-          type="text"
-          id="responsable"
-          name="responsable"
-          placeholder="Nombre del responsable"
-          value={form.responsable}
-          onChange={handleChange}
-        />
-        {errors.responsable && <div className="unla-hint error">{errors.responsable}</div>}
+        
 
         <label htmlFor="categoria">Categoría</label>
         <select id="categoria" name="categoria" value={form.categoria} onChange={handleChange}>
@@ -319,7 +308,7 @@ const CargaPropuesta = () => {
             <div className="unla-list" style={{ maxHeight: 360, overflow: 'auto' }}>
               <div><strong>Título:</strong> {detail.titulo}</div>
               <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
-              <div><strong>Responsable:</strong> {detail.responsable}</div>
+              
               <div><strong>Categoría:</strong> {detail.categoria}</div>
               <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize/1024/1024).toFixed(2)} MB)</div>
               <div><strong>Fecha:</strong> {new Date(detail.uploadedAt).toLocaleString()}</div>
