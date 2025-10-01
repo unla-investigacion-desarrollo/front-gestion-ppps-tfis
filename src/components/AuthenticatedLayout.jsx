@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useSessionReminder from '../hooks/useSessionReminder';
 import SessionReminderModal from './SessionReminderModal';
 import { useSelector } from 'react-redux';
@@ -11,7 +11,7 @@ const AuthenticatedLayout = ({ children }) => {
     timeLeft,
     extendSession,
     handleLogout
-  } = useSessionReminder({ inactivityMs: 15 * 1000, reminderSeconds: 15 }); // 15s inactividad, 15s countdown
+  } = useSessionReminder({ inactivityMs: 3 * 60 * 1000, reminderSeconds: 15 }); // 3 minutos inactividad, 15s countdown
 
   const user = useSelector((state) => state.auth.user);
   const displayName = user
@@ -26,12 +26,49 @@ const AuthenticatedLayout = ({ children }) => {
 
   // Toast handling con cola por usuario (localStorage 'userNotifications')
   const [toast, setToast] = useState(null);
+  const [progress, setProgress] = useState(1); // 1 => 100%
+  const timerRef = useRef(null);
+  const intervalRef = useRef(null);
   const USER_NOTIFICATIONS_KEY = 'userNotifications';
 
   const showToast = (message, type = 'success') => {
+    // Limpiar timers previos
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
     setToast({ message, type });
-    const t = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(t);
+    const duration = 25000; // 25s
+    const start = Date.now();
+    setProgress(1);
+
+    // Barra de progreso decreciente
+    intervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const p = Math.max(0, 1 - elapsed / duration);
+      setProgress(p);
+      if (elapsed >= duration) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }, 100);
+
+    // Autocierre al finalizar
+    timerRef.current = setTimeout(() => {
+      setToast(null);
+      setProgress(0);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }, duration);
+
+    // Devuelve cleanup del toast concreto
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      timerRef.current = null;
+      intervalRef.current = null;
+    };
   };
 
   const popNextUserNotification = (userId) => {
@@ -69,7 +106,11 @@ const AuthenticatedLayout = ({ children }) => {
       showToast(payload.message || 'Operación realizada', payload.type || 'info');
     };
     window.addEventListener('toast', onToast);
-    return () => window.removeEventListener('toast', onToast);
+    return () => {
+      window.removeEventListener('toast', onToast);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [user]);
 
   // Cuando no hay un toast visible, intentar sacar el próximo de la cola del usuario
@@ -132,9 +173,22 @@ const AuthenticatedLayout = ({ children }) => {
         onLogout={handleLogout}
       />
       {toast && (
-        <div style={{ position: 'fixed', top: 12, right: 12, background: toast.type === 'error' ? '#c62828' : toast.type === 'info' ? '#1976d2' : '#2e7d32', color: 'white', padding: '10px 14px', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000 }}>
-          {toast.message}
-          <button onClick={() => setToast(null)} style={{ marginLeft: 10, background: 'transparent', border: '1px solid rgba(255,255,255,0.6)', color: 'white', borderRadius: 6, padding: '2px 6px', cursor: 'pointer' }}>Cerrar</button>
+        <div
+          onClick={() => {
+            setToast(null);
+            setProgress(0);
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            timerRef.current = null;
+            intervalRef.current = null;
+          }}
+          style={{ position: 'fixed', top: 12, right: 12, background: toast.type === 'error' ? '#c62828' : toast.type === 'info' ? '#1976d2' : '#2e7d32', color: 'white', padding: '10px 14px', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000, cursor: 'pointer', minWidth: 280 }}
+          title="Click para cerrar"
+        >
+          <div style={{ marginBottom: 6 }}>{toast.message}</div>
+          <div style={{ width: '100%', height: 4, background: 'rgba(255,255,255,0.35)', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{ width: `${Math.round(progress * 100)}%`, height: '100%', background: 'rgba(255,255,255,0.85)', transition: 'width 100ms linear' }} />
+          </div>
         </div>
       )}
     </>

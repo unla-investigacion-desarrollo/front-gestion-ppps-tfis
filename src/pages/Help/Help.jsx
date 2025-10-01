@@ -1,10 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../../styles/unla.css';
+import bgImage from '../../assets/fondo-rojo.jpg';
 
 const Help = () => {
   return (
-    <div className="unla-page" style={{ display: 'grid', placeItems: 'center' }}>
+    <div
+      className="unla-page"
+      style={{
+        display: 'grid',
+        placeItems: 'center',
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', maxWidth: 680 }}>
         <h1>Ayuda y Recuperación de Contraseña</h1>
         <p>

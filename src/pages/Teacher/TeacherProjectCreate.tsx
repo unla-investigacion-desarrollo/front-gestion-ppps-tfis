@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../../styles/unla.css';
+import bgImage from '../../assets/fondo-rojo.jpg';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { createProject } from '../../../redux/slices/projectsSlice';
@@ -39,23 +40,32 @@ const TeacherProjectCreate: React.FC = () => {
   };
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ maxWidth: 840, margin: '0 auto' }}>
         <h1>Crear Proyecto (Docente)</h1>
         <form className="unla-form" onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-          <input className="unla-input" placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-          <select className="unla-input" value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}>
+          <input className="form-control" placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+          <select className="form-select" value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}>
             <option value="">Categoría (opcional)</option>
             <option value="desarrollo">Desarrollo</option>
             <option value="investigacion">Investigación</option>
             <option value="extension">Extensión</option>
           </select>
           {errors.titulo && <div className="unla-hint error" style={{ gridColumn: '1 / -1' }}>{errors.titulo}</div>}
-          <textarea className="unla-input" placeholder="Descripción (mínimo 20 caracteres)" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} style={{ gridColumn: '1 / -1', minHeight: 140 }} />
+          <textarea className="form-control" placeholder="Descripción (mínimo 20 caracteres)" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} style={{ gridColumn: '1 / -1', minHeight: 140 }} />
           {errors.descripcion && <div className="unla-hint error" style={{ gridColumn: '1 / -1' }}>{errors.descripcion}</div>}
           <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button type="button" className="unla-btn" onClick={() => navigate('/docente/proyectos')}>Cancelar</button>
-            <button type="submit" className="unla-btn" disabled={submitting}>{submitting ? 'Creando…' : 'Crear Proyecto'}</button>
+            <button type="button" className="btn btn-secondary" onClick={() => navigate('/docente/proyectos')}>Cancelar</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Creando…' : 'Crear Proyecto'}</button>
           </div>
         </form>
       </div>

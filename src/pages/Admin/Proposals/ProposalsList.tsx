@@ -283,19 +283,19 @@ const ProposalsList: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '6px 0 10px' }}>
           <span style={{ color: 'var(--unla-muted)' }}>Orden:</span>
-          <button className="unla-btn" type="button" onClick={() => setSort(s => ({ key: 'uploadedAt', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
+          <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => setSort(s => ({ key: 'uploadedAt', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
             Fecha {sort.key === 'uploadedAt' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
           </button>
-          <button className="unla-btn" type="button" onClick={() => setSort(s => ({ key: 'titulo', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
+          <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => setSort(s => ({ key: 'titulo', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
             Título {sort.key === 'titulo' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
           </button>
           {Object.values(selected).some(Boolean) && (
             <>
               <span style={{ color: 'var(--unla-muted)' }}>|</span>
-              <button className="unla-btn" type="button" onClick={deleteSelected} style={{ background: '#c62828' }}>
+              <button className="btn btn-danger btn-sm" type="button" onClick={deleteSelected}>
                 Eliminar seleccionadas
               </button>
-              <button className="unla-btn" type="button" onClick={clearSelection}>
+              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={clearSelection}>
                 Limpiar selección
               </button>
             </>
@@ -343,15 +343,15 @@ const ProposalsList: React.FC = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      <button className="unla-btn" type="button" onClick={() => setDetail(p)}>Ver detalle</button>
+                      <button className="btn btn-primary btn-sm" type="button" onClick={() => setDetail(p)}>Ver detalle</button>
                       {p.estado !== 'en_estudio' && (
-                        <button className="unla-btn" type="button" onClick={() => handleAction(p, 'en_estudio')}>En estudio</button>
+                        <button className="btn btn-info btn-sm" type="button" onClick={() => handleAction(p, 'en_estudio')}>En estudio</button>
                       )}
                       {p.estado !== 'aprobado' && (
-                        <button className="unla-btn" type="button" onClick={() => handleAction(p, 'aprobado')}>Aprobar</button>
+                        <button className="btn btn-success btn-sm" type="button" onClick={() => handleAction(p, 'aprobado')}>Aprobar</button>
                       )}
-                      <button className="unla-btn" type="button" onClick={() => handleAction(p, 'observado')}>Observar</button>
-                      <button className="unla-btn" type="button" onClick={() => handleAction(p, 'rechazado')}>Rechazar</button>
+                      <button className="btn btn-warning btn-sm" type="button" onClick={() => handleAction(p, 'observado')}>Observar</button>
+                      <button className="btn btn-danger btn-sm" type="button" onClick={() => handleAction(p, 'rechazado')}>Rechazar</button>
                     </div>
                   </td>
                 </tr>
@@ -401,7 +401,7 @@ const ProposalsList: React.FC = () => {
               )}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-              <button className="unla-btn" type="button" onClick={() => setDetail(null)}>Cerrar</button>
+              <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
             </div>
           </div>
         </div>

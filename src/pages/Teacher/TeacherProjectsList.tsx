@@ -6,6 +6,7 @@ import { assignStudentToProject, removeStudentFromProject, deleteProject, addCoT
 import { selectProjectsByTeacher } from '../../../redux/slices/projectsSlice';
 import { selectUsers } from '../../../redux/slices/usersSlice';
 import { Link } from 'react-router-dom';
+import bgImage from '../../assets/fondo-rojo.jpg';
 
 const TeacherProjectsList: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -43,13 +44,22 @@ const TeacherProjectsList: React.FC = () => {
   };
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <h1 style={{ margin: 0 }}>Mis Proyectos</h1>
           <div className="spacer" />
-          <Link className="unla-btn" to="/docente/proyectos/nuevo">+ Nuevo Proyecto</Link>
-          <Link className="unla-btn" to="/docente/proyectos/papelera" style={{ marginLeft: 8, background: '#eeeeee', color: '#333' }}>Papelera</Link>
+          <Link className="btn btn-success btn-sm" to="/docente/proyectos/nuevo">+ Nuevo Proyecto</Link>
+          <Link className="btn btn-secondary btn-sm" to="/docente/proyectos/papelera" style={{ marginLeft: 8 }}>Papelera</Link>
         </div>
     {/* Modal Actividad del proyecto */}
     {activityProjectId && (
@@ -69,7 +79,7 @@ const TeacherProjectsList: React.FC = () => {
             <label className="unla-label" htmlFor="msgBox">Nuevo mensaje al equipo/estudiantes</label>
             <textarea id="msgBox" className="unla-input" rows={3} placeholder="Escribí un mensaje para el equipo" value={msg} onChange={(e) => setMsg(e.target.value)} />
             <div style={{ marginTop: 8 }}>
-              <button className="unla-btn" type="submit" disabled={!msg.trim()}>Enviar</button>
+              <button className="btn btn-primary btn-sm" type="submit" disabled={!msg.trim()}>Enviar</button>
             </div>
           </form>
 
@@ -102,7 +112,7 @@ const TeacherProjectsList: React.FC = () => {
           })()}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-            <button className="unla-btn" type="button" onClick={() => setActivityProjectId(null)}>Cerrar</button>
+            <button className="btn btn-secondary" type="button" onClick={() => setActivityProjectId(null)}>Cerrar</button>
           </div>
         </div>
       </div>
@@ -141,7 +151,7 @@ const TeacherProjectsList: React.FC = () => {
                               <span>{getStudentName(sid)}</span>
                               <button
                                 type="button"
-                                className="unla-btn"
+                                className="btn btn-outline-danger btn-sm"
                                 title="Quitar alumno"
                                 onClick={() => dispatch(removeStudentFromProject({ projectId: p.id, studentId: sid }))}
                               >
@@ -171,7 +181,7 @@ const TeacherProjectsList: React.FC = () => {
                         </select>
                         <button
                           type="button"
-                          className="unla-btn"
+                          className="btn btn-primary btn-sm"
                           disabled={p.students.length >= 5 || !(assignMap[p.id] || '').trim()}
                           onClick={async () => {
                             const sid = (assignMap[p.id] || '').trim();
@@ -194,7 +204,7 @@ const TeacherProjectsList: React.FC = () => {
                               <span>{getStudentName(tid)}</span>
                               <button
                                 type="button"
-                                className="unla-btn"
+                                className="btn btn-outline-danger btn-sm"
                                 title="Quitar co-docente"
                                 onClick={() => dispatch(removeCoTeacher({ projectId: p.id, teacherId: tid }))}
                               >
@@ -222,7 +232,7 @@ const TeacherProjectsList: React.FC = () => {
                         </select>
                         <button
                           type="button"
-                          className="unla-btn"
+                          className="btn btn-primary btn-sm"
                           disabled={!(coMap[p.id] || '').trim()}
                           onClick={async () => {
                             const tid = (coMap[p.id] || '').trim();
@@ -236,12 +246,11 @@ const TeacherProjectsList: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="unla-btn" type="button" onClick={() => { setActivityProjectId(p.id); setMsg(''); }}>Actividad</button>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button className="btn btn-info btn-sm" type="button" onClick={() => { setActivityProjectId(p.id); setMsg(''); }}>Actividad</button>
                         <button
-                          className="unla-btn"
+                          className="btn btn-danger btn-sm"
                           type="button"
-                          style={{ background: '#c62828' }}
                           onClick={async () => {
                             const ok = window.confirm('¿Seguro que querés eliminar este proyecto? Se moverá a la Papelera.');
                             if (!ok) return;

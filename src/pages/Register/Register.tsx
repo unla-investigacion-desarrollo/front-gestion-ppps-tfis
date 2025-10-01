@@ -109,7 +109,7 @@ const Register: React.FC = () => {
     try {
       await dispatch<any>(registerStudent({ ...form}));
       // mensaje sutil arriba del form
-      window.alert('Registro enviado. Tu cuenta está pendiente de aprobación.');
+      window.alert('Registro completado. Vas a recibir un email con tu usuario y contraseña temporales. Deberás cambiarlas en tu primer ingreso.');
       setForm(initialForm);
       setEmailCheck('idle');
       setDniCheck('idle');

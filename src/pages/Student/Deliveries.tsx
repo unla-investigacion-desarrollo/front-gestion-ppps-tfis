@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { selectProjects } from '../../../redux/slices/projectsSlice';
 import { selectUsers } from '../../../redux/slices/usersSlice';
+import bgImage from '../../assets/fondo-rojo.jpg';
 
 // Local storage helpers
 const KEY = 'deliveries';
@@ -153,7 +154,16 @@ const StudentDeliveries: React.FC = () => {
 
   return (
     <>
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <h1>Subir Entregas</h1>
         {myProjects.length === 0 ? (
@@ -203,7 +213,7 @@ const StudentDeliveries: React.FC = () => {
               <input id="link" className="unla-input" placeholder="https://drive.google.com/..." value={form.link} onChange={(e) => setForm(f => ({ ...f, link: e.target.value }))} />
 
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button className="unla-btn" type="submit" disabled={submitting || !currentProject?.id}>{submitting ? 'Subiendo...' : 'Subir entrega'}</button>
+                <button className="btn btn-primary" type="submit" disabled={submitting || !currentProject?.id}>{submitting ? 'Subiendo...' : 'Subir entrega'}</button>
               </div>
             </form>
 
@@ -239,21 +249,20 @@ const StudentDeliveries: React.FC = () => {
                           <td>{d.filename ? `${d.filename} (${((d.filesize || 0)/1024/1024).toFixed(2)} MB)` : '-'}</td>
                           <td>{d.link ? <a href={d.link} target="_blank" rel="noreferrer">Abrir</a> : '-'}</td>
                           <td>
-                            <button className="unla-btn" type="button" onClick={() => setDetail(d)}>Ver detalle</button>
+                            <button className="btn btn-info btn-sm" type="button" onClick={() => setDetail(d)}>Ver detalle</button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   {visibleCount < deliveries.length && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
-                      <button className="unla-btn" type="button" onClick={() => setVisibleCount(c => c + 10)}>Cargar más</button>
+                    <div className="d-flex justify-content-center mt-3">
+                      <button className="btn btn-outline-secondary" type="button" onClick={() => setVisibleCount(c => c + 10)}>Cargar más</button>
                     </div>
                   )}
                 </div>
               )}
             </div>
-
             {/* Mensajería y actividad */}
             <div className="unla-card" style={{ marginTop: 16 }}>
               <h2>Actividad del proyecto</h2>
@@ -270,7 +279,7 @@ const StudentDeliveries: React.FC = () => {
                 <label className="unla-label" htmlFor="msgBox">Nuevo mensaje al equipo/docente</label>
                 <textarea id="msgBox" className="unla-input" rows={3} placeholder="Escribí un mensaje para el equipo o el docente" value={msg} onChange={(e) => setMsg(e.target.value)} />
                 <div style={{ marginTop: 8 }}>
-                  <button className="unla-btn" type="submit" disabled={!currentProject?.id || !msg.trim()}>Enviar</button>
+                  <button className="btn btn-primary btn-sm" type="submit" disabled={!currentProject?.id || !msg.trim()}>Enviar</button>
                 </div>
               </form>
 
@@ -314,7 +323,6 @@ const StudentDeliveries: React.FC = () => {
           <h3>Detalle de entrega</h3>
           <div className="unla-list" style={{ maxHeight: 420, overflow: 'auto' }}>
             <div><strong>Fecha:</strong> {new Date(detail!.uploadedAt).toLocaleString()}</div>
-            <div><strong>Estudiante:</strong> {userNameOrEmail(detail!.studentId)}</div>
             <div><strong>Descripción:</strong><br />{detail!.note || '—'}</div>
             <div><strong>Archivo:</strong> {detail!.filename ? `${detail!.filename} (${(((detail!.filesize || 0) as number)/1024/1024).toFixed(2)} MB)` : '—'}</div>
             <div><strong>Link:</strong> {detail!.link ? <a href={detail!.link} target="_blank" rel="noreferrer">Abrir</a> : '—'}</div>
@@ -322,7 +330,7 @@ const StudentDeliveries: React.FC = () => {
             {detail!.reviewedAt && <div><strong>Revisado:</strong> {new Date(detail!.reviewedAt).toLocaleString()}</div>}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-            <button className="unla-btn" type="button" onClick={() => setDetail(null)}>Cerrar</button>
+            <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
           </div>
         </div>
       </div>

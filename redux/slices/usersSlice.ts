@@ -136,7 +136,7 @@ export const registerStudent = createAsyncThunk<
     nombre: payload.nombre,
     apellido: payload.apellido,
     rol: 'ESTUDIANTE',
-    estado: 'pending',
+    estado: 'active',
     dni: payload.dni,
     fechaNacimiento: payload.fechaNacimiento,
     cuil: payload.cuil,
@@ -144,6 +144,13 @@ export const registerStudent = createAsyncThunk<
     createdAt: now,
     updatedAt: now,
   };
+  // Asignar una contraseña temporal basada en el DNI (si existe) y forzar cambio en el primer inicio
+  if (payload.dni) {
+    user.password = `DNI${payload.dni}`;
+  } else {
+    user.password = 'alumno123';
+  }
+  user.mustChangePassword = true;
   const updated = [...users, user];
   saveUsers(updated);
   return user;

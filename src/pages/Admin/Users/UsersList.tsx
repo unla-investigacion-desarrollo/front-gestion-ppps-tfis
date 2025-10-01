@@ -5,6 +5,7 @@ import { selectCurrentUser } from '../../../../redux/slices/authSlice';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../../../styles/unla.css';
+import bgImage from '../../../assets/fondo-rojo.jpg';
 
 const UsersList: React.FC = () => {
   const dispatch = useDispatch();
@@ -152,7 +153,16 @@ const UsersList: React.FC = () => {
     .slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="unla-page">
+    <div
+      className="unla-page"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}
+    >
       <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
         <h1>Usuarios</h1>
 
@@ -295,13 +305,13 @@ const UsersList: React.FC = () => {
         <h2 className="unla-section-title">Filtros</h2>
         <div className="unla-form" style={{ gridTemplateColumns: '2fr 1fr 1fr', display: 'grid' as const, marginBottom: 12 }}>
           <input
-            className="unla-input"
+            className="form-control"
             placeholder="Buscar por email, nombre o apellido"
             value={filters.q}
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
           />
           <select
-            className="unla-input"
+            className="form-select"
             value={filters.rol}
             onChange={(e) => setFilters((f) => ({ ...f, rol: e.target.value }))}
           >
@@ -312,7 +322,7 @@ const UsersList: React.FC = () => {
             <option value="SUPER_ADMIN">Super Admin</option>
           </select>
           <select
-            className="unla-input"
+            className="form-select"
             value={filters.estado}
             onChange={(e) => setFilters((f) => ({ ...f, estado: e.target.value }))}
           >
@@ -565,9 +575,9 @@ const UsersList: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
               <div style={{ color: 'var(--unla-muted)' }}>Mostrando {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, filteredCount)} de {filteredCount}</div>
               <div className="spacer" />
-              <button className="unla-btn" type="button" disabled={!canPrev} onClick={() => canPrev && setPage(page - 1)}>Anterior</button>
+              <button className="btn btn-outline-secondary" type="button" disabled={!canPrev} onClick={() => canPrev && setPage(page - 1)}>Anterior</button>
               <div>Pagina {page} / {totalPages}</div>
-              <button className="unla-btn" type="button" disabled={!canNext} onClick={() => canNext && setPage(page + 1)}>Siguiente</button>
+              <button className="btn btn-outline-secondary" type="button" disabled={!canNext} onClick={() => canNext && setPage(page + 1)}>Siguiente</button>
             </div>
           );
         })()}
