@@ -9,6 +9,7 @@ interface User {
   email: string;
   name: string;
   roles?: string[];
+  mustChangePassword?: boolean;
 }
 
 interface AuthState {
@@ -37,7 +38,7 @@ const initialState: AuthState = {
   lastLogin: localStorage.getItem('lastLogin') || null,
 };
 
-// Thunk para el login con credenciales falsas
+// Thunk para el login con el backend real
 export const loginUser = createAsyncThunk<
   { user: User; token: string },
   { email: string; password: string },
@@ -46,10 +47,12 @@ export const loginUser = createAsyncThunk<
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      // Cuando euge tenga el backend listo, se debe quitar el codigo de abajo y usar el de arriba
-      /* const response = await fetch('tu-api-endpoint/login', {
+      const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(credentials),
       });
 
@@ -59,89 +62,34 @@ export const loginUser = createAsyncThunk<
         return rejectWithValue(data.message || 'Error en el inicio de sesión');
       }
 
-      return { user: data.user, token: data.token }; 
-    } catch {
-      return rejectWithValue('Error de conexión');*/
-      
-      // Credenciales de prueba
-      const testCredentials = {
-        email: 'admin@example.com',
-        password: 'admin123'
+      const rawUser = data.user || {};
+      const userRoles = Array.isArray(rawUser.roles)
+        ? rawUser.roles
+        : (rawUser.rol ? [rawUser.rol] : []);
+
+      const mappedUser: User = {
+        id: rawUser.id || rawUser._id,
+        email: rawUser.email,
+        name: rawUser.name || [rawUser.nombre, rawUser.apellido].filter(Boolean).join(' ') || rawUser.email,
+        roles: userRoles,
+        mustChangePassword: !!rawUser.mustChangePassword,
       };
 
-      // Simular retraso de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const token = data.token;
 
-      // Verificar credenciales
-      if (credentials.email === testCredentials.email && 
-          credentials.password === testCredentials.password) {
-        // Usuario de prueba
-        const mockUser = {
-          id: '1',
-          email: credentials.email,
-          name: 'Usuario de Prueba',
-          roles: ['SUPER_ADMIN']
-        };
-        
-        // Token simulado
-        const mockToken = 'mock-jwt-token';
-        
-        // Guardar token en localStorage
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        localStorage.setItem('lastLogin', new Date().toISOString());
-        
-        return { 
-          user: mockUser, 
-          token: mockToken 
-        };
-      } else {
-        // Intento de login contra usuarios del mock en localStorage
-        const raw = localStorage.getItem('users');
-        const users: any[] = raw ? JSON.parse(raw) : [];
-        const found = users.find(u => (u.email || '').toLowerCase() === credentials.email.toLowerCase());
-        if (!found) {
-          return rejectWithValue('Usuario no encontrado');
-        }
-        if (found.estado !== 'active') {
-          return rejectWithValue('Usuario no activo. Requiere aprobación.');
-        }
-        if (!found.password || found.password !== credentials.password) {
-          return rejectWithValue('Contraseña incorrecta');
-        }
-
-        // Mapear roles evitando duplicados visuales
-        const rawRole = found.rol;
-        let roles: string[] = [];
-        switch (rawRole) {
-          case 'SUPER_ADMIN':
-            roles = ['SUPER_ADMIN', 'admin'];
-            break;
-          case 'ADMIN':
-            roles = ['ADMIN', 'admin'];
-            break;
-          case 'DOCENTE':
-            roles = ['DOCENTE'];
-            break;
-          default:
-            roles = ['ESTUDIANTE'];
-        }
-        const mockUser = {
-          id: found.id,
-          email: found.email,
-          name: [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email,
-          roles,
-          mustChangePassword: !!found.mustChangePassword,
-        };
-        const mockToken = 'mock-jwt-token';
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        localStorage.setItem('lastLogin', new Date().toISOString());
-        return { user: mockUser, token: mockToken };
+      if (!token) {
+        return rejectWithValue('No se recibió el token del servidor');
       }
+
+      // Guardar token y usuario en localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(mappedUser));
+      localStorage.setItem('lastLogin', new Date().toISOString());
+
+      return { user: mappedUser, token };
     } catch (error) {
       console.error('Error en login:', error);
-      return rejectWithValue('Error en el servidor');
+      return rejectWithValue(error instanceof Error ? error.message : 'Error de conexión con el servidor');
     }
   }
 );

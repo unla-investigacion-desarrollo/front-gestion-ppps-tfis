@@ -120,40 +120,75 @@ export const toggleUserActivation = createAsyncThunk<
 
 export const registerStudent = createAsyncThunk<
   User,
-  { email: string; nombre?: string; apellido?: string; legajo?: string; dni: string; fechaNacimiento: string; cuil?: string; }
->('users/registerStudent', async (payload) => {
-  await new Promise((r) => setTimeout(r, 300));
-  const users = loadUsers();
-  const duplicateEmail = users.some((u) => (u.email || '').toLowerCase() === payload.email.toLowerCase());
-  const duplicateDni = users.some((u) => (u.dni || '') === payload.dni);
-  if (duplicateEmail || duplicateDni) {
-    throw new Error('El usuario ya se encuentra registrado. Si olvidaste tu contraseña, solicitá al administrador el reseteo.');
+  {
+    email: string;
+    nombre: string;
+    apellido: string;
+    dni?: string;
+    password?: string;
+    yearOfAdmission?: number;
+    completedCoursesWithFinal?: number;
+    completedCoursesWithoutFinal?: number;
+  },
+  { rejectValue: string }
+>('users/register', async (payload, { rejectWithValue }) => {
+  try {
+    const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: payload.nombre,
+        lastName: payload.apellido,
+        dni: payload.dni,
+        email: payload.email,
+        password: payload.password,
+        yearOfAdmission: payload.yearOfAdmission !== undefined ? Number(payload.yearOfAdmission) : undefined,
+        completedCoursesWithFinal: payload.completedCoursesWithFinal !== undefined ? Number(payload.completedCoursesWithFinal) : 0,
+        completedCoursesWithoutFinal: payload.completedCoursesWithoutFinal !== undefined ? Number(payload.completedCoursesWithoutFinal) : 0,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return rejectWithValue(data.message || 'Error al registrar el estudiante') as any;
+    }
+
+    const rawUser = data.user || {};
+    const userRoles = Array.isArray(rawUser.roles)
+      ? rawUser.roles
+      : (rawUser.rol ? [rawUser.rol] : ['ESTUDIANTE']);
+
+    const mappedUser: User = {
+      id: rawUser.id || rawUser._id || crypto.randomUUID(),
+      email: rawUser.email || payload.email,
+      nombre: rawUser.firstName || rawUser.nombre || payload.nombre,
+      apellido: rawUser.lastName || rawUser.apellido || payload.apellido,
+      rol: (userRoles[0] as UserRole) || 'ESTUDIANTE',
+      estado: rawUser.estado || 'active',
+      dni: rawUser.dni || payload.dni,
+      yearOfAdmission: rawUser.yearOfAdmission !== undefined ? Number(rawUser.yearOfAdmission) : payload.yearOfAdmission,
+      completedCoursesWithFinal: rawUser.completedCoursesWithFinal !== undefined ? Number(rawUser.completedCoursesWithFinal) : payload.completedCoursesWithFinal,
+      completedCoursesWithoutFinal: rawUser.completedCoursesWithoutFinal !== undefined ? Number(rawUser.completedCoursesWithoutFinal) : payload.completedCoursesWithoutFinal,
+      createdAt: rawUser.createdAt || new Date().toISOString(),
+      updatedAt: rawUser.updatedAt || new Date().toISOString(),
+    };
+
+    // Agregar a localStorage local para simular coherencia en el resto del front
+    try {
+      const raw = localStorage.getItem('users');
+      const users = raw ? JSON.parse(raw) : [];
+      localStorage.setItem('users', JSON.stringify([...users, mappedUser]));
+    } catch { }
+
+    return mappedUser;
+  } catch (error) {
+    console.error('Error en registerStudent:', error);
+    return rejectWithValue(error instanceof Error ? error.message : 'Error al registrar el estudiante') as any;
   }
-  const now = new Date().toISOString();
-  const user: User = {
-    id: crypto.randomUUID(),
-    email: payload.email,
-    nombre: payload.nombre,
-    apellido: payload.apellido,
-    rol: 'ESTUDIANTE',
-    estado: 'active',
-    dni: payload.dni,
-    fechaNacimiento: payload.fechaNacimiento,
-    cuil: payload.cuil,
-    legajo: payload.legajo,
-    createdAt: now,
-    updatedAt: now,
-  };
-  // Asignar una contraseña temporal basada en el DNI (si existe) y forzar cambio en el primer inicio
-  if (payload.dni) {
-    user.password = `DNI${payload.dni}`;
-  } else {
-    user.password = 'alumno123';
-  }
-  user.mustChangePassword = true;
-  const updated = [...users, user];
-  saveUsers(updated);
-  return user;
 });
 
 export const createOrInviteTeacher = createAsyncThunk<
@@ -263,8 +298,18 @@ const usersSlice = createSlice({
         state.status = 'failed';
         state.error = action.error.message || 'Error al cargar usuarios';
       })
+      .addCase(registerStudent.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
       .addCase(registerStudent.fulfilled, (state, action) => {
+        state.status = 'succeeded';
         state.list.push(action.payload);
+        state.error = null;
+      })
+      .addCase(registerStudent.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = (action.payload as string) || action.error.message || 'Error al registrar el estudiante';
       })
       .addCase(createOrInviteTeacher.fulfilled, (state, action) => {
         state.list.push(action.payload);
