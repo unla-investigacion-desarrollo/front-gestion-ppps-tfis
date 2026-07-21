@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 front-gestion-ppps-tfis/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
