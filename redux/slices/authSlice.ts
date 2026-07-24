@@ -38,6 +38,25 @@ const initialState: AuthState = {
   lastLogin: localStorage.getItem('lastLogin') || null,
 };
 
+// Función auxiliar para decodificar un token JWT en el cliente
+const decodeJwt = (token: string): any => {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT token:', error);
+    return null;
+  }
+};
+
 // Thunk para el login con el backend real
 export const loginUser = createAsyncThunk<
   { user: User; token: string },
@@ -62,24 +81,42 @@ export const loginUser = createAsyncThunk<
         return rejectWithValue(data.message || 'Error en el inicio de sesión');
       }
 
-      const rawUser = data.user || {};
-      const userRoles = Array.isArray(rawUser.roles)
-        ? rawUser.roles
-        : (rawUser.rol ? [rawUser.rol] : []);
-
-      const mappedUser: User = {
-        id: rawUser.id || rawUser._id,
-        email: rawUser.email,
-        name: rawUser.name || [rawUser.nombre, rawUser.apellido].filter(Boolean).join(' ') || rawUser.email,
-        roles: userRoles,
-        mustChangePassword: !!rawUser.mustChangePassword,
-      };
-
       const token = data.token;
 
       if (!token) {
         return rejectWithValue('No se recibió el token del servidor');
       }
+
+      // Decodificar el token JWT para extraer la información del usuario
+      const decoded = decodeJwt(token) || {};
+
+      const email = data.email || decoded.email || decoded.sub || credentials.email;
+
+      // Intentar obtener los roles del JWT (pueden venir como array de strings, string separado por comas, u objeto)
+      let rolesSource = decoded.roles || decoded.role || decoded.rol || decoded.authorities || [];
+      if (typeof rolesSource === 'string') {
+        rolesSource = rolesSource.includes(',') ? rolesSource.split(',').map((r: string) => r.trim()) : [rolesSource];
+      }
+
+      const userRoles = (Array.isArray(rolesSource) ? rolesSource : [rolesSource])
+        .filter(Boolean)
+        .map((r: any) => {
+          let roleStr = typeof r === 'string' ? r : (r.authority || r.name || String(r));
+          roleStr = roleStr.toUpperCase().trim();
+          // Quitar el prefijo ROLE_ si está presente (ej. ROLE_DOCENTE -> DOCENTE)
+          return roleStr.startsWith('ROLE_') ? roleStr.substring(5) : roleStr;
+        });
+
+      // Si no se encuentran roles en el JWT, usar 'ESTUDIANTE' como valor por defecto
+      const finalRoles = userRoles.length > 0 ? userRoles : ['ESTUDIANTE'];
+
+      const mappedUser: User = {
+        id: decoded.id || decoded.sub || email,
+        email: email,
+        name: decoded.name || decoded.nombre || [decoded.firstName, decoded.lastName].filter(Boolean).join(' ') || email.split('@')[0] || 'Usuario',
+        roles: finalRoles,
+        mustChangePassword: !!(decoded.mustChangePassword || data.mustChangePassword),
+      };
 
       // Guardar token y usuario en localStorage
       localStorage.setItem('token', token);
@@ -127,7 +164,7 @@ const authSlice = createSlice({
             const u = JSON.parse(stored);
             u.mustChangePassword = action.payload;
             localStorage.setItem('user', JSON.stringify(u));
-          } catch {}
+          } catch { }
         }
       }
     }
@@ -190,7 +227,7 @@ export default authSlice.reducer;
 
 // Selectores
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;
-export const selectIsAuthenticated = (state: { auth: AuthState }) => 
+export const selectIsAuthenticated = (state: { auth: AuthState }) =>
   state.auth.isAuthenticated;
 export const selectAuthError = (state: { auth: AuthState }) => state.auth.error;
 export const selectAuthLoading = (state: { auth: AuthState }) => state.auth.loading;
