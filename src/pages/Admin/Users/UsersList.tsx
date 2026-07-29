@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Redux Actions & Selectors
-import {
-  fetchUsers,
-  selectUsers,
-  createOrInviteTeacher,
-  deleteUser,
-  resetPassword,
-  activateInvitedTeacher,
-  toggleUserActivation
+import { 
+  fetchUsers, 
+  selectUsers, 
+  createOrInviteTeacher, 
+  deleteUser, 
+  resetPassword, 
+  activateInvitedTeacher, 
+  toggleUserActivation 
 } from '../../../../redux/slices/usersSlice';
 import { selectCurrentUser } from '../../../../redux/slices/authSlice';
 
@@ -27,29 +27,26 @@ import Pagination from '../../../components/Pagination';
 
 /**
  * Componente Contenedor Principal para la Gestión de Usuarios (Vistas de Admin/Super Admin).
- * Orquesta la carga de datos desde Redux, el filtrado, ordenado y paginado del listado de usuarios,
- * y delega la renderización visual a subcomponentes especializados y reutilizables.
+ * Orquesta la carga de datos, cálculo de estadísticas, filtrado de datos y visualización interactiva.
+ * Incorpora modales de invitación y edición, tarjetas de estadísticas y filtros desacoplados.
  */
 const UsersList: React.FC = () => {
   const dispatch = useDispatch();
 
-  // --- SELECTORES DE REDUX (ESTADO GLOBAL) ---
+  // --- SELECTORES DE REDUX ---
   const users = useSelector(selectUsers);
   const currentUser = useSelector(selectCurrentUser);
 
   // --- LÓGICA DE ROLES Y PERMISOS ---
-  // Determina si el usuario logueado posee rol SUPER_ADMIN o únicamente ADMIN
   const isSuperAdmin = !!currentUser?.roles?.includes('SUPER_ADMIN');
   const isAdminOnly = !!currentUser?.roles?.includes('ADMIN') && !isSuperAdmin;
 
-  // Evalúa si el usuario autenticado tiene permisos para gestionar a un usuario con determinado rol
   const canManage = (targetRole: string) => {
     if (isSuperAdmin) return true;
     if (isAdminOnly) return targetRole === 'DOCENTE' || targetRole === 'ESTUDIANTE';
     return false;
   };
 
-  // Verifica si al menos uno de los usuarios en la lista actual puede ser gestionado (para mostrar/ocultar la columna acciones)
   const showActionsColumn = users.some((u) => canManage(u.rol));
 
   // --- ESTADO LOCAL ---
@@ -58,19 +55,28 @@ const UsersList: React.FC = () => {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // --- EFECTOS (SIDE EFFECTS) ---
-  // Carga inicial de la lista de usuarios al montar el componente
+  // Estados para modales de creación y edición
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+
+  // Carga inicial
   useEffect(() => {
     dispatch<any>(fetchUsers());
   }, [dispatch]);
 
-  // Resetea a la primera página cuando cambian los criterios de búsqueda/filtros
+  // Reset a la primera página cuando cambian los filtros
   useEffect(() => {
     setPage(1);
   }, [filters]);
 
-  // --- MANEJADORES DE ORDENAMIENTO (SORTING) ---
-  // Alterna la dirección de ordenación de una columna específica
+  // --- ESTADÍSTICAS ---
+  // Calculadas sobre el total de usuarios en base de datos (excluyendo la papelera de reciclaje)
+  const totalCount = users.filter((u) => u.estado !== 'papelera').length;
+  const activeCount = users.filter((u) => u.estado === 'active').length;
+  const pendingCount = users.filter((u) => u.estado === 'pending' || u.estado === 'invited').length;
+  const inactiveCount = users.filter((u) => u.estado === 'disabled' || u.estado === 'rejected').length;
+
+  // --- MANEJADORES DE ACCIONES ---
   const toggleSort = (key: string) => {
     setSort((prev) => ({
       key,
@@ -78,7 +84,6 @@ const UsersList: React.FC = () => {
     }));
   };
 
-  // Función de comparación para ordenar strings/atributos del usuario
   const compare = (a: any, b: any, key: string) => {
     const getValue = (u: any) => {
       switch (key) {
@@ -95,14 +100,35 @@ const UsersList: React.FC = () => {
     return 0;
   };
 
-  // --- MANEJADORES DE ACCIONES (API CALLS & REDUX DISPATCH) ---
-
-  // Crea un nuevo usuario o envía una invitación por email
+  // Crear o Invitar
   const handleCreateOrInvite = async (formData: any) => {
     await dispatch<any>(createOrInviteTeacher(formData));
   };
 
-  // Restaura un usuario desde la papelera de reciclaje local
+  // Editar los campos del usuario en localStorage
+  const handleEditUser = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    const raw = localStorage.getItem('users');
+    const usersList = raw ? JSON.parse(raw) : [];
+    const idx = usersList.findIndex((user: any) => user.id === editingUser.id);
+    if (idx !== -1) {
+      usersList[idx] = { 
+        ...usersList[idx], 
+        nombre: editingUser.nombre,
+        apellido: editingUser.apellido,
+        dni: editingUser.dni,
+        legajo: editingUser.legajo,
+        updatedAt: new Date().toISOString() 
+      };
+      localStorage.setItem('users', JSON.stringify(usersList));
+      dispatch<any>(fetchUsers());
+    }
+    setEditingUser(null);
+  };
+
+  // Restaurar de papelera
   const handleRestoreUser = async (u: any) => {
     const updated = { ...u, estado: 'active', updatedAt: new Date().toISOString() };
     const raw = localStorage.getItem('users');
@@ -115,7 +141,7 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Elimina de forma definitiva al usuario del almacenamiento local (localStorage)
+  // Eliminar definitivo
   const handleDeletePermanently = async (u: any) => {
     if (window.confirm('¿Eliminar definitivamente este usuario?')) {
       const raw = localStorage.getItem('users');
@@ -126,7 +152,7 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Asigna contraseña inicial y activa la cuenta de un docente invitado
+  // Activar docente invitado
   const handleActivateTeacher = async (id: string, pwd: string, clearPassword: () => void) => {
     if (pwd.length < 4) {
       alert('La contraseña debe tener al menos 4 caracteres');
@@ -139,7 +165,7 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Resetea la contraseña de un usuario (para Admin/Super Admin)
+  // Resetear contraseña
   const handleResetPassword = async (u: any) => {
     const res = await dispatch<any>(resetPassword({ id: u.id }));
     if (res && res.payload) {
@@ -152,7 +178,7 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Habilita o deshabilita temporalmente una cuenta de usuario
+  // Habilitar/Deshabilitar cuenta
   const handleToggleActivation = async (id: string, enable: boolean) => {
     const actionLabel = enable ? 'Activar' : 'Desactivar';
     const ok = confirm(`¿${actionLabel} esta cuenta?`);
@@ -160,17 +186,19 @@ const UsersList: React.FC = () => {
     await dispatch<any>(toggleUserActivation({ id, enable }));
   };
 
-  // Envía un usuario a la papelera (soft delete)
+  // Soft delete (Papelera)
   const handleDeleteUser = async (id: string) => {
     if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) {
       await dispatch<any>(deleteUser({ id }));
     }
   };
 
-  // --- PROCESAMIENTO DE DATOS (FILTRADO, ORDENADO Y PAGINACIÓN) ---
+  // Limpiar filtros a valores iniciales
+  const handleClearFilters = () => {
+    setFilters({ q: '', rol: 'ALL', estado: 'ALL' });
+  };
 
-  // Aplica los filtros de búsqueda por query, rol y estado.
-  // Nota: Si el estado buscado es 'papelera', mostramos solo papelera; de lo contrario, excluimos papelera.
+  // --- PROCESAMIENTO DE DATOS ---
   const allFilteredUsers = users.filter((u) => {
     const q = filters.q.trim().toLowerCase();
     const matchesQ = !q || [u.email, u.nombre, u.apellido].filter(Boolean).join(' ').toLowerCase().includes(q);
@@ -181,13 +209,11 @@ const UsersList: React.FC = () => {
     return matchesQ && matchesRol && matchesEstado;
   });
 
-  // Ordenación de la lista filtrada
   const sortedUsers = [...allFilteredUsers].sort((a, b) => {
     const dir = sort.dir === 'asc' ? 1 : -1;
     return dir * compare(a, b, sort.key);
   });
 
-  // Segmentación del listado según la paginación actual
   const paginatedUsers = sortedUsers.slice((page - 1) * pageSize, page * pageSize);
 
   return (
@@ -198,38 +224,163 @@ const UsersList: React.FC = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: '100vh',
-        padding: '16px'
+        padding: '24px'
       }}
     >
-      <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
-        <h1>Usuarios</h1>
-
-        {/* Sección Formulario de Creación/Invitación */}
-        <UserForm
-          isSuperAdmin={isSuperAdmin}
-          onSubmit={handleCreateOrInvite}
-        />
-
-        {/* Sección de Filtros de Búsqueda */}
-        <UserFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-        />
-
-        {/* Barra informativa del Listado e interruptor de la Papelera de reciclaje */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-          <h2 className="unla-section-title" style={{ margin: 0 }}>Listado</h2>
+      <div className="unla-card" style={{ width: '100%', margin: '0 auto', padding: '24px' }}>
+        
+        {/* Cabecera principal con Título, Subtítulo y Botón de Invitación */}
+        <div className="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <h1 className="m-0" style={{ fontWeight: 700, fontSize: '28px', color: '#333' }}>Usuarios</h1>
+            <p className="m-0 text-muted" style={{ fontSize: '15px', marginTop: '4px' }}>Gestioná los docentes del sistema</p>
+          </div>
           <button
-            className="btn btn-secondary"
-            style={{ fontWeight: 600, padding: '6px 18px' }}
+            type="button"
+            className="btn d-flex align-items-center gap-2"
+            onClick={() => setIsInviteModalOpen(true)}
+            style={{
+              backgroundColor: 'var(--unla-primary)',
+              color: '#fff',
+              fontWeight: 600,
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              boxShadow: '0 2px 6px rgba(100,0,29,0.2)'
+            }}
+          >
+            <span>+</span> Invitar docente
+          </button>
+        </div>
+
+        {/* Sección 1: Tarjetas de estadísticas */}
+        <div className="row g-3 mb-4">
+          {/* Card: Total */}
+          <div className="col-md-3">
+            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
+              <div 
+                style={{ 
+                  width: '44px', 
+                  height: '44px', 
+                  borderRadius: '50%', 
+                  backgroundColor: '#fae8ff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  flexShrink: 0 
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#a21caf" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Total docentes</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{totalCount}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card: Activos */}
+          <div className="col-md-3">
+            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
+              <div 
+                style={{ 
+                  width: '44px', 
+                  height: '44px', 
+                  borderRadius: '50%', 
+                  backgroundColor: '#dcfce7', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  flexShrink: 0 
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#15803d" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Activos</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{activeCount}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card: Pendientes */}
+          <div className="col-md-3">
+            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
+              <div 
+                style={{ 
+                  width: '44px', 
+                  height: '44px', 
+                  borderRadius: '50%', 
+                  backgroundColor: '#fef3c7', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  flexShrink: 0 
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#b45309" viewBox="0 0 24 24">
+                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Pendientes</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{pendingCount}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card: Inactivos */}
+          <div className="col-md-3">
+            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
+              <div 
+                style={{ 
+                  width: '44px', 
+                  height: '44px', 
+                  borderRadius: '50%', 
+                  backgroundColor: '#ffe4e6', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  flexShrink: 0 
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#be123c" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm10-5h-8v2h8V9z"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Inactivos</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{inactiveCount}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sección 2: Filtros de Búsqueda Desacoplados */}
+        <UserFilters 
+          filters={filters} 
+          onFiltersChange={setFilters} 
+          onClearFilters={handleClearFilters}
+        />
+
+        {/* Barra del Listado con Interruptor para ver Papelera */}
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <h2 className="m-0" style={{ fontWeight: 600, fontSize: '18px', color: '#4b5563' }}>Listado de usuarios</h2>
+          <button
+            className="btn btn-sm btn-secondary"
+            style={{ fontWeight: 600, padding: '6px 16px', borderRadius: '6px' }}
             onClick={() => setFilters(f => ({ ...f, estado: f.estado === 'papelera' ? 'ALL' : 'papelera' }))}
           >
             {filters.estado === 'papelera' ? 'Ver activos' : 'Ver papelera'}
           </button>
         </div>
 
-        {/* Tabla Principal de Usuarios */}
-        <UserTable
+        {/* Sección 3: Tabla de Usuarios */}
+        <UserTable 
           users={paginatedUsers}
           isSuperAdmin={isSuperAdmin}
           showActionsColumn={showActionsColumn}
@@ -242,17 +393,136 @@ const UsersList: React.FC = () => {
           onResetPassword={handleResetPassword}
           onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
+          onEditClick={(user) => setEditingUser(user)}
           filtersEstado={filters.estado}
         />
 
-        {/* Componente Genérico de Paginación */}
-        <Pagination
+        {/* Sección 4: Paginación */}
+        <Pagination 
           currentPage={page}
           totalItems={allFilteredUsers.length}
           pageSize={pageSize}
           onPageChange={setPage}
         />
       </div>
+
+      {/* --- MODAL PARA CREAR/INVITAR DOCENTES --- */}
+      {isInviteModalOpen && (
+        <>
+          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.55)', zIndex: 1050 }} tabIndex={-1}>
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content" style={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
+                <div className="modal-header" style={{ borderBottom: '1px solid var(--unla-border)', padding: '16px 24px' }}>
+                  <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
+                    {isSuperAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setIsInviteModalOpen(false)}
+                    aria-label="Close"
+                  />
+                </div>
+                <div className="modal-body" style={{ padding: '24px' }}>
+                  <UserForm 
+                    isSuperAdmin={isSuperAdmin} 
+                    onSubmit={async (data) => {
+                      await handleCreateOrInvite(data);
+                      setIsInviteModalOpen(false);
+                    }} 
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }} />
+        </>
+      )}
+
+      {/* --- MODAL PARA EDITAR INFORMACIÓN DE USUARIOS --- */}
+      {editingUser && (
+        <>
+          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.55)', zIndex: 1050 }} tabIndex={-1}>
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content" style={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
+                <div className="modal-header" style={{ borderBottom: '1px solid var(--unla-border)', padding: '16px 24px' }}>
+                  <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
+                    Editar Usuario: {editingUser.email}
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setEditingUser(null)}
+                    aria-label="Close"
+                  />
+                </div>
+                <form onSubmit={handleEditUser}>
+                  <div className="modal-body d-flex flex-column gap-3" style={{ padding: '24px' }}>
+                    <div>
+                      <label className="form-label" style={{ fontWeight: 500 }}>Nombre</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        required
+                        value={editingUser.nombre || ''}
+                        onChange={(e) => setEditingUser((u: any) => ({ ...u, nombre: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label" style={{ fontWeight: 500 }}>Apellido</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        required
+                        value={editingUser.apellido || ''}
+                        onChange={(e) => setEditingUser((u: any) => ({ ...u, apellido: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label" style={{ fontWeight: 500 }}>DNI</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        required
+                        maxLength={8}
+                        value={editingUser.dni || ''}
+                        onChange={(e) => setEditingUser((u: any) => ({ ...u, dni: e.target.value.replace(/\D/g, '') }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label" style={{ fontWeight: 500 }}>Legajo</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editingUser.legajo || ''}
+                        onChange={(e) => setEditingUser((u: any) => ({ ...u, legajo: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer" style={{ borderTop: '1px solid var(--unla-border)', padding: '16px 24px' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary" 
+                      onClick={() => setEditingUser(null)}
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      style={{ backgroundColor: 'var(--unla-primary)', border: 'none' }}
+                    >
+                      Guardar Cambios
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }} />
+        </>
+      )}
+
     </div>
   );
 };
