@@ -72,15 +72,8 @@ const UserTable: React.FC<UserTableProps> = ({
 
     return (
       <span 
-        className="badge" 
-        style={{ 
-          ...styles, 
-          padding: '5px 12px', 
-          borderRadius: '16px', 
-          fontSize: '11px', 
-          fontWeight: 600,
-          textTransform: 'uppercase'
-        }}
+        className="badge role-badge-custom" 
+        style={styles}
       >
         {rol}
       </span>
@@ -135,25 +128,16 @@ const UserTable: React.FC<UserTableProps> = ({
 
     return (
       <span
-        className="badge d-inline-flex align-items-center gap-1.5"
+        className="badge status-badge-custom d-inline-flex align-items-center gap-1.5"
         style={{
           backgroundColor: bgColor,
-          color: textColor,
-          padding: '6px 12px',
-          borderRadius: '16px',
-          fontWeight: 600,
-          fontSize: '12px',
-          border: 'none',
-          lineHeight: '1.2'
+          color: textColor
         }}
       >
         <span 
+          className="status-badge-dot"
           style={{ 
-            width: '6px', 
-            height: '6px', 
-            backgroundColor: dotColor, 
-            borderRadius: '50%',
-            display: 'inline-block'
+            backgroundColor: dotColor
           }} 
         />
         {label}
@@ -203,21 +187,7 @@ const UserTable: React.FC<UserTableProps> = ({
                 {/* Celda del Email con Iniciales */}
                 <td style={{ padding: '12px 16px' }}>
                   <div className="d-flex align-items-center gap-3">
-                    <div 
-                      style={{ 
-                        width: '36px', 
-                        height: '36px', 
-                        borderRadius: '50%', 
-                        backgroundColor: '#fae8ff', 
-                        color: '#a21caf', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        fontWeight: 600,
-                        fontSize: '13px',
-                        flexShrink: 0
-                      }}
-                    >
+                    <div className="user-avatar-initials">
                       {getInitials(u.nombre, u.apellido, u.email)}
                     </div>
                     <span style={{ fontWeight: 500 }}>{u.email}</span>
@@ -289,21 +259,11 @@ const UserTable: React.FC<UserTableProps> = ({
                 {showActionsColumn && (
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                     {canManage(u.rol) && (
-                      <div className="dropdown" style={{ position: 'relative', display: 'inline-block' }}>
+                      <div className="actions-dropdown-wrapper">
                         <button
                           type="button"
-                          className="btn btn-light d-flex align-items-center justify-content-center"
+                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${openDropdownId === u.id ? 'active' : ''}`}
                           onClick={() => setOpenDropdownId(openDropdownId === u.id ? null : u.id)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            padding: 0,
-                            border: 'none',
-                            fontSize: '18px',
-                            color: '#666',
-                            background: openDropdownId === u.id ? '#e9ecef' : 'transparent'
-                          }}
                         >
                           ⋮
                         </button>
@@ -311,38 +271,15 @@ const UserTable: React.FC<UserTableProps> = ({
                           <>
                             {/* Backdrop invisible para capturar el click afuera y cerrar el dropdown */}
                             <div 
+                              className="dropdown-click-outside-backdrop"
                               onClick={() => setOpenDropdownId(null)}
-                              style={{ 
-                                position: 'fixed', 
-                                top: 0, 
-                                left: 0, 
-                                right: 0, 
-                                bottom: 0, 
-                                zIndex: 998,
-                                background: 'transparent'
-                              }}
                             />
-                            <ul 
-                              className="dropdown-menu show dropdown-menu-end" 
-                              style={{ 
-                                position: 'absolute', 
-                                top: '100%', 
-                                right: 0, 
-                                zIndex: 999, 
-                                display: 'block',
-                                minWidth: '180px',
-                                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                                borderRadius: '8px',
-                                border: '1px solid #e5e7eb',
-                                padding: '6px 0',
-                                margin: '4px 0 0'
-                              }}
-                            >
+                            <ul className="custom-dropdown-menu dropdown-menu-end">
                               {/* Acción: Editar */}
                               <li>
                                 <button
                                   type="button"
-                                  className="dropdown-item d-flex align-items-center gap-2 py-2"
+                                  className="custom-dropdown-item"
                                   onClick={() => {
                                     setOpenDropdownId(null);
                                     onEditClick(u);
@@ -390,7 +327,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                 <li>
                                   <button
                                     type="button"
-                                    className="dropdown-item d-flex align-items-center gap-2 py-2"
+                                    className="custom-dropdown-item"
                                     onClick={() => {
                                       setOpenDropdownId(null);
                                       onResetPassword(u);
@@ -409,7 +346,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                 <li>
                                   <button
                                     type="button"
-                                    className="dropdown-item d-flex align-items-center gap-2 py-2 text-warning"
+                                    className="custom-dropdown-item text-warning"
                                     onClick={() => {
                                       setOpenDropdownId(null);
                                       onToggleActivation(u.id, false);
@@ -427,7 +364,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                 <li>
                                   <button
                                     type="button"
-                                    className="dropdown-item d-flex align-items-center gap-2 py-2 text-success"
+                                    className="custom-dropdown-item text-success"
                                     onClick={() => {
                                       setOpenDropdownId(null);
                                       onToggleActivation(u.id, true);
@@ -449,7 +386,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                   <li>
                                     <button
                                       type="button"
-                                      className="dropdown-item d-flex align-items-center gap-2 py-2 text-success"
+                                      className="custom-dropdown-item text-success"
                                       onClick={() => {
                                         setOpenDropdownId(null);
                                         onRestoreUser(u);
@@ -461,7 +398,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                   <li>
                                     <button
                                       type="button"
-                                      className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                                      className="custom-dropdown-item text-danger"
                                       onClick={() => {
                                         setOpenDropdownId(null);
                                         onDeletePermanently(u);
@@ -475,7 +412,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                 <li>
                                   <button
                                     type="button"
-                                    className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                                    className="custom-dropdown-item text-danger"
                                     onClick={() => {
                                       setOpenDropdownId(null);
                                       onDeleteUser(u.id);

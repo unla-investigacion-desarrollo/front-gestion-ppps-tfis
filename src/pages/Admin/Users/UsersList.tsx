@@ -18,6 +18,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../../../styles/unla.css';
 import bgImage from '../../../assets/fondo-rojo.jpg';
+import './UsersList.css';
 
 // Refactored Subcomponents
 import UserForm from './components/UserForm';
@@ -218,36 +219,23 @@ const UsersList: React.FC = () => {
 
   return (
     <div
-      className="unla-page"
+      className="unla-page users-page-container"
       style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        padding: '24px'
+        backgroundImage: `url(${bgImage})`
       }}
     >
-      <div className="unla-card" style={{ width: '100%', margin: '0 auto', padding: '24px' }}>
+      <div className="unla-card users-card-main">
         
         {/* Cabecera principal con Título, Subtítulo y Botón de Invitación */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
-            <h1 className="m-0" style={{ fontWeight: 700, fontSize: '28px', color: '#333' }}>Usuarios</h1>
-            <p className="m-0 text-muted" style={{ fontSize: '15px', marginTop: '4px' }}>Gestioná los docentes del sistema</p>
+            <h1 className="m-0 users-title">Usuarios</h1>
+            <p className="m-0 text-muted users-subtitle">Gestioná los docentes del sistema</p>
           </div>
           <button
             type="button"
-            className="btn d-flex align-items-center gap-2"
+            className="btn btn-invite-teacher d-flex align-items-center gap-2"
             onClick={() => setIsInviteModalOpen(true)}
-            style={{
-              backgroundColor: 'var(--unla-primary)',
-              color: '#fff',
-              fontWeight: 600,
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              boxShadow: '0 2px 6px rgba(100,0,29,0.2)'
-            }}
           >
             <span>+</span> Invitar docente
           </button>
@@ -257,104 +245,60 @@ const UsersList: React.FC = () => {
         <div className="row g-3 mb-4">
           {/* Card: Total */}
           <div className="col-md-3">
-            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
-              <div 
-                style={{ 
-                  width: '44px', 
-                  height: '44px', 
-                  borderRadius: '50%', 
-                  backgroundColor: '#fae8ff', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  flexShrink: 0 
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#a21caf" viewBox="0 0 24 24">
+            <div className="stat-card">
+              <div className="stat-icon-wrapper stat-icon-total">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
               </div>
               <div>
-                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Total docentes</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{totalCount}</div>
+                <div className="stat-label">Total docentes</div>
+                <div className="stat-value">{totalCount}</div>
               </div>
             </div>
           </div>
 
           {/* Card: Activos */}
           <div className="col-md-3">
-            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
-              <div 
-                style={{ 
-                  width: '44px', 
-                  height: '44px', 
-                  borderRadius: '50%', 
-                  backgroundColor: '#dcfce7', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  flexShrink: 0 
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#15803d" viewBox="0 0 24 24">
+            <div className="stat-card">
+              <div className="stat-icon-wrapper stat-icon-active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </div>
               <div>
-                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Activos</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{activeCount}</div>
+                <div className="stat-label">Activos</div>
+                <div className="stat-value">{activeCount}</div>
               </div>
             </div>
           </div>
 
           {/* Card: Pendientes */}
           <div className="col-md-3">
-            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
-              <div 
-                style={{ 
-                  width: '44px', 
-                  height: '44px', 
-                  borderRadius: '50%', 
-                  backgroundColor: '#fef3c7', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  flexShrink: 0 
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#b45309" viewBox="0 0 24 24">
+            <div className="stat-card">
+              <div className="stat-icon-wrapper stat-icon-pending">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                 </svg>
               </div>
               <div>
-                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Pendientes</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{pendingCount}</div>
+                <div className="stat-label">Pendientes</div>
+                <div className="stat-value">{pendingCount}</div>
               </div>
             </div>
           </div>
 
           {/* Card: Inactivos */}
           <div className="col-md-3">
-            <div className="d-flex align-items-center gap-3 p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--unla-border)', borderRadius: '12px' }}>
-              <div 
-                style={{ 
-                  width: '44px', 
-                  height: '44px', 
-                  borderRadius: '50%', 
-                  backgroundColor: '#ffe4e6', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  flexShrink: 0 
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#be123c" viewBox="0 0 24 24">
+            <div className="stat-card">
+              <div className="stat-icon-wrapper stat-icon-inactive">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm10-5h-8v2h8V9z"/>
                 </svg>
               </div>
               <div>
-                <div style={{ fontSize: '13px', color: 'var(--unla-muted)', fontWeight: 500 }}>Inactivos</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#111827' }}>{inactiveCount}</div>
+                <div className="stat-label">Inactivos</div>
+                <div className="stat-value">{inactiveCount}</div>
               </div>
             </div>
           </div>
@@ -369,10 +313,9 @@ const UsersList: React.FC = () => {
 
         {/* Barra del Listado con Interruptor para ver Papelera */}
         <div className="d-flex align-items-center justify-content-between mb-3">
-          <h2 className="m-0" style={{ fontWeight: 600, fontSize: '18px', color: '#4b5563' }}>Listado de usuarios</h2>
+          <h2 className="m-0 list-section-title">Listado de usuarios</h2>
           <button
-            className="btn btn-sm btn-secondary"
-            style={{ fontWeight: 600, padding: '6px 16px', borderRadius: '6px' }}
+            className="btn btn-sm btn-secondary btn-toggle-trash"
             onClick={() => setFilters(f => ({ ...f, estado: f.estado === 'papelera' ? 'ALL' : 'papelera' }))}
           >
             {filters.estado === 'papelera' ? 'Ver activos' : 'Ver papelera'}
@@ -409,10 +352,10 @@ const UsersList: React.FC = () => {
       {/* --- MODAL PARA CREAR/INVITAR DOCENTES --- */}
       {isInviteModalOpen && (
         <>
-          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.55)', zIndex: 1050 }} tabIndex={-1}>
+          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1}>
             <div className="modal-dialog modal-lg modal-dialog-centered">
-              <div className="modal-content" style={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
-                <div className="modal-header" style={{ borderBottom: '1px solid var(--unla-border)', padding: '16px 24px' }}>
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
                   <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
                     {isSuperAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
                   </h5>
@@ -423,7 +366,7 @@ const UsersList: React.FC = () => {
                     aria-label="Close"
                   />
                 </div>
-                <div className="modal-body" style={{ padding: '24px' }}>
+                <div className="modal-body custom-modal-body">
                   <UserForm 
                     isSuperAdmin={isSuperAdmin} 
                     onSubmit={async (data) => {
@@ -435,17 +378,17 @@ const UsersList: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }} />
+          <div className="custom-modal-backdrop" />
         </>
       )}
 
       {/* --- MODAL PARA EDITAR INFORMACIÓN DE USUARIOS --- */}
       {editingUser && (
         <>
-          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.55)', zIndex: 1050 }} tabIndex={-1}>
+          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1}>
             <div className="modal-dialog modal-md modal-dialog-centered">
-              <div className="modal-content" style={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
-                <div className="modal-header" style={{ borderBottom: '1px solid var(--unla-border)', padding: '16px 24px' }}>
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
                   <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
                     Editar Usuario: {editingUser.email}
                   </h5>
@@ -457,7 +400,7 @@ const UsersList: React.FC = () => {
                   />
                 </div>
                 <form onSubmit={handleEditUser}>
-                  <div className="modal-body d-flex flex-column gap-3" style={{ padding: '24px' }}>
+                  <div className="modal-body custom-modal-body d-flex flex-column gap-3">
                     <div>
                       <label className="form-label" style={{ fontWeight: 500 }}>Nombre</label>
                       <input 
@@ -499,7 +442,7 @@ const UsersList: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="modal-footer" style={{ borderTop: '1px solid var(--unla-border)', padding: '16px 24px' }}>
+                  <div className="modal-footer custom-modal-footer">
                     <button 
                       type="button" 
                       className="btn btn-outline-secondary" 
@@ -519,7 +462,7 @@ const UsersList: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }} />
+          <div className="custom-modal-backdrop" />
         </>
       )}
 

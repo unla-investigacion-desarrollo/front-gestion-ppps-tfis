@@ -1,0 +1,275 @@
+/* UsersList.css - Estilos refactorizados para la gestión de usuarios */
+
+/* Contenedor principal de la página con imagen de fondo */
+.users-page-container {
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* Tarjeta principal contenedora */
+.users-card-main {
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Títulos y Subtítulos */
+.users-title {
+  font-weight: 700;
+  font-size: 28px;
+  color: #333;
+}
+
+.users-subtitle {
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+/* Botón invitar docente */
+.btn-invite-teacher {
+  background-color: var(--unla-primary);
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 6px rgba(100, 0, 29, 0.2);
+}
+
+.btn-invite-teacher:hover {
+  background-color: var(--unla-primary-hover);
+  color: #fff;
+}
+
+/* --- TARJETAS DE ESTADÍSTICAS --- */
+.stat-card {
+  background-color: #fff;
+  border: 1px solid var(--unla-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-total {
+  background-color: #fae8ff;
+}
+
+.stat-icon-active {
+  background-color: #dcfce7;
+}
+
+.stat-icon-pending {
+  background-color: #fef3c7;
+}
+
+.stat-icon-inactive {
+  background-color: #ffe4e6;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--unla-muted);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Listado header */
+.list-section-title {
+  font-weight: 600;
+  font-size: 18px;
+  color: #4b5563;
+}
+
+.btn-toggle-trash {
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 6px;
+}
+
+/* --- FILTROS DE BÚSQUEDA --- */
+.filters-card {
+  padding: 16px 20px;
+  border: 1px solid var(--unla-border);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-icon-wrapper {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.search-input-field {
+  padding-left: 40px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.filter-select-field {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-clear-filters {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  width: 100%;
+  font-weight: 500;
+}
+
+/* --- TABLA DE USUARIOS --- */
+.user-avatar-initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #fae8ff;
+  color: #a21caf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Badge de rol genérico */
+.role-badge-custom {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Badge de estado con punto */
+.status-badge-custom {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 12px;
+  border: none;
+  line-height: 1.2;
+}
+
+.status-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* Menú dropdown y acciones */
+.actions-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-actions-trigger {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  border: none;
+  font-size: 18px;
+  color: #666;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.btn-actions-trigger.active,
+.btn-actions-trigger:hover {
+  background-color: #e9ecef;
+}
+
+/* Backdrop para clics fuera */
+.dropdown-click-outside-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+  background: transparent;
+}
+
+/* Dropdown Menu customizado */
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 999;
+  display: block;
+  min-width: 180px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 6px 0;
+  margin: 4px 0 0;
+  background-color: #fff;
+}
+
+.custom-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.15s;
+}
+
+.custom-dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* --- ESTILOS DE MODAL PERSONALIZADOS --- */
+.custom-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+}
+
+.custom-modal-dialog-wrapper {
+  display: block;
+  z-index: 1050;
+}
