@@ -1,3 +1,18 @@
+/* Global resets to ensure layout takes full screen width */
+html, body, #root {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+}
+
+.unla-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
 /* UNLa shared styles to match Dashboard look & feel */
 :root {
   --unla-primary: #64001D;
@@ -10,6 +25,9 @@
 }
 
 .unla-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
   padding: 2rem;
   background: var(--unla-bg);
   min-height: calc(100vh - 64px);
