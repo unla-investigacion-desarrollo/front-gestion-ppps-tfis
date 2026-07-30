@@ -73,7 +73,8 @@ const initialState: AuthState = {
       const raw = localStorage.getItem('user');
       if (!raw) return null;
       const parsed = JSON.parse(raw) as User;
-      return parsed ? { ...parsed, roles: normalizeRoles(parsed.roles || []) } : null;
+      const persistedRoles = parsed.roles || parsed.rol || [];
+      return parsed ? { ...parsed, roles: normalizeRoles(persistedRoles) } : null;
     } catch {
       return null;
     }
