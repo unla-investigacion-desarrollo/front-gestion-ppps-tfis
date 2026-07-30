@@ -21,12 +21,59 @@ interface AuthState {
   lastLogin: string | null;
 }
 
+// Helper para normalizar un rol en mayúsculas y mapear variantes
+const normalizeRole = (role: any): string => {
+  if (!role && role !== 0) return '';
+
+  let roleStr = typeof role === 'string'
+    ? role
+    : (role.authority || role.name || String(role || ''));
+
+  roleStr = roleStr.toUpperCase().trim();
+  if (roleStr.startsWith('ROLE_')) {
+    roleStr = roleStr.substring(5);
+  }
+
+  switch (roleStr) {
+    case 'STUDEN':
+    case 'STUDENT':
+    case 'ALUMNO':
+    case 'ALUMNA':
+      return 'ESTUDIANTE';
+    case 'TEACHER':
+    case 'PROFESSOR':
+      return 'DOCENTE';
+    case 'ADMIN':
+    case 'SUPER_ADMIN':
+    case 'DOCENTE':
+    case 'ESTUDIANTE':
+      return roleStr;
+    default:
+      return roleStr;
+  }
+};
+
+const normalizeRoles = (rolesSource: any): string[] => {
+  if (typeof rolesSource === 'string') {
+    rolesSource = rolesSource.includes(',')
+      ? rolesSource.split(',').map((r: string) => r.trim())
+      : [rolesSource];
+  }
+
+  const rawRoles = Array.isArray(rolesSource) ? rolesSource : [rolesSource];
+  return rawRoles
+    .map((r: any) => normalizeRole(r))
+    .filter((r: string) => r.length > 0);
+};
+
 // Estado inicial
 const initialState: AuthState = {
   user: (() => {
     try {
       const raw = localStorage.getItem('user');
-      return raw ? (JSON.parse(raw) as User) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as User;
+      return parsed ? { ...parsed, roles: normalizeRoles(parsed.roles || []) } : null;
     } catch {
       return null;
     }
@@ -93,22 +140,11 @@ export const loginUser = createAsyncThunk<
       const email = data.email || decoded.email || decoded.sub || credentials.email;
 
       // Intentar obtener los roles del JWT (pueden venir como array de strings, string separado por comas, u objeto)
-      let rolesSource = decoded.roles || decoded.role || decoded.rol || decoded.authorities || [];
-      if (typeof rolesSource === 'string') {
-        rolesSource = rolesSource.includes(',') ? rolesSource.split(',').map((r: string) => r.trim()) : [rolesSource];
-      }
-
-      const userRoles = (Array.isArray(rolesSource) ? rolesSource : [rolesSource])
-        .filter(Boolean)
-        .map((r: any) => {
-          let roleStr = typeof r === 'string' ? r : (r.authority || r.name || String(r));
-          roleStr = roleStr.toUpperCase().trim();
-          // Quitar el prefijo ROLE_ si está presente (ej. ROLE_DOCENTE -> DOCENTE)
-          return roleStr.startsWith('ROLE_') ? roleStr.substring(5) : roleStr;
-        });
+      const rolesSource = decoded.roles || decoded.role || decoded.rol || decoded.authorities || [];
+      const normalizedRoles = normalizeRoles(rolesSource);
 
       // Si no se encuentran roles en el JWT, usar 'ESTUDIANTE' como valor por defecto
-      const finalRoles = userRoles.length > 0 ? userRoles : ['ESTUDIANTE'];
+      const finalRoles = normalizedRoles.length > 0 ? normalizedRoles : ['ESTUDIANTE'];
 
       const mappedUser: User = {
         id: decoded.id || decoded.sub || email,
