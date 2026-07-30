@@ -17,11 +17,11 @@ const AuthenticatedLayout = ({ children }) => {
   const displayName = user
     ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
     : '';
-  const isAdmin = !!user && Array.isArray(user.roles) && (
-    user.roles.includes('admin') ||
-    user.roles.includes('ADMIN') ||
-    user.roles.includes('SUPER_ADMIN')
-  );
+  const rawRoles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
+  if (user?.rol) rawRoles.push(user.rol);
+  const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
+  const isAdmin = normalizedRoles.some((r) => ['ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(r));
+  const isTeacher = normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(r));
   const mustChange = !!user?.mustChangePassword;
 
   // Toast handling con cola por usuario (localStorage 'userNotifications')
@@ -129,7 +129,7 @@ const AuthenticatedLayout = ({ children }) => {
         <span className="unla-title">{`Bienvenido${displayName ? ' ' + displayName : ''}`}</span>
         <div className="spacer" />
         <Link to="/dashboard">Inicio</Link>
-        {(isAdmin || user?.roles?.includes('DOCENTE')) && (
+        {(isAdmin || isTeacher) && (
           <>
             <Link to="/admin/proposals">Propuestas</Link>
             <Link to="/docente/proyectos">Proyectos</Link>

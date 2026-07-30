@@ -17,7 +17,8 @@ const TeacherProjectsList: React.FC = () => {
   const teachers = useMemo(() => {
     return users.filter(u => {
       const roles = Array.isArray((u as any).roles) ? (u as any).roles : (u as any).rol ? [(u as any).rol] : [];
-      return roles.includes('DOCENTE') || roles.includes('ADMIN') || roles.includes('SUPER_ADMIN');
+      const normalized = roles.map((r: any) => String(r).toUpperCase().trim());
+      return normalized.some((r: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(r));
     });
   }, [users]);
   // Activity storage helpers
