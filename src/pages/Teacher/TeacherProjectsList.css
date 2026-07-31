@@ -1,9 +1,8 @@
 /* TeacherProjectsList.css - Estilos específicos para la gestión de proyectos del docente */
 
-/* Contenedor principal de la página con imagen de fondo */
+/* Contenedor principal de la página con fondo gris clarito */
 .projects-page-container {
-  background-size: cover;
-  background-position: center;
+  background-color: #f3f4f6;
   min-height: calc(100vh - 56px);
   padding: 24px;
 }

@@ -1,10 +1,9 @@
 /* UsersList.css - Estilos refactorizados para la gestión de usuarios */
 
-/* Contenedor principal de la página con imagen de fondo */
+/* Contenedor principal de la página con fondo gris clarito */
 .users-page-container {
-  background-size: cover;
-  background-position: center;
-  min-height: 100vh;
+  background-color: #f3f4f6;
+  min-height: calc(100vh - 56px);
   padding: 24px;
 }
 
@@ -13,6 +12,12 @@
   width: 100%;
   margin: 0 auto;
   padding: 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  min-height: calc(100vh - 56px - 48px - 6px);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Títulos y Subtítulos */

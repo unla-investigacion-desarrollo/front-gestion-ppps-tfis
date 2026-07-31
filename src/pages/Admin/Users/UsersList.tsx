@@ -218,19 +218,14 @@ const UsersList: React.FC = () => {
   const paginatedUsers = sortedUsers.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div
-      className="unla-page users-page-container"
-      style={{
-        backgroundImage: `url(${bgImage})`
-      }}
-    >
+    <div className="unla-page users-page-container">
       <div className="unla-card users-card-main">
 
         {/* Cabecera principal con Título, Subtítulo y Botón de Invitación */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
             <h1 className="m-0 users-title">Usuarios</h1>
-            <p className="m-0 text-muted users-subtitle">Gestioná los docentes del sistema</p>
+            <p className="m-0 text-muted users-subtitle">Gestioná los usuarios del sistema</p>
           </div>
           <button
             type="button"
@@ -339,6 +334,9 @@ const UsersList: React.FC = () => {
           onEditClick={(user) => setEditingUser(user)}
           filtersEstado={filters.estado}
         />
+
+        {/* Espaciador flexible para empujar la paginación al fondo */}
+        <div style={{ flexGrow: 1 }} />
 
         {/* Sección 4: Paginación */}
         <Pagination

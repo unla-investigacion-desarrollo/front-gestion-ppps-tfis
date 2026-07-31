@@ -263,12 +263,7 @@ const TeacherProjectsList: React.FC = () => {
   };
 
   return (
-    <div
-      className="projects-page-container"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-      }}
-    >
+    <div className="projects-page-container">
       <div className="projects-card-main">
         {/* Cabecera principal: Título y Botones primario/secundario */}
         <div className="d-flex justify-content-between align-items-start mb-4">

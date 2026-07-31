@@ -90,24 +90,8 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
       alert('Email es obligatorio');
       return;
     }
-    if (emailCheck === 'taken') {
-      alert('El email ya está en uso');
-      return;
-    }
-    if (!form.nombre || /[^\p{L}\s]/gu.test(form.nombre)) {
-      alert('Nombre debe contener solo letras');
-      return;
-    }
-    if (!form.apellido || /[^\p{L}\s]/gu.test(form.apellido)) {
-      alert('Apellido debe contener solo letras');
-      return;
-    }
     if (!/^\d{8}$/.test(form.dni)) {
       alert('DNI debe tener 8 dígitos');
-      return;
-    }
-    if (dniCheckTeach === 'taken') {
-      alert('El DNI ya está en uso');
       return;
     }
 
@@ -177,8 +161,8 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
             {form.email.trim() && emailCheck === 'taken'
               ? "❌ El email ya está en uso."
               : form.email.trim() && emailCheck === 'checking'
-              ? "⏳ Verificando email…"
-              : "Ingresá un email válido. No debe estar registrado."}
+                ? "⏳ Verificando email…"
+                : "Ingresá un email válido. No debe estar registrado."}
           </div>
         </div>
 
@@ -187,7 +171,7 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
           <input
             className="form-control"
             name="nombre"
-            placeholder="Nombre (solo letras)"
+            placeholder="Nombre"
             value={form.nombre}
             onChange={(e) =>
               setForm((prev) => ({
@@ -203,7 +187,7 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
           <input
             className="form-control"
             name="apellido"
-            placeholder="Apellido (solo letras)"
+            placeholder="Apellido"
             value={form.apellido}
             onChange={(e) =>
               setForm((prev) => ({
@@ -219,7 +203,7 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
           <input
             className="form-control"
             name="dni"
-            placeholder="DNI (8 dígitos)"
+            placeholder="DNI "
             value={form.dni}
             onChange={(e) =>
               setForm((prev) => ({
@@ -229,13 +213,6 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
             }
             required
           />
-          <div className="form-text">
-            {form.dni.length === 8 && dniCheckTeach === "taken"
-              ? "❌ El DNI ya está en uso."
-              : form.dni.length === 8 && dniCheckTeach === "checking"
-              ? "⏳ Verificando DNI…"
-              : "Debe contener exactamente 8 dígitos"}
-          </div>
         </div>
 
         {/* Selección de invitación (sin contraseña por email) - solo disponible para docentes */}
