@@ -1,0 +1,438 @@
+/* TeacherProjectsList.css - Estilos específicos para la gestión de proyectos del docente */
+
+/* Contenedor principal de la página con imagen de fondo */
+.projects-page-container {
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* Tarjeta principal contenedora */
+.projects-card-main {
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Títulos y Subtítulos */
+.projects-title {
+  font-weight: 700;
+  font-size: 28px;
+  color: #333;
+}
+
+.projects-subtitle {
+  font-size: 15px;
+  margin-top: 4px;
+  color: #666;
+}
+
+/* Botón Nuevo Proyecto (Bordó de la UNLA) */
+.btn-new-project {
+  background-color: var(--unla-primary, #64001d);
+  color: #fff !important;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 6px rgba(100, 0, 29, 0.2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-new-project:hover {
+  background-color: var(--unla-primary-hover, #4a0014);
+  transform: translateY(-1px);
+}
+
+/* Botón Papelera secundario */
+.btn-trash-secondary {
+  background-color: #fff;
+  color: #4b5563 !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-trash-secondary:hover {
+  background-color: #f3f4f6;
+  border-color: #cbd5e1;
+}
+
+/* --- FILTROS DE BÚSQUEDA --- */
+.filters-card {
+  padding: 16px 20px;
+  border: 1px solid var(--unla-border, #dee2e6);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  background-color: #fff;
+}
+
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-icon-wrapper {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.search-input-field {
+  padding-left: 40px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.filter-btn-toggle {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  color: #4b5563;
+  font-weight: 500;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.filter-btn-toggle:hover,
+.filter-btn-toggle.active {
+  background-color: #f3f4f6;
+  border-color: #cbd5e1;
+}
+
+/* Panel de filtros colapsable */
+.advanced-filters-panel {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.filter-select-field {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-clear-filters {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  font-weight: 500;
+  background-color: #fff;
+  transition: all 0.2s;
+}
+
+.btn-clear-filters:hover {
+  background-color: #f9fafb;
+}
+
+/* --- TABLA DE PROYECTOS --- */
+.projects-table-wrapper {
+  overflow: visible;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--unla-border, #dee2e6);
+}
+
+.project-title-link {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--unla-primary, #64001d);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+}
+
+.project-title-link:hover {
+  color: var(--unla-primary-hover, #4a0014);
+  text-decoration: underline;
+}
+
+.project-description-text {
+  font-size: 13.5px;
+  color: #4b5563;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.project-date-text {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Badges para categorías de proyectos */
+.project-category-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.badge-desarrollo {
+  background-color: #ffe4e6;
+  color: #be123c;
+}
+
+.badge-investigacion {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-extension {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.badge-generic {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Listas internas de estudiantes y co-docentes */
+.inline-member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inline-member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f9fafb;
+  padding: 4px 8px 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid #f3f4f6;
+}
+
+.btn-remove-member {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: background-color 0.15s;
+}
+
+.btn-remove-member:hover {
+  background-color: #fee2e2;
+}
+
+/* Botón Asignar en la fila */
+.btn-assign-action {
+  border: 1.5px solid var(--unla-primary, #64001d);
+  color: var(--unla-primary, #64001d);
+  background-color: transparent;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-assign-action:hover {
+  background-color: var(--unla-primary, #64001d);
+  color: #fff;
+}
+
+/* Menú dropdown de acciones (⋮) */
+.actions-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-actions-trigger {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  border: none;
+  font-size: 18px;
+  color: #666;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.btn-actions-trigger.active,
+.btn-actions-trigger:hover {
+  background-color: #e9ecef;
+}
+
+.dropdown-click-outside-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+  background: transparent;
+}
+
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 999;
+  display: block;
+  min-width: 180px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 6px 0;
+  margin: 4px 0 0;
+  background-color: #fff;
+}
+
+.custom-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.15s;
+}
+
+.custom-dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Modales e interactivos */
+.custom-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+}
+
+.custom-modal-dialog-wrapper {
+  display: block;
+  z-index: 1050;
+}
+
+.custom-modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.custom-modal-header {
+  border-bottom: 1px solid #f3f4f6;
+  padding: 16px 24px;
+}
+
+.custom-modal-body {
+  padding: 24px;
+}
+
+.custom-modal-footer {
+  border-top: 1px solid #f3f4f6;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Historial de actividad */
+.activity-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  position: relative;
+  padding-left: 24px;
+  padding-bottom: 16px;
+}
+
+.activity-item::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 0;
+  width: 2px;
+  background-color: #e5e7eb;
+}
+
+.activity-item:last-child::before {
+  display: none;
+}
+
+.activity-item::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--unla-primary, #64001d);
+}
+
+.activity-meta {
+  font-size: 11.5px;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+
+.activity-content {
+  font-size: 13.5px;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.activity-delivery-box {
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
