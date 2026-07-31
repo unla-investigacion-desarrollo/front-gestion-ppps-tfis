@@ -310,6 +310,9 @@ const TeacherProjectsList: React.FC = () => {
           onDeleteClick={(project) => handleDeleteProject(project.id)}
         />
 
+        {/* Espaciador flexible para empujar la paginación al fondo */}
+        <div style={{ flexGrow: 1 }} />
+
         {/* Paginación de Proyectos */}
         {filteredProjects.length > 0 && (
           <Pagination
