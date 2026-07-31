@@ -14,7 +14,7 @@ const Sidebar = () => {
           <li><Link to="/dashboard">Inicio</Link></li>
           {isStudent && (
             <>
-              <li><Link to="/alumno/mis-proyectos">Mis Proyectos</Link></li>
+              <li><Link to="/alumno/mis-proyectos">Proyectos</Link></li>
               <li><Link to="/carga-propuesta">Cargar Propuesta</Link></li>
               <li><Link to="/alumno/entregas">Subir Entregas</Link></li>
             </>
