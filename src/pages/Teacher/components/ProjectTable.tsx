@@ -83,7 +83,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           <tr>
             <th style={{ width: '45%', padding: '12px 16px' }}>Proyecto</th>
             <th style={{ width: '22%', padding: '12px 16px' }}>Alumnos Asignados (máx. 5)</th>
-            <th style={{ width: '18%', padding: '12px 16px' }}>Co-docentes</th>
+            <th style={{ width: '18%', padding: '12px 16px' }}>Docentes</th>
             <th style={{ width: '15%', padding: '12px 16px', textAlign: 'center' }}>Acciones</th>
           </tr>
         </thead>
@@ -146,7 +146,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 {/* Columna: Co-docentes */}
                 <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
                   {(!project.coTeachers || project.coTeachers.length === 0) ? (
-                    <span className="text-muted small">Sin co-docentes</span>
+                    <span className="text-muted small">Sin docentes</span>
                   ) : (
                     <ul className="inline-member-list">
                       {project.coTeachers.map((teacherId) => (
@@ -171,7 +171,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 {/* Columna: Acciones (Menú Dropdown ⋮) */}
                 <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                   <div className="d-inline-flex align-items-center gap-2">
-                    {/* Menú de Tres Puntos Verticales */}
                     <div className="actions-dropdown-wrapper">
                       <button
                         type="button"
@@ -226,7 +225,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                 onAddCoTeacherClick(project);
                               }}
                             >
-                              Agregar Co-docente
+                              Agregar Docente
                             </button>
 
 

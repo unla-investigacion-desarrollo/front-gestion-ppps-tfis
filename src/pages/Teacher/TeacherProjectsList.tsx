@@ -83,8 +83,8 @@ const TeacherProjectsList: React.FC = () => {
       const rolesArray = Array.isArray((user as any).roles)
         ? (user as any).roles
         : (user as any).rol
-        ? [(user as any).rol]
-        : [];
+          ? [(user as any).rol]
+          : [];
       const normalizedRoles = rolesArray.map((role: any) => String(role).toUpperCase().trim());
       return normalizedRoles.some((role: string) =>
         ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(role)
@@ -151,7 +151,7 @@ const TeacherProjectsList: React.FC = () => {
     const existingList = Array.isArray(activityMap[newEntry.projectId]) ? activityMap[newEntry.projectId] : [];
     activityMap[newEntry.projectId] = [...existingList, newEntry];
     writeActivityMap(activityMap);
-    
+
     // Forzar re-renderizado del modal al actualizar el mapa
     if (activeActivityProject) {
       setActiveActivityProject({ ...activeActivityProject });
@@ -171,7 +171,7 @@ const TeacherProjectsList: React.FC = () => {
         window.dispatchEvent(
           new CustomEvent('toast', { detail: { message: 'Alumno asignado correctamente', type: 'success' } })
         );
-      } catch {}
+      } catch { }
     }
   };
 
@@ -184,7 +184,7 @@ const TeacherProjectsList: React.FC = () => {
           window.dispatchEvent(
             new CustomEvent('toast', { detail: { message: 'Alumno quitado del proyecto', type: 'success' } })
           );
-        } catch {}
+        } catch { }
       }
     }
   };
@@ -200,7 +200,7 @@ const TeacherProjectsList: React.FC = () => {
         window.dispatchEvent(
           new CustomEvent('toast', { detail: { message: 'Co-docente agregado correctamente', type: 'success' } })
         );
-      } catch {}
+      } catch { }
     }
   };
 
@@ -213,7 +213,7 @@ const TeacherProjectsList: React.FC = () => {
           window.dispatchEvent(
             new CustomEvent('toast', { detail: { message: 'Co-docente quitado del proyecto', type: 'success' } })
           );
-        } catch {}
+        } catch { }
       }
     }
   };
@@ -239,7 +239,7 @@ const TeacherProjectsList: React.FC = () => {
         window.dispatchEvent(
           new CustomEvent('toast', { detail: { message: 'Proyecto modificado correctamente', type: 'success' } })
         );
-      } catch {}
+      } catch { }
     }
   };
 
@@ -252,7 +252,7 @@ const TeacherProjectsList: React.FC = () => {
           window.dispatchEvent(
             new CustomEvent('toast', { detail: { message: 'Proyecto enviado a la Papelera', type: 'success' } })
           );
-        } catch {}
+        } catch { }
       }
     }
   };
@@ -273,8 +273,8 @@ const TeacherProjectsList: React.FC = () => {
         {/* Cabecera principal: Título y Botones primario/secundario */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
-            <h1 className="m-0 projects-title">Mis Proyectos</h1>
-            <p className="m-0 text-muted projects-subtitle">Gestioná y colaborá en los proyectos asignados.</p>
+            <h1 className="m-0 projects-title">Proyectos</h1>
+            <p className="m-0 text-muted projects-subtitle">Gestioná y colaborá en los proyectos.</p>
           </div>
           <div className="d-flex gap-2">
             <Link className="btn-new-project" to="/docente/proyectos/nuevo">
@@ -282,8 +282,8 @@ const TeacherProjectsList: React.FC = () => {
             </Link>
             <Link className="btn-trash-secondary" to="/docente/proyectos/papelera">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
               </svg>
               Papelera
             </Link>
