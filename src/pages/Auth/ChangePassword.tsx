@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { changePassword } from '../../../redux/slices/usersSlice';
 import { selectCurrentUser, setMustChangePassword } from '../../../redux/slices/authSlice';
-import '../../styles/unla.css';
-import bgImage from '../../assets/fondo-rojo.jpg';
+import './ChangePassword.css';
+import bgImage from '../../assets/unla-edificio.jpg';
 
 const ChangePassword = () => {
   const user = useSelector(selectCurrentUser) as any;
@@ -52,7 +52,7 @@ const ChangePassword = () => {
       try {
         const key = user ? `toast:${user.id}` : 'toast:anon';
         sessionStorage.setItem(key, 'Contraseña actualizada correctamente');
-      } catch {}
+      } catch { }
       setTimeout(() => navigate('/dashboard'), 1200);
     } catch (e: any) {
       setError(e?.message || 'Error al cambiar la contraseña');
@@ -61,85 +61,157 @@ const ChangePassword = () => {
 
   return (
     <div
-      className="unla-page"
-      style={{
-        display: 'grid',
-        placeItems: 'center',
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        padding: '16px'
-      }}
+      className="change-password-container"
+      style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="unla-card" style={{ width: '100%', maxWidth: 560 }}>
-        <h1>Cambiar contraseña</h1>
-        {user?.mustChangePassword && (
-          <div className="unla-hint" style={{ marginBottom: 8 }}>
-            Debés cambiar tu contraseña para continuar.
+      <div className="change-password-overlay" />
+
+      <div className="change-password-card">
+        <h1 className="change-password-title">Cambiar contraseña</h1>
+
+        {user?.mustChangePassword ? (
+          <div className="change-password-alert info">
+            Debés cambiar tu contraseña predeterminada para continuar.
           </div>
+        ) : (
+          <p className="change-password-subtitle">
+            Ingresá tus datos para actualizar tus credenciales de acceso.
+          </p>
         )}
-        {error && <div className="unla-hint error" style={{ marginBottom: 8 }}>{error}</div>}
-        {ok && <div className="unla-hint" style={{ marginBottom: 8, color: '#2e7d32' }}>{ok}</div>}
+
+        {error && <div className="change-password-alert error">{error}</div>}
+        {ok && <div className="change-password-alert success">{ok}</div>}
+
         <form className="unla-form" onSubmit={handleSubmit}>
-          <div style={{ position: 'relative' }}>
-            <input
-              className="form-control"
-              type={show.current ? 'text' : 'password'}
-              placeholder="Contraseña actual"
-              value={form.currentPassword}
-              onChange={(e) => setForm((p) => ({ ...p, currentPassword: e.target.value }))}
-              required
-            />
-            <button type="button" title={show.current ? 'Ocultar' : 'Mostrar'} onClick={() => setShow((s) => ({ ...s, current: !s.current }))} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer' }}>{show.current ? '🙈' : '👁️'}</button>
-          </div>
-          <div style={{ position: 'relative' }}>
-            <input
-              className="form-control"
-              type={show.next ? 'text' : 'password'}
-              placeholder="Nueva contraseña (min 6)"
-              value={form.newPassword}
-              onChange={(e) => setForm((p) => ({ ...p, newPassword: e.target.value }))}
-              required
-            />
-            <button type="button" title={show.next ? 'Ocultar' : 'Mostrar'} onClick={() => setShow((s) => ({ ...s, next: !s.next }))} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer' }}>{show.next ? '🙈' : '👁️'}</button>
-          </div>
-          <div aria-live="polite" style={{ marginTop: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ height: 6, flex: 1, borderRadius: 4, background: strength === 'weak' ? '#ffcdd2' : strength === 'medium' ? '#ffe0b2' : '#c8e6c9' }} />
-              <span style={{ fontSize: 12, opacity: 0.8 }}>
-                {strength === 'weak' ? 'Débil' : strength === 'medium' ? 'Media' : 'Fuerte'}
-              </span>
+          <div className="form-group">
+            <label className="form-label" htmlFor="current-pw-input">Contraseña actual</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="current-pw-input"
+                className="login-input"
+                type={show.current ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={form.currentPassword}
+                onChange={(e) => setForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                required
+                style={{ paddingRight: '45px' }}
+              />
+              <button
+                type="button"
+                aria-label={show.current ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'}
+                title={show.current ? 'Ocultar' : 'Mostrar'}
+                onClick={() => setShow((s) => ({ ...s, current: !s.current }))}
+                className="password-toggle-btn"
+              >
+                {show.current ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
             </div>
-            <ul style={{ listStyle: 'none', paddingLeft: 0, margin: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
-              <li style={{ color: hasLen ? '#2e7d32' : '#c62828', fontSize: 12 }}>{hasLen ? '✔' : '✖'} Mínimo 6 caracteres</li>
-              <li style={{ color: hasLower ? '#2e7d32' : '#c62828', fontSize: 12 }}>{hasLower ? '✔' : '✖'} Minúscula</li>
-              <li style={{ color: hasUpper ? '#2e7d32' : '#c62828', fontSize: 12 }}>{hasUpper ? '✔' : '✖'} Mayúscula</li>
-              <li style={{ color: hasNumber ? '#2e7d32' : '#c62828', fontSize: 12 }}>{hasNumber ? '✔' : '✖'} Número</li>
-              <li style={{ color: hasSpecial ? '#2e7d32' : '#c62828', fontSize: 12 }}>{hasSpecial ? '✔' : '✖'} Símbolo</li>
-            </ul>
           </div>
-          <div style={{ position: 'relative' }}>
-            <input
-              className="form-control"
-              type={show.confirm ? 'text' : 'password'}
-              placeholder="Confirmar nueva contraseña"
-              value={form.confirmPassword}
-              onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-              required
-            />
-            <button type="button" title={show.confirm ? 'Ocultar' : 'Mostrar'} onClick={() => setShow((s) => ({ ...s, confirm: !s.confirm }))} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer' }}>{show.confirm ? '🙈' : '👁️'}</button>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="new-pw-input">Nueva contraseña</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="new-pw-input"
+                className="login-input"
+                type={show.next ? 'text' : 'password'}
+                placeholder="Mínimo 6 caracteres"
+                value={form.newPassword}
+                onChange={(e) => setForm((p) => ({ ...p, newPassword: e.target.value }))}
+                required
+                style={{ paddingRight: '45px' }}
+              />
+              <button
+                type="button"
+                aria-label={show.next ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña'}
+                title={show.next ? 'Ocultar' : 'Mostrar'}
+                onClick={() => setShow((s) => ({ ...s, next: !s.next }))}
+                className="password-toggle-btn"
+              >
+                {show.next ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+
           </div>
-          <div aria-live="polite" className="unla-hint" style={{ marginTop: 6, color: confirmMatches ? '#2e7d32' : '#c62828' }}>
-            {form.confirmPassword ? (confirmMatches ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden') : 'Repetí la nueva contraseña'}
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="confirm-pw-input">Confirmar nueva contraseña</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="confirm-pw-input"
+                className="login-input"
+                type={show.confirm ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={form.confirmPassword}
+                onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                required
+                style={{ paddingRight: '45px' }}
+              />
+              <button
+                type="button"
+                aria-label={show.confirm ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'}
+                title={show.confirm ? 'Ocultar' : 'Mostrar'}
+                onClick={() => setShow((s) => ({ ...s, confirm: !s.confirm }))}
+                className="password-toggle-btn"
+              >
+                {show.confirm ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {form.confirmPassword && (
+              <div className={`confirm-hint-box ${confirmMatches ? 'valid' : 'invalid'}`}>
+                {confirmMatches ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} style={{ marginRight: 2 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Las contraseñas coinciden</span>
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} style={{ marginRight: 2 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Las contraseñas no coinciden</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-primary" type="submit">Guardar</button>
+
+          <div className="change-password-buttons">
+            <button className="btn-save-pw" type="submit">Guardar</button>
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn-cancel-pw"
               onClick={() => navigate('/dashboard')}
-              style={{ background: '#777' }}
             >
               Cancelar
             </button>
