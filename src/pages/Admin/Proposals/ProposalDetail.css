@@ -1,0 +1,68 @@
+/* ProposalDetail.css - Estilos para la pantalla de vista detallada de la propuesta */
+
+@import './ProposalsList.css';
+
+.proposal-detail-container {
+  background-color: #f3f4f6;
+  min-height: calc(100vh - 56px);
+  padding: 24px;
+}
+
+.proposal-detail-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.proposal-detail-title {
+  font-weight: 700;
+  color: var(--unla-primary, #64001d);
+  font-size: 24px;
+}
+
+.proposal-detail-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.detail-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.detail-value {
+  font-size: 15px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.proposal-timeline-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.proposal-action-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.proposal-action-btn-group .btn {
+  font-weight: 600;
+  padding: 10px 16px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 14px;
+}

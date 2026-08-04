@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import '../../../styles/unla.css';
+import { useNavigate } from 'react-router-dom';
+import './ProposalsList.css';
 import { useDispatch } from 'react-redux';
 import { createProject } from '../../../../redux/slices/projectsSlice';
 
-// Simple helpers to interact with localStorage safely
+// Helpers to interact with localStorage safely
 function readJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -16,7 +17,7 @@ function readJSON<T>(key: string, fallback: T): T {
 function writeJSON<T>(key: string, value: T) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
+  } catch { }
 }
 
 interface Proposal {
@@ -26,7 +27,7 @@ interface Proposal {
   descripcion: string;
   responsable: string;
   categoria: string;
-  estado: 'enviado' | 'en_estudio' | 'aprobado' | 'rechazado' | 'observado';
+  estado: 'enviado' | 'en_estudio' | 'aprobado' | 'rechazado';
   filename: string;
   filesize: number;
   uploadedAt: string;
@@ -34,7 +35,7 @@ interface Proposal {
   note?: string;
   history?: Array<{
     at: string;
-    action: 'enviado' | 'en_estudio' | 'aprobado' | 'rechazado' | 'observado';
+    action: 'enviado' | 'en_estudio' | 'aprobado' | 'rechazado';
     by?: { id?: string; email?: string };
     from?: string;
     to?: string;
@@ -54,12 +55,12 @@ interface UserRef {
 
 const ProposalsList: React.FC = () => {
   const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [users, setUsers] = useState<UserRef[]>([]);
-  const [filters, setFilters] = useState({ q: '', estado: 'ALL', categoria: 'ALL', tipo: 'ALL' });
+  const [filters, setFilters] = useState({ searchQuery: '', estado: 'ALL', categoria: 'ALL', tipo: 'ALL' });
   const [sort, setSort] = useState<{ key: 'uploadedAt' | 'titulo'; dir: 'asc' | 'desc' }>({ key: 'uploadedAt', dir: 'desc' });
-  const [detail, setDetail] = useState<Proposal | null>(null);
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [activeDropdownProposalId, setActiveDropdownProposalId] = useState<string | null>(null);
   const currentUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
   }, []);
@@ -68,18 +69,18 @@ const ProposalsList: React.FC = () => {
     const loaded = readJSON<Proposal[]>('proposals', []);
     // Backfill: ensure each proposal has an initial 'enviado' history entry
     const usersMap: Record<string, UserRef> = {};
-    readJSON<UserRef[]>('users', []).forEach(u => { usersMap[String(u.id)] = u; });
-    const migrated = loaded.map(p => {
-      if (Array.isArray(p.history) && p.history.length > 0) return p;
-      const owner = usersMap[String(p.userId)];
+    readJSON<UserRef[]>('users', []).forEach(user => { usersMap[String(user.id)] = user; });
+    const migrated = loaded.map(proposal => {
+      if (Array.isArray(proposal.history) && proposal.history.length > 0) return proposal;
+      const owner = usersMap[String(proposal.userId)];
       const base = {
-        at: p.uploadedAt || new Date().toISOString(),
+        at: proposal.uploadedAt || new Date().toISOString(),
         action: 'enviado' as const,
-        by: { id: String(p.userId || ''), email: owner?.email },
+        by: { id: String(proposal.userId || ''), email: owner?.email },
         from: '',
         to: 'enviado',
       };
-      return { ...p, history: [base] };
+      return { ...proposal, history: [base] };
     });
     if (JSON.stringify(loaded) !== JSON.stringify(migrated)) {
       writeJSON('proposals', migrated);
@@ -90,146 +91,118 @@ const ProposalsList: React.FC = () => {
 
   const usersById = useMemo(() => {
     const map = new Map<string, UserRef>();
-    users.forEach(u => map.set(String(u.id), u));
+    users.forEach(user => map.set(String(user.id), user));
     return map;
   }, [users]);
 
-  const joinEmail = (uid: string) => {
-    const u = usersById.get(String(uid));
-    return u?.email || '-';
-  };
-
-  const actionBadgeStyle = (action: Proposal['estado']) => {
-    switch (action) {
-      case 'aprobado': return { background: '#e8f5e9', border: '1px solid #2e7d32', color: '#1b5e20' };
-      case 'en_estudio': return { background: '#e3f2fd', border: '1px solid #1976d2', color: '#0d47a1' };
-      case 'observado': return { background: '#fff8e1', border: '1px solid #f9a825', color: '#f57f17' };
-      case 'rechazado': return { background: '#ffebee', border: '1px solid #c62828', color: '#b71c1c' };
-      default: return { background: '#f3f3f3', border: '1px solid #bdbdbd', color: '#424242' };
-    }
+  const joinEmail = (userId: string) => {
+    const user = usersById.get(String(userId));
+    return user?.email || '-';
   };
 
   const filtered = useMemo(() => {
-    const q = filters.q.trim().toLowerCase();
+    const q = filters.searchQuery.trim().toLowerCase();
     return proposals
-      .filter(p => {
-        const matchesQ = !q || [p.titulo, p.descripcion, joinEmail(p.userId)].join(' ').toLowerCase().includes(q);
-        const matchesEstado = filters.estado === 'ALL' || p.estado === filters.estado;
-        const matchesCat = filters.categoria === 'ALL' || p.categoria === filters.categoria;
-        const matchesTipo = filters.tipo === 'ALL' || (p as any).tipo === filters.tipo;
+      .filter(proposal => {
+        const matchesQ = !q || [proposal.titulo, proposal.descripcion, joinEmail(proposal.userId)].join(' ').toLowerCase().includes(q);
+        const matchesEstado = filters.estado === 'ALL' || proposal.estado === filters.estado;
+        const matchesCat = filters.categoria === 'ALL' || proposal.categoria === filters.categoria;
+        const matchesTipo = filters.tipo === 'ALL' || (proposal as any).tipo === filters.tipo;
         return matchesQ && matchesEstado && matchesCat && matchesTipo;
       })
-      .sort((a, b) => {
+      .sort((proposalA, proposalB) => {
         const dir = sort.dir === 'asc' ? 1 : -1;
         if (sort.key === 'uploadedAt') {
-          return dir * (a.uploadedAt || '').localeCompare(b.uploadedAt || '');
+          return dir * (proposalA.uploadedAt || '').localeCompare(proposalB.uploadedAt || '');
         }
-        return dir * a.titulo.localeCompare(b.titulo);
+        return dir * proposalA.titulo.localeCompare(proposalB.titulo);
       });
   }, [proposals, filters, sort, usersById]);
 
-  // Selección y eliminación en lote
-  const toggleOne = (id: string) => setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
-  const clearSelection = () => setSelected({});
-  const areAllVisibleSelected = filtered.length > 0 && filtered.every((p) => selected[p.id]);
-  const toggleAllVisible = () => {
-    if (areAllVisibleSelected) {
-      const next = { ...selected };
-      filtered.forEach((p) => { delete next[p.id]; });
-      setSelected(next);
-    } else {
-      const next = { ...selected };
-      filtered.forEach((p) => { next[p.id] = true; });
-      setSelected(next);
-    }
-  };
-
   type DeletedLog = { id: string; by: { id: string; email?: string | null }; at: string; snapshot?: Partial<Proposal> };
-  const pushDeletedLog = (entries: DeletedLog[]) => {
+  const pushDeletedLog = (logs: DeletedLog[]) => {
     try {
       const raw = localStorage.getItem('proposalsDeletedLog');
-      const arr = raw ? JSON.parse(raw) as DeletedLog[] : [];
-      const next = [...arr, ...entries];
-      localStorage.setItem('proposalsDeletedLog', JSON.stringify(next));
-    } catch {}
+      const logArray = raw ? JSON.parse(raw) as DeletedLog[] : [];
+      const updatedLogs = [...logArray, ...logs];
+      localStorage.setItem('proposalsDeletedLog', JSON.stringify(updatedLogs));
+    } catch { }
   };
 
-  const deleteSelected = () => {
-    const ids = filtered.map((p) => p.id).filter((id) => selected[id]);
-    if (ids.length === 0) return;
-    const ok = window.confirm(`¿Eliminar ${ids.length} propuesta(s)? Esta acción no se puede deshacer.`);
+  const deleteOne = (id: string) => {
+    const ok = window.confirm('¿Eliminar esta propuesta? Esta acción no se puede deshacer.');
     if (!ok) return;
-    setProposals((prev) => {
+    setProposals((prevProposals) => {
       const by = { id: String(currentUser?.id || ''), email: currentUser?.email };
-      const logs: DeletedLog[] = prev
-        .filter((p) => ids.includes(p.id))
-        .map((p) => ({ id: p.id, by, at: new Date().toISOString(), snapshot: { titulo: p.titulo, userId: p.userId, uploadedAt: p.uploadedAt, estado: p.estado, categoria: p.categoria } }));
-      const next = prev.filter((p) => !ids.includes(p.id));
-      writeJSON('proposals', next);
-      pushDeletedLog(logs);
+      const deletedLogs: DeletedLog[] = prevProposals
+        .filter((proposal) => proposal.id === id)
+        .map((proposal) => ({
+          id: proposal.id,
+          by,
+          at: new Date().toISOString(),
+          snapshot: {
+            titulo: proposal.titulo,
+            userId: proposal.userId,
+            uploadedAt: proposal.uploadedAt,
+            estado: proposal.estado,
+            categoria: proposal.categoria
+          }
+        }));
+      const remainingProposals = prevProposals.filter((proposal) => proposal.id !== id);
+      writeJSON('proposals', remainingProposals);
+      pushDeletedLog(deletedLogs);
       try {
-        const evt = new CustomEvent('toast', { detail: { message: `Eliminadas ${ids.length} propuesta(s)`, type: 'success' } });
+        const evt = new CustomEvent('toast', { detail: { message: 'Propuesta eliminada', type: 'success' } });
         window.dispatchEvent(evt);
-      } catch {}
-      return next;
+      } catch { }
+      return remainingProposals;
     });
-    clearSelection();
   };
 
-  const updateProposal = (id: string, patch: Partial<Proposal>) => {
-    setProposals(prev => {
-      const next = prev.map(p => (p.id === id ? { ...p, ...patch } : p));
-      writeJSON('proposals', next);
+  const updateProposal = (proposalId: string, patch: Partial<Proposal>) => {
+    setProposals(prevProposals => {
+      const updatedProposals = prevProposals.map(proposal => (proposal.id === proposalId ? { ...proposal, ...patch } : proposal));
+      writeJSON('proposals', updatedProposals);
       try {
         const evt = new CustomEvent('toast', { detail: { message: 'Estado actualizado', type: 'success' } });
         window.dispatchEvent(evt);
-      } catch {}
-      return next;
+      } catch { }
+      return updatedProposals;
     });
   };
 
-  const handleAction = (p: Proposal, action: 'en_estudio' | 'aprobado' | 'rechazado' | 'observado') => {
+  const handleAction = (proposal: Proposal, action: 'en_estudio' | 'aprobado' | 'rechazado') => {
     const by = { id: String(currentUser?.id || ''), email: currentUser?.email };
     if (action === 'rechazado') {
       const reason = prompt('Motivo del rechazo:');
       if (!reason) return;
       const nextHistory: NonNullable<Proposal['history']> = [
-        ...(p.history || []),
-        { at: new Date().toISOString(), action: 'rechazado' as const, by, from: p.estado, to: 'rechazado', reason }
+        ...(proposal.history || []),
+        { at: new Date().toISOString(), action: 'rechazado' as const, by, from: proposal.estado, to: 'rechazado', reason }
       ];
-      updateProposal(p.id, { estado: 'rechazado', reason, history: nextHistory });
-      return;
-    }
-    if (action === 'observado') {
-      const note = prompt('Observación para el estudiante:');
-      if (!note) return;
-      const nextHistory: NonNullable<Proposal['history']> = [
-        ...(p.history || []),
-        { at: new Date().toISOString(), action: 'observado' as const, by, from: p.estado, to: 'observado', note }
-      ];
-      updateProposal(p.id, { estado: 'observado', note, history: nextHistory });
+      updateProposal(proposal.id, { estado: 'rechazado', reason, history: nextHistory });
       return;
     }
     const nextHistory: NonNullable<Proposal['history']> = [
-      ...(p.history || []),
-      { at: new Date().toISOString(), action: action as Proposal['estado'], by, from: p.estado, to: action }
+      ...(proposal.history || []),
+      { at: new Date().toISOString(), action: action as Proposal['estado'], by, from: proposal.estado, to: action }
     ];
-    updateProposal(p.id, { estado: action, history: nextHistory });
+    updateProposal(proposal.id, { estado: action, history: nextHistory });
 
     // Si se aprueba, crear proyecto (si no existe) y linkear
     if (action === 'aprobado') {
       // Evitar duplicar proyectos si ya fue creado
-      if (!p.projectId && currentUser?.id) {
+      if (!proposal.projectId && currentUser?.id) {
         (async () => {
           const res = await dispatch(createProject({
             teacherId: String(currentUser.id),
-            titulo: p.titulo,
-            descripcion: p.descripcion,
-            categoria: p.categoria,
+            titulo: proposal.titulo,
+            descripcion: proposal.descripcion,
+            categoria: proposal.categoria,
           }));
           if (!(res as any).error) {
             const projId = (res as any).payload?.id as string;
-            updateProposal(p.id, { projectId: projId });
+            updateProposal(proposal.id, { projectId: projId });
           }
         })();
       }
@@ -237,129 +210,253 @@ const ProposalsList: React.FC = () => {
   };
 
   const fmtSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-  const badgeStyle = (estado: Proposal['estado']) => {
-    switch (estado) {
-      case 'aprobado': return { background: '#e8f5e9', border: '1px solid #2e7d32', color: '#1b5e20' };
-      case 'en_estudio': return { background: '#e3f2fd', border: '1px solid #1976d2', color: '#0d47a1' };
-      case 'observado': return { background: '#fff8e1', border: '1px solid #f9a825', color: '#f57f17' };
-      case 'rechazado': return { background: '#ffebee', border: '1px solid #c62828', color: '#b71c1c' };
-      default: return { background: '#f3f3f3', border: '1px solid #bdbdbd', color: '#424242' };
+
+  const renderCategoryBadge = (category?: string) => {
+    if (!category) return null;
+    const cleanCategory = category.toLowerCase().trim();
+    let badgeStyleClass = 'badge-generic';
+
+    if (cleanCategory === 'desarrollo') {
+      badgeStyleClass = 'badge-desarrollo';
+    } else if (cleanCategory === 'investigacion') {
+      badgeStyleClass = 'badge-investigacion';
+    } else if (cleanCategory === 'extension') {
+      badgeStyleClass = 'badge-extension';
     }
+
+    return (
+      <span className={`project-category-badge ${badgeStyleClass}`}>
+        {category}
+      </span>
+    );
   };
 
   return (
-    <div className="unla-page">
-      <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
-        <h1>Propuestas</h1>
-
-        <h2 className="unla-section-title">Filtros</h2>
-        <div className="unla-form" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-          <input
-            className="unla-input"
-            placeholder="Buscar por título, descripción o email"
-            value={filters.q}
-            onChange={(e) => setFilters(f => ({ ...f, q: e.target.value }))}
-          />
-          <select className="unla-input" value={filters.estado} onChange={(e) => setFilters(f => ({ ...f, estado: e.target.value }))}>
-            <option value="ALL">Estado: todos</option>
-            <option value="enviado">Enviado</option>
-            <option value="en_estudio">En estudio</option>
-            <option value="aprobado">Aprobado</option>
-            <option value="rechazado">Rechazado</option>
-            <option value="observado">Observado</option>
-          </select>
-          <select className="unla-input" value={filters.categoria} onChange={(e) => setFilters(f => ({ ...f, categoria: e.target.value }))}>
-            <option value="ALL">Categoría: todas</option>
-            <option value="desarrollo">Desarrollo</option>
-            <option value="investigacion">Investigación</option>
-            <option value="extension">Extensión</option>
-          </select>
-          <select className="unla-input" value={filters.tipo} onChange={(e) => setFilters(f => ({ ...f, tipo: e.target.value }))}>
-            <option value="ALL">Tipo: todos</option>
-            <option value="PRACTICAS PRE PROFESIONALES">PRACTICAS PRE PROFESIONALES</option>
-            <option value="TRABAJO FINAL INTEGRADOR">TRABAJO FINAL INTEGRADOR</option>
-          </select>
+    <div className="proposals-page-container">
+      <div className="proposals-card-main">
+        {/* Cabecera principal */}
+        <div className="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <h1 className="m-0 proposals-title">Propuestas</h1>
+            <p className="m-0 text-muted proposals-subtitle">Gestioná y evaluá las propuestas enviadas.</p>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '6px 0 10px' }}>
-          <span style={{ color: 'var(--unla-muted)' }}>Orden:</span>
-          <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => setSort(s => ({ key: 'uploadedAt', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
-            Fecha {sort.key === 'uploadedAt' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
-          </button>
-          <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => setSort(s => ({ key: 'titulo', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}>
-            Título {sort.key === 'titulo' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
-          </button>
-          {Object.values(selected).some(Boolean) && (
-            <>
-              <span style={{ color: 'var(--unla-muted)' }}>|</span>
-              <button className="btn btn-danger btn-sm" type="button" onClick={deleteSelected}>
-                Eliminar seleccionadas
-              </button>
-              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={clearSelection}>
-                Limpiar selección
-              </button>
-            </>
-          )}
+        {/* Sección de Filtros de Búsqueda */}
+        <div className="unla-card filters-card">
+          <div className="row g-3 align-items-center">
+            {/* Input buscador principal con icono de lupa */}
+            <div className="col-md-5">
+              <div className="search-input-wrapper">
+                <span className="search-icon-wrapper">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#9ca3af" viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="form-control search-input-field"
+                  placeholder="Buscar por título, descripción o email..."
+                  value={filters.searchQuery}
+                  onChange={(e) => setFilters(f => ({ ...f, searchQuery: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Selects de filtros */}
+            <div className="col-md-7">
+              <div className="row g-2">
+                <div className="col-sm-4">
+                  <select
+                    className="form-select filter-select-field"
+                    value={filters.estado}
+                    onChange={(e) => setFilters(f => ({ ...f, estado: e.target.value }))}
+                  >
+                    <option value="ALL">Estado: todos</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="en_estudio">En estudio</option>
+                    <option value="aprobado">Aprobado</option>
+                    <option value="rechazado">Rechazado</option>
+                  </select>
+                </div>
+                <div className="col-sm-4">
+                  <select
+                    className="form-select filter-select-field"
+                    value={filters.categoria}
+                    onChange={(e) => setFilters(f => ({ ...f, categoria: e.target.value }))}
+                  >
+                    <option value="ALL">Categoría: todas</option>
+                    <option value="desarrollo">Desarrollo</option>
+                    <option value="investigacion">Investigación</option>
+                    <option value="extension">Extensión</option>
+                  </select>
+                </div>
+                <div className="col-sm-4">
+                  <select
+                    className="form-select filter-select-field"
+                    value={filters.tipo}
+                    onChange={(e) => setFilters(f => ({ ...f, tipo: e.target.value }))}
+                  >
+                    <option value="ALL">Tipo: todos</option>
+                    <option value="PRACTICAS PRE PROFESIONALES">PRACTICAS PRE PROFESIONALES</option>
+                    <option value="TRABAJO FINAL INTEGRADOR">TRABAJO FINAL INTEGRADOR</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ordenamiento */}
+          <div className="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
+            <span className="text-muted small fw-medium">Orden:</span>
+            <button
+              className={`btn btn-sm btn-sort ${sort.key === 'uploadedAt' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+              type="button"
+              onClick={() => setSort(s => ({ key: 'uploadedAt', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}
+            >
+              Fecha {sort.key === 'uploadedAt' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
+            </button>
+            <button
+              className={`btn btn-sm btn-sort ${sort.key === 'titulo' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+              type="button"
+              onClick={() => setSort(s => ({ key: 'titulo', dir: s.dir === 'asc' ? 'desc' : 'asc' }))}
+            >
+              Título {sort.key === 'titulo' ? (sort.dir === 'asc' ? '▲' : '▼') : ''}
+            </button>
+          </div>
         </div>
 
-        <div className="unla-table-container">
-          <table className="unla-table wide">
-            <thead>
+        {/* Listado principal */}
+        <div className="projects-table-wrapper mt-4">
+          <table className="table table-striped table-hover m-0 align-middle proposals-table">
+            <thead className="table-dark">
               <tr>
-                <th style={{ width: 36 }}>
-                  <input type="checkbox" aria-label="Seleccionar todas" checked={areAllVisibleSelected} onChange={toggleAllVisible} />
-                </th>
-                <th>Título</th>
-                <th>Tipo</th>
+                <th>Propuesta</th>
                 <th>Email</th>
-                <th>Categoría</th>
                 <th>Archivo</th>
                 <th>Fecha</th>
                 <th>Estado</th>
-                <th>Acciones</th>
+                <th className="text-center proposals-actions-header">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
+              {filtered.map((proposal) => (
+                <tr key={proposal.id}>
                   <td>
-                    <input
-                      type="checkbox"
-                      aria-label={`Seleccionar ${p.titulo}`}
-                      checked={!!selected[p.id]}
-                      onChange={() => toggleOne(p.id)}
-                    />
+                    <span className="fw-bold d-block text-dark proposal-row-title">{proposal.titulo}</span>
+                    <span className="text-muted d-block small mt-1">
+                      {(proposal as any).tipo || '-'}
+                    </span>
+                    <span className="mt-1 d-inline-block">
+                      {renderCategoryBadge(proposal.categoria)}
+                    </span>
                   </td>
-                  <td>{p.titulo}</td>
-                  <td>{(p as any).tipo || '-'}</td>
-                  <td>{joinEmail(p.userId)}</td>
-                  <td>{p.categoria}</td>
-                  <td>{p.filename ? `${p.filename} (${fmtSize(p.filesize)})` : '-'}</td>
-                  <td>{new Date(p.uploadedAt).toLocaleString()}</td>
+                  <td className="proposal-row-email">{joinEmail(proposal.userId)}</td>
                   <td>
-                    <span className="unla-badge" style={{ ...badgeStyle(p.estado) }}>{p.estado}</span>
-                    {p.reason && <div className="unla-hint error">Rechazo: {p.reason}</div>}
-                    {p.note && <div className="unla-hint">Obs.: {p.note}</div>}
+                    {proposal.filename ? (
+                      <span className="text-primary fw-medium proposal-row-file-link">
+                        📎 {proposal.filename} <span className="text-muted small">({fmtSize(proposal.filesize)})</span>
+                      </span>
+                    ) : '-'}
+                  </td>
+                  <td className="proposal-row-date">
+                    {new Date(proposal.uploadedAt).toLocaleString()}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      <button className="btn btn-primary btn-sm" type="button" onClick={() => setDetail(p)}>Ver detalle</button>
-                      {p.estado !== 'en_estudio' && (
-                        <button className="btn btn-info btn-sm" type="button" onClick={() => handleAction(p, 'en_estudio')}>En estudio</button>
-                      )}
-                      {p.estado !== 'aprobado' && (
-                        <button className="btn btn-success btn-sm" type="button" onClick={() => handleAction(p, 'aprobado')}>Aprobar</button>
-                      )}
-                      <button className="btn btn-warning btn-sm" type="button" onClick={() => handleAction(p, 'observado')}>Observar</button>
-                      <button className="btn btn-danger btn-sm" type="button" onClick={() => handleAction(p, 'rechazado')}>Rechazar</button>
+                    <span className={`proposal-badge-estado proposal-badge-${proposal.estado}`}>
+                      {proposal.estado}
+                    </span>
+                  </td>
+                  <td className="text-center">
+                    <div className="d-inline-flex align-items-center justify-content-center gap-2">
+                      <div className="actions-dropdown-wrapper">
+                        <button
+                          type="button"
+                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${activeDropdownProposalId === proposal.id ? 'active' : ''}`}
+                          onClick={() => setActiveDropdownProposalId(activeDropdownProposalId === proposal.id ? null : proposal.id)}
+                          title="Acciones"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                          </svg>
+                        </button>
+
+                        {activeDropdownProposalId === proposal.id && (
+                          <>
+                            <div
+                              className="dropdown-click-outside-backdrop"
+                              onClick={() => setActiveDropdownProposalId(null)}
+                            />
+                            <ul className="custom-dropdown-menu dropdown-menu-end proposals-actions-dropdown">
+                              <button
+                                type="button"
+                                className="custom-dropdown-item"
+                                onClick={() => {
+                                  setActiveDropdownProposalId(null);
+                                  navigate(`/admin/proposals/${proposal.id}`);
+                                }}
+                              >
+                                Ver detalle
+                              </button>
+                              {proposal.estado !== 'en_estudio' && (
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setActiveDropdownProposalId(null);
+                                    handleAction(proposal, 'en_estudio');
+                                  }}
+                                >
+                                  En estudio
+                                </button>
+                              )}
+                              {proposal.estado !== 'aprobado' && (
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setActiveDropdownProposalId(null);
+                                    handleAction(proposal, 'aprobado');
+                                  }}
+                                >
+                                  Aprobar
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="custom-dropdown-item"
+                                onClick={() => {
+                                  setActiveDropdownProposalId(null);
+                                  handleAction(proposal, 'rechazado');
+                                }}
+                              >
+                                Rechazar
+                              </button>
+                            </ul>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Trash can button next to the pencil */}
+                      <button
+                        type="button"
+                        className="btn-actions-delete d-flex align-items-center justify-content-center"
+                        onClick={() => deleteOne(proposal.id)}
+                        title="Eliminar propuesta"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7}>
-                    <div className="unla-hint">No hay propuestas con los filtros actuales.</div>
+                  <td colSpan={6} className="text-center py-5 text-muted">
+                    No hay propuestas con los filtros actuales.
                   </td>
                 </tr>
               )}
@@ -367,45 +464,6 @@ const ProposalsList: React.FC = () => {
           </table>
         </div>
       </div>
-      {detail && (
-        <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 700, width: '92%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <h3>Detalle de propuesta</h3>
-            <div className="unla-list" style={{ maxHeight: 420, overflow: 'auto' }}>
-              <div><strong>Título:</strong> {detail.titulo}</div>
-              <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
-              <div><strong>Tipo:</strong> {(detail as any).tipo || '-'}</div>
-              <div><strong>Responsable:</strong> {detail.responsable}</div>
-              <div><strong>Categoría:</strong> {detail.categoria}</div>
-              <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize/1024/1024).toFixed(2)} MB)</div>
-              <div><strong>Fecha:</strong> {new Date(detail.uploadedAt).toLocaleString()}</div>
-              <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(detail.estado) }}>{detail.estado}</span></div>
-              {detail.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {detail.reason}</div>}
-              {detail.note && <div className="unla-hint"><strong>Observación:</strong> {detail.note}</div>}
-              <div><strong>Usuario:</strong> {joinEmail(detail.userId)}</div>
-              {Array.isArray(detail.history) && detail.history.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <h4>Historial de acciones</h4>
-                  <ul className="unla-list" style={{ paddingLeft: 18 }}>
-                    {[...detail.history].sort((a,b) => (b.at||'').localeCompare(a.at||'')).map((h, idx) => (
-                      <li key={`${h.at}-${idx}`}>
-                        <strong>{new Date(h.at).toLocaleString()}:</strong> <span className="unla-badge" style={{ ...actionBadgeStyle(h.action) }}>{h.action}</span>
-                        {h.from && h.to && <span> (de {h.from} a {h.to})</span>}
-                        <span> • por {h.by?.email || joinEmail(detail.userId)}</span>
-                        {h.note && <div className="unla-hint">Obs.: {h.note}</div>}
-                        {h.reason && <div className="unla-hint error">Motivo: {h.reason}</div>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-              <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

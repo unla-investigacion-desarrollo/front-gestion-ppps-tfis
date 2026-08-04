@@ -208,7 +208,7 @@ const CargaPropuesta = () => {
         />
         {errors.descripcion && <div className="unla-hint error">{errors.descripcion}</div>}
 
-        
+
 
         <label htmlFor="categoria">Categoría</label>
         <select className="form-select" id="categoria" name="categoria" value={form.categoria} onChange={handleChange}>
@@ -262,7 +262,6 @@ const CargaPropuesta = () => {
               <option value="">Todos</option>
               <option value="aprobado">Aprobado</option>
               <option value="en_estudio">En estudio</option>
-              <option value="observado">Observado</option>
               <option value="rechazado">Rechazado</option>
             </select>
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setSortOrder((s) => s === 'desc' ? 'asc' : 'desc')} title={sortOrder === 'desc' ? 'Más reciente primero' : 'Más antiguo primero'}>
@@ -310,67 +309,66 @@ const CargaPropuesta = () => {
             </table>
           </div>
         </div>
-        )}
-        {detail && (
-          <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-            <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 800, width: '95%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-              <h3>Detalle de propuesta</h3>
-              <div className="unla-list" style={{ maxHeight: 360, overflow: 'auto' }}>
-                <div><strong>Título:</strong> {detail.titulo}</div>
-                <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
-                <div><strong>Categoría:</strong> {detail.categoria}</div>
-                <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize/1024/1024).toFixed(2)} MB)</div>
-                <div><strong>Fecha:</strong> {new Date(detail.uploadedAt).toLocaleString()}</div>
-                <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(detail.estado) }}>{detail.estado}</span></div>
-                {detail.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {detail.reason}</div>}
-                {detail.note && <div className="unla-hint"><strong>Observación:</strong> {detail.note}</div>}
-                {detail.pdfUrl && (
-                  <div style={{ margin: '16px 0' }}>
-                    <iframe
-                      src={detail.pdfUrl}
-                      title="PDF Propuesta"
-                      width="100%"
-                      height="400px"
-                      style={{ border: '1px solid #ccc', borderRadius: 6 }}
-                      allow="autoplay"
-                    />
-                  </div>
-                )}
-                {detail.driveUrl && (
-                  <div style={{ margin: '16px 0' }}>
-                    <iframe
-                      src={`https://drive.google.com/file/d/${detail.driveUrl}/preview`}
-                      title="Drive PDF"
-                      width="100%"
-                      height="400px"
-                      style={{ border: '1px solid #ccc', borderRadius: 6 }}
-                      allow="autoplay"
-                    />
-                  </div>
-                )}
-                {Array.isArray(detail.history) && detail.history.length > 0 && (
-                  <div style={{ marginTop: 12 }}>
-                    <h4>Historial de acciones</h4>
-                    <ul className="unla-list" style={{ paddingLeft: 18 }}>
-                      {[...detail.history].sort((a,b) => (a.at||'').localeCompare(b.at||'')).map((h, idx) => (
-                        <li key={`${h.at}-${idx}`}>
-                          <strong>{new Date(h.at).toLocaleString()}:</strong> {h.action}
-                          {h.from && h.to && <span> (de {h.from || '—'} a {h.to})</span>}
-                          {h.by?.email && <span> • por {h.by.email}</span>}
-                          {h.note && <div className="unla-hint">Obs.: {h.note}</div>}
-                          {h.reason && <div className="unla-hint error">Motivo: {h.reason}</div>}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
-              </div>
+      )}
+      {detail && (
+        <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+          <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 800, width: '95%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <h3>Detalle de propuesta</h3>
+            <div className="unla-list" style={{ maxHeight: 360, overflow: 'auto' }}>
+              <div><strong>Título:</strong> {detail.titulo}</div>
+              <div><strong>Descripción:</strong><br />{detail.descripcion}</div>
+              <div><strong>Categoría:</strong> {detail.categoria}</div>
+              <div><strong>Archivo:</strong> {detail.filename} ({(detail.filesize / 1024 / 1024).toFixed(2)} MB)</div>
+              <div><strong>Fecha:</strong> {new Date(detail.uploadedAt).toLocaleString()}</div>
+              <div><strong>Estado:</strong> <span className="unla-badge" style={{ ...badgeStyle(detail.estado) }}>{detail.estado}</span></div>
+              {detail.reason && <div className="unla-hint error"><strong>Motivo rechazo:</strong> {detail.reason}</div>}
+              {detail.note && <div className="unla-hint"><strong>Observación:</strong> {detail.note}</div>}
+              {detail.pdfUrl && (
+                <div style={{ margin: '16px 0' }}>
+                  <iframe
+                    src={detail.pdfUrl}
+                    title="PDF Propuesta"
+                    width="100%"
+                    height="400px"
+                    style={{ border: '1px solid #ccc', borderRadius: 6 }}
+                    allow="autoplay"
+                  />
+                </div>
+              )}
+              {detail.driveUrl && (
+                <div style={{ margin: '16px 0' }}>
+                  <iframe
+                    src={`https://drive.google.com/file/d/${detail.driveUrl}/preview`}
+                    title="Drive PDF"
+                    width="100%"
+                    height="400px"
+                    style={{ border: '1px solid #ccc', borderRadius: 6 }}
+                    allow="autoplay"
+                  />
+                </div>
+              )}
+              {Array.isArray(detail.history) && detail.history.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <h4>Historial de acciones</h4>
+                  <ul className="unla-list" style={{ paddingLeft: 18 }}>
+                    {[...detail.history].sort((a, b) => (a.at || '').localeCompare(b.at || '')).map((h, idx) => (
+                      <li key={`${h.at}-${idx}`}>
+                        <strong>{new Date(h.at).toLocaleString()}:</strong> {h.action}
+                        {h.from && h.to && <span> (de {h.from || '—'} a {h.to})</span>}
+                        {h.by?.email && <span> • por {h.by.email}</span>}
+                        {h.reason && <div className="unla-hint error">Motivo: {h.reason}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

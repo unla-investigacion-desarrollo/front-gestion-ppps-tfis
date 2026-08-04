@@ -14,6 +14,7 @@ import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
 import Help from '../pages/Help/Help';
 import ChangePassword from '../pages/Auth/ChangePassword';
 import ProposalsList from '../pages/Admin/Proposals/ProposalsList';
+import ProposalDetail from '../pages/Admin/Proposals/ProposalDetail';
 import EstadoGeneral from '../pages/Estado/EstadoGeneral';
 import TeacherProjectsList from '../pages/Teacher/TeacherProjectsList';
 import MyProjects from '../pages/Student/MyProjects';
@@ -105,6 +106,16 @@ const App = () => {
               <TeacherRoute>
                 <AuthenticatedLayout>
                   <ProposalsList />
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+
+          <Route path="/admin/proposals/:id" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <ProposalDetail />
                 </AuthenticatedLayout>
               </TeacherRoute>
             </PrivateRoute>
