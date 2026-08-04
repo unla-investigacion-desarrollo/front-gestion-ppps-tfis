@@ -1,88 +1,275 @@
-.login-page {
+/* Login.css - Estilos modernizados y minimalistas con diseño split-screen */
+
+.login-split-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  background-color: #ffffff;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Panel izquierdo: Visual/Branding */
+.login-visual-panel {
+  position: relative;
+  flex: 1.2;
+  background-image: url('../../assets/unla-edificio.jpg');
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  color: #ffffff;
+}
+
+/* Superposición degradada con color bordó institucional y carbón */
+.login-visual-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(100, 0, 29, 0.88) 0%, rgba(17, 24, 39, 0.92) 100%);
+  z-index: 1;
+}
+
+.login-visual-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 480px;
+}
+
+.login-visual-logo {
+  height: 90px;
+  margin-bottom: 1.5rem;
+  object-fit: contain;
+}
+
+.login-visual-subtitle {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -0.02em;
+  opacity: 0.95;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Panel derecho: Formulario de Login */
+.login-form-panel {
+  flex: 0.8;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
+  padding: 3rem 2.5rem;
+  background-color: #ffffff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.03);
 }
 
-.background {
-  background-image: url("../../assets/fondo-rojo.jpg");
-  background-size: cover;
+.login-form-wrapper {
+  width: 100%;
+  max-width: 360px;
 }
 
-.logo-container {
-  margin-bottom: 2rem;
-}
-
-.logo {
-  width: 120px;
-  height: auto;
-}
-
-.login-box {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 320px;
-  text-align: center;
+/* Logo oculto en desktop pero visible en mobile */
+.login-mobile-logo-container {
+  display: none;
 }
 
 .login-title {
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
-  color: #333;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle-helper {
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin: 0 0 2rem 0;
+}
+
+/* Formulario */
+.unla-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .login-input {
   width: 100%;
-  padding: 0.8rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1f2937;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
+.login-input:focus {
+  border-color: var(--unla-primary, #64001d);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 0, 29, 0.12);
+}
+
+.login-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Botón ocultar/mostrar contraseña */
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  color: var(--unla-primary, #64001d);
+  background-color: #f3f4f6;
+}
+
+/* Advertencia de Bloqueo de Mayúsculas */
+.caps-lock-warning {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #dc2626;
+  margin-top: 0.25rem;
+}
+
+/* Botón de envío */
 .login-button {
   width: 100%;
-  padding: 0.8rem;
-  background-color: #800000; /* Bordó UNLa */
-  color: white;
+  padding: 0.8rem 1rem;
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  box-shadow: 0 2px 4px rgba(100, 0, 29, 0.15);
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
 }
 
-.login-button:hover {
-  background-color: #660000;
+.login-button:hover:not(:disabled) {
+  background-color: var(--unla-primary-hover, #80002b);
+  box-shadow: 0 4px 8px rgba(100, 0, 29, 0.25);
+  transform: translateY(-1px);
 }
 
+.login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Mensajes de error */
 .error-message {
-  color: #d32f2f;
-  background-color: #fde7e7;
-  padding: 0.8rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  border-left: 4px solid #d32f2f;
+  color: #991b1b;
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  border-left: 4px solid #dc2626;
 }
 
-.login-header {
-  width: 100%;
-  background-color: #eedfdd; /* color logo  UNLa */
-  padding: 1rem; /* más espacio arriba y abajo */
+/* Enlaces y ayuda */
+.login-links-container {
+  margin-top: 2rem;
   display: flex;
-  justify-content: center;
-  align-items: center; /* para centrar verticalmente el logo */
+  flex-direction: column;
+  gap: 0.6rem;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1.25rem;
 }
 
-.logo-full {
-  max-width: 100%;
-  height: 180px; /* más alto que antes */
-  object-fit: contain;
+.login-link-item {
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.4;
 }
 
+.login-link {
+  color: var(--unla-primary, #64001d);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.login-link:hover {
+  color: var(--unla-primary-hover, #80002b);
+  text-decoration: underline;
+}
+
+/* --- DISEÑO RESPONSIVO (MOBILE) --- */
+@media (max-width: 768px) {
+  .login-split-container {
+    flex-direction: column;
+  }
+
+  .login-visual-panel {
+    display: none; /* Oculta el panel visual en pantallas chicas */
+  }
+
+  .login-form-panel {
+    flex: 1;
+    padding: 2.5rem 1.5rem;
+    box-shadow: none;
+  }
+
+  .login-mobile-logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .login-mobile-logo {
+    height: 70px;
+    object-fit: contain;
+  }
+}
