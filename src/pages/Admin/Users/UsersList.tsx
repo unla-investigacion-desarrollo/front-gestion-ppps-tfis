@@ -6,6 +6,7 @@ import {
   fetchUsers,
   selectUsers,
   createOrInviteTeacher,
+  registerProfessor,
   deleteUser,
   resetPassword,
   activateInvitedTeacher,
@@ -21,10 +22,11 @@ import bgImage from '../../../assets/fondo-rojo.jpg';
 import './UsersList.css';
 
 // Refactored Subcomponents
-import UserForm from './components/UserForm';
 import UserFilters from './components/UserFilters';
 import UserTable from './components/UserTable';
 import Pagination from '../../../components/Pagination';
+import InviteTeacherModal from './components/InviteTeacherModal';
+import CreateTeacherModal from './components/CreateTeacherModal';
 
 /**
  * Componente Contenedor Principal para la Gestión de Usuarios (Vistas de Admin/Super Admin).
@@ -61,6 +63,7 @@ const UsersList: React.FC = () => {
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [activatingTeacher, setActivatingTeacher] = useState<any | null>(null);
   const [activatePasswordVal, setActivatePasswordVal] = useState('');
+  const [isCreateTeacherModalOpen, setIsCreateTeacherModalOpen] = useState(false);
 
   // Carga inicial
   useEffect(() => {
@@ -171,6 +174,30 @@ const UsersList: React.FC = () => {
     }
   };
 
+  // Crear docente mediante registro directo en el backend
+  const handleCreateTeacherSubmit = async (formData: any) => {
+    try {
+      const res = await dispatch<any>(registerProfessor({
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        dni: formData.dni,
+        email: formData.email,
+        password: formData.password,
+        specialization: formData.specialization,
+        isTutor: formData.isTutor,
+      }));
+      
+      if (res.error) {
+        alert(res.payload || 'Error al registrar el docente');
+      } else {
+        alert('Docente registrado y creado correctamente');
+        setIsCreateTeacherModalOpen(false);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error al procesar la solicitud');
+    }
+  };
+
   // Resetear contraseña
   const handleResetPassword = async (u: any) => {
     const res = await dispatch<any>(resetPassword({ id: u.id }));
@@ -232,13 +259,48 @@ const UsersList: React.FC = () => {
             <h1 className="m-0 users-title">Usuarios</h1>
             <p className="m-0 text-muted users-subtitle">Gestioná los usuarios del sistema</p>
           </div>
-          <button
-            type="button"
-            className="btn btn-invite-teacher d-flex align-items-center gap-2"
-            onClick={() => setIsInviteModalOpen(true)}
-          >
-            <span>+</span> Invitar docente
-          </button>
+          <div className="dropdown">
+            <button
+              type="button"
+              className="btn btn-invite-teacher d-flex align-items-center justify-content-center"
+              id="dropdownAddUser"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              style={{ fontSize: '22px', fontWeight: 'bold', width: '42px', height: '42px', padding: 0, borderRadius: '50%' }}
+              title="Agregar usuario"
+            >
+              +
+            </button>
+            <ul className="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropdownAddUser" style={{ marginTop: '8px', zIndex: 1010 }}>
+              <li>
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center gap-2 py-2"
+                  onClick={() => setIsInviteModalOpen(true)}
+                  style={{ fontSize: '14px' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-envelope" viewBox="0 0 16 16">
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                  </svg>
+                  Invitar docente (correo)
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center gap-2 py-2"
+                  onClick={() => setIsCreateTeacherModalOpen(true)}
+                  style={{ fontSize: '14px' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-plus" viewBox="0 0 16 16">
+                    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                    <path fillRule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
+                  </svg>
+                  Crear docente (directo)
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Sección 1: Tarjetas de estadísticas */}
@@ -353,37 +415,12 @@ const UsersList: React.FC = () => {
       </div>
 
       {/* --- MODAL PARA CREAR/INVITAR DOCENTES --- */}
-      {isInviteModalOpen && (
-        <>
-          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1}>
-            <div className="modal-dialog modal-lg modal-dialog-centered">
-              <div className="modal-content custom-modal-content">
-                <div className="modal-header custom-modal-header">
-                  <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
-                    {isSuperAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setIsInviteModalOpen(false)}
-                    aria-label="Close"
-                  />
-                </div>
-                <div className="modal-body custom-modal-body">
-                  <UserForm
-                    isSuperAdmin={isSuperAdmin}
-                    onSubmit={async (data) => {
-                      await handleCreateOrInvite(data);
-                      setIsInviteModalOpen(false);
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="custom-modal-backdrop" />
-        </>
-      )}
+      <InviteTeacherModal
+        isOpen={isInviteModalOpen}
+        isSuperAdmin={isSuperAdmin}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSubmit={handleCreateOrInvite}
+      />
 
       {/* --- MODAL PARA EDITAR INFORMACIÓN DE USUARIOS --- */}
       {editingUser && (
@@ -533,6 +570,13 @@ const UsersList: React.FC = () => {
           <div className="custom-modal-backdrop" />
         </>
       )}
+
+      {/* --- MODAL PARA CREAR DOCENTE DIRECTO --- */}
+      <CreateTeacherModal
+        isOpen={isCreateTeacherModalOpen}
+        onClose={() => setIsCreateTeacherModalOpen(false)}
+        onSubmit={handleCreateTeacherSubmit}
+      />
 
     </div>
   );

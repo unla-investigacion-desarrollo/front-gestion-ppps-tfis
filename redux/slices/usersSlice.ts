@@ -178,16 +178,81 @@ export const registerStudent = createAsyncThunk<
     };
 
     // Agregar a localStorage local para simular coherencia en el resto del front
-    try {
-      const raw = localStorage.getItem('users');
-      const users = raw ? JSON.parse(raw) : [];
-      localStorage.setItem('users', JSON.stringify([...users, mappedUser]));
-    } catch { }
+    const users = loadUsers();
+    const updated = [...users, mappedUser];
+    saveUsers(updated);
 
     return mappedUser;
   } catch (error) {
-    console.error('Error en registerStudent:', error);
     return rejectWithValue(error instanceof Error ? error.message : 'Error al registrar el estudiante') as any;
+  }
+});
+
+export const registerProfessor = createAsyncThunk<
+  User,
+  {
+    email: string;
+    nombre: string;
+    apellido: string;
+    dni: string;
+    password?: string;
+    specialization: string;
+    isTutor: boolean;
+  },
+  { rejectValue: string }
+>('users/registerProfessor', async (payload, { rejectWithValue }) => {
+  try {
+    const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/users/register-professor`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        firstName: payload.nombre,
+        lastName: payload.apellido,
+        dni: payload.dni,
+        email: payload.email,
+        password: payload.password,
+        specialization: payload.specialization,
+        isTutor: payload.isTutor,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return rejectWithValue(data.message || 'Error al registrar el docente') as any;
+    }
+
+    const rawUser = data.user || {};
+    const userRoles = Array.isArray(rawUser.roles)
+      ? rawUser.roles
+      : (rawUser.rol ? [rawUser.rol] : ['DOCENTE']);
+
+    const mappedUser: User = {
+      id: rawUser.id || rawUser._id || crypto.randomUUID(),
+      email: rawUser.email || payload.email,
+      nombre: rawUser.firstName || rawUser.nombre || payload.nombre,
+      apellido: rawUser.lastName || rawUser.apellido || payload.apellido,
+      rol: (userRoles[0] as UserRole) || 'DOCENTE',
+      estado: rawUser.estado || 'active',
+      dni: rawUser.dni || payload.dni,
+      categoria: rawUser.specialization || payload.specialization,
+      createdAt: rawUser.createdAt || new Date().toISOString(),
+      updatedAt: rawUser.updatedAt || new Date().toISOString(),
+    };
+
+    // Agregar a localStorage local para simular coherencia en el resto del front
+    const users = loadUsers();
+    const updatedUserList = [...users, mappedUser];
+    saveUsers(updatedUserList);
+
+    return mappedUser;
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : 'Error al registrar el docente') as any;
   }
 });
 
@@ -310,6 +375,19 @@ const usersSlice = createSlice({
       .addCase(registerStudent.rejected, (state, action) => {
         state.status = 'failed';
         state.error = (action.payload as string) || action.error.message || 'Error al registrar el estudiante';
+      })
+      .addCase(registerProfessor.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(registerProfessor.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.list.push(action.payload);
+        state.error = null;
+      })
+      .addCase(registerProfessor.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = (action.payload as string) || action.error.message || 'Error al registrar el docente';
       })
       .addCase(createOrInviteTeacher.fulfilled, (state, action) => {
         state.list.push(action.payload);
