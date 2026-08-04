@@ -59,6 +59,8 @@ const UsersList: React.FC = () => {
   // Estados para modales de creación y edición
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [activatingTeacher, setActivatingTeacher] = useState<any | null>(null);
+  const [activatePasswordVal, setActivatePasswordVal] = useState('');
 
   // Carga inicial
   useEffect(() => {
@@ -153,16 +155,19 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Activar docente invitado
-  const handleActivateTeacher = async (id: string, pwd: string, clearPassword: () => void) => {
-    if (pwd.length < 4) {
+  // Activar docente invitado desde modal
+  const handleActivateTeacherSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!activatingTeacher) return;
+    if (activatePasswordVal.length < 4) {
       alert('La contraseña debe tener al menos 4 caracteres');
       return;
     }
-    const res = await dispatch<any>(activateInvitedTeacher({ id, password: pwd }));
+    const res = await dispatch<any>(activateInvitedTeacher({ id: activatingTeacher.id, password: activatePasswordVal }));
     if (res && !res.error) {
-      clearPassword();
       alert('Docente activado correctamente');
+      setActivatingTeacher(null);
+      setActivatePasswordVal('');
     }
   };
 
@@ -327,7 +332,7 @@ const UsersList: React.FC = () => {
           onToggleSort={toggleSort}
           onRestoreUser={handleRestoreUser}
           onDeletePermanently={handleDeletePermanently}
-          onActivateTeacher={handleActivateTeacher}
+          onActivateClick={(user) => setActivatingTeacher(user)}
           onResetPassword={handleResetPassword}
           onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
@@ -454,6 +459,71 @@ const UsersList: React.FC = () => {
                       style={{ backgroundColor: 'var(--unla-primary)', border: 'none' }}
                     >
                       Guardar Cambios
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="custom-modal-backdrop" />
+        </>
+      )}
+
+      {/* --- MODAL PARA ACTIVAR DOCENTES INVITADOS --- */}
+      {activatingTeacher && (
+        <>
+          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1}>
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
+                  <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
+                    Activar Docente: {activatingTeacher.email}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setActivatingTeacher(null);
+                      setActivatePasswordVal('');
+                    }}
+                    aria-label="Close"
+                  />
+                </div>
+                <form onSubmit={handleActivateTeacherSubmit}>
+                  <div className="modal-body custom-modal-body d-flex flex-column gap-3">
+                    <div>
+                      <p className="text-muted small mb-3">
+                        Para activar la cuenta de este docente invitado, por favor ingresá una contraseña inicial.
+                      </p>
+                      <label className="form-label" style={{ fontWeight: 500 }}>Contraseña inicial</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        required
+                        minLength={4}
+                        autoComplete="new-password"
+                        placeholder="Mínimo 4 caracteres"
+                        value={activatePasswordVal}
+                        onChange={(e) => setActivatePasswordVal(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer custom-modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => {
+                        setActivatingTeacher(null);
+                        setActivatePasswordVal('');
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-success"
+                    >
+                      Activar Docente
                     </button>
                   </div>
                 </form>

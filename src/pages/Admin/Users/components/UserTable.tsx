@@ -10,7 +10,7 @@ interface UserTableProps {
   onToggleSort: (key: string) => void;
   onRestoreUser: (user: any) => void;
   onDeletePermanently: (user: any) => void;
-  onActivateTeacher: (id: string, password: string, clearPassword: () => void) => void;
+  onActivateClick: (user: any) => void; // Prop para abrir el modal de activación del docente
   onResetPassword: (user: any) => void;
   onToggleActivation: (id: string, enable: boolean) => void;
   onDeleteUser: (id: string) => void;
@@ -31,7 +31,7 @@ const UserTable: React.FC<UserTableProps> = ({
   onToggleSort,
   onRestoreUser,
   onDeletePermanently,
-  onActivateTeacher,
+  onActivateClick,
   onResetPassword,
   onToggleActivation,
   onDeleteUser,
@@ -40,9 +40,6 @@ const UserTable: React.FC<UserTableProps> = ({
 }) => {
   // Estado local para abrir el dropdown del usuario correspondiente
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  
-  // Estado local para guardar las contraseñas temporales al activar docentes invitados
-  const [activatePw, setActivatePw] = useState<Record<string, string>>({});
 
   // Obtiene las iniciales de un usuario a partir de su nombre, apellido o email
   const getInitials = (nombre?: string, apellido?: string, email?: string) => {
@@ -292,33 +289,22 @@ const UserTable: React.FC<UserTableProps> = ({
                                 </button>
                               </li>
 
-                              {/* Acción especial: Activar docente invitado con ingreso de contraseña */}
+                              {/* Acción especial: Activar docente invitado */}
                               {u.rol === 'DOCENTE' && u.estado === 'invited' && (
-                                <li className="px-3 py-2 border-bottom border-top my-1 bg-light">
-                                  <div className="d-flex flex-column gap-1.5">
-                                    <input
-                                      type="password"
-                                      className="form-control form-control-sm"
-                                      placeholder="Contraseña inicial"
-                                      value={activatePw[u.id] || ''}
-                                      onChange={(e) => setActivatePw(prev => ({ ...prev, [u.id]: e.target.value }))}
-                                      style={{ fontSize: '12px' }}
-                                    />
-                                    <button
-                                      type="button"
-                                      className="btn btn-success btn-sm w-100"
-                                      style={{ fontSize: '11px', padding: '2px 8px' }}
-                                      onClick={() => {
-                                        const pwd = (activatePw[u.id] || '').trim();
-                                        onActivateTeacher(u.id, pwd, () => {
-                                          setActivatePw(prev => ({ ...prev, [u.id]: '' }));
-                                          setOpenDropdownId(null);
-                                        });
-                                      }}
-                                    >
-                                      Activar Docente
-                                    </button>
-                                  </div>
+                                <li>
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item text-success"
+                                    onClick={() => {
+                                      setOpenDropdownId(null);
+                                      onActivateClick(u);
+                                    }}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M12.03 5.97a.75.75 0 0 0-1.08-1.05l-3.97 4.09-1.9-1.9a.75.75 0 1 0-1.06 1.06l2.44 2.44a.75.75 0 0 0 1.08-.02z"/>
+                                    </svg>
+                                    Activar docente
+                                  </button>
                                 </li>
                               )}
 
