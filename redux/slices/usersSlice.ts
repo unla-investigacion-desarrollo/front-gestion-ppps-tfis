@@ -1,4 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { authService } from '../../src/services/authService';
+import { userService } from '../../src/services/userService';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
 export type UserStatus = 'pending' | 'active' | 'rejected' | 'invited' | 'disabled' | 'papelera';
@@ -48,16 +50,75 @@ function saveUsers(users: User[]) {
 }
 
 const initialState: UsersState = {
-  list: loadUsers(),
+  list: [],
   status: 'idle',
   error: null,
 };
 
-export const fetchUsers = createAsyncThunk<User[]>('users/fetch', async () => {
-  // Mock: read from localStorage
-  await new Promise((r) => setTimeout(r, 300));
-  return loadUsers();
-});
+const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+
+export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }>(
+  'users/fetch',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token') || '';
+      const res = await fetch(`${API_URL}/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(text || `Error ${res.status}: Falló la obtención de usuarios`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.warn('The backend returned a non-JSON placeholder response for GET /users:', text);
+        return [];
+      }
+
+      if (!Array.isArray(data)) {
+        throw new Error('La respuesta del servidor no es un listado válido');
+      }
+
+      const roleMap: Record<string, UserRole> = {
+        student: 'ESTUDIANTE',
+        professor: 'DOCENTE',
+        admin: 'ADMIN',
+        ESTUDIANTE: 'ESTUDIANTE',
+        DOCENTE: 'DOCENTE',
+        ADMIN: 'ADMIN',
+        SUPER_ADMIN: 'SUPER_ADMIN',
+      };
+
+      return data.map((u: any) => ({
+        id: String(u.id),
+        email: u.email,
+        nombre: u.firstName || u.nombre,
+        apellido: u.lastName || u.apellido,
+        rol: roleMap[u.role] || roleMap[u.rol] || 'ESTUDIANTE',
+        estado: u.estado || 'active',
+        dni: u.dni,
+        yearOfAdmission: u.yearOfAdmission,
+        completedCoursesWithFinal: u.completedCoursesWithFinal,
+        completedCoursesWithoutFinal: u.completedCoursesWithoutFinal,
+        specialization: u.specialization || u.categoria,
+        isTutor: !!u.isTutor,
+        createdAt: u.createdAt || new Date().toISOString(),
+        updatedAt: u.updatedAt || new Date().toISOString(),
+      }));
+    } catch (error: any) {
+      console.error('Failed to fetch users from backend:', error);
+      return rejectWithValue(error.message || 'Error al obtener usuarios de la base de datos');
+    }
+  }
+);
 
 export const activateInvitedTeacher = createAsyncThunk<
   User,
@@ -133,23 +194,7 @@ export const registerStudent = createAsyncThunk<
   { rejectValue: string }
 >('users/register', async (payload, { rejectWithValue }) => {
   try {
-    const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firstName: payload.nombre,
-        lastName: payload.apellido,
-        dni: payload.dni,
-        email: payload.email,
-        password: payload.password,
-        yearOfAdmission: payload.yearOfAdmission !== undefined ? Number(payload.yearOfAdmission) : undefined,
-        completedCoursesWithFinal: payload.completedCoursesWithFinal !== undefined ? Number(payload.completedCoursesWithFinal) : 0,
-        completedCoursesWithoutFinal: payload.completedCoursesWithoutFinal !== undefined ? Number(payload.completedCoursesWithoutFinal) : 0,
-      }),
-    });
+    const response = await authService.registerStudent(payload);
 
     const data = await response.json();
 
@@ -202,24 +247,8 @@ export const registerProfessor = createAsyncThunk<
   { rejectValue: string }
 >('users/registerProfessor', async (payload, { rejectWithValue }) => {
   try {
-    const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/users/register-professor`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        firstName: payload.nombre,
-        lastName: payload.apellido,
-        dni: payload.dni,
-        email: payload.email,
-        password: payload.password,
-        specialization: payload.specialization,
-        isTutor: payload.isTutor,
-      }),
-    });
+    const response = await userService.registerProfessor(payload, token);
 
     const data = await response.json();
 

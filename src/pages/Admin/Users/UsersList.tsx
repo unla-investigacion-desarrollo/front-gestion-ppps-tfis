@@ -7,7 +7,6 @@ import {
   selectUsers,
   createOrInviteTeacher,
   registerProfessor,
-  deleteUser,
   resetPassword,
   activateInvitedTeacher,
   toggleUserActivation
@@ -27,6 +26,8 @@ import UserTable from './components/UserTable';
 import Pagination from '../../../components/Pagination';
 import InviteTeacherModal from './components/InviteTeacherModal';
 import CreateTeacherModal from './components/CreateTeacherModal';
+import { userService } from '../../../services/userService';
+
 
 /**
  * Componente Contenedor Principal para la Gestión de Usuarios (Vistas de Admin/Super Admin).
@@ -58,12 +59,15 @@ const UsersList: React.FC = () => {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // Estados para modales de creación y edición
+  // Estados para modales de creación, edición, eliminación y detalles del usuario
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [activatingTeacher, setActivatingTeacher] = useState<any | null>(null);
   const [activatePasswordVal, setActivatePasswordVal] = useState('');
   const [isCreateTeacherModalOpen, setIsCreateTeacherModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Carga inicial
   useEffect(() => {
@@ -111,50 +115,130 @@ const UsersList: React.FC = () => {
     await dispatch<any>(createOrInviteTeacher(formData));
   };
 
-  // Editar los campos del usuario en localStorage
-  const handleEditUser = (e: React.FormEvent<HTMLFormElement>) => {
+  // Preparar estado del usuario para editar
+  const handleStartEdit = (user: any) => {
+    const roleMap: Record<string, string> = {
+      student: 'ESTUDIANTE',
+      professor: 'DOCENTE',
+      admin: 'ADMIN',
+      ESTUDIANTE: 'ESTUDIANTE',
+      DOCENTE: 'DOCENTE',
+      ADMIN: 'ADMIN',
+      SUPER_ADMIN: 'SUPER_ADMIN',
+    };
+
+    const normalizedRole = roleMap[user.role] || roleMap[user.rol] || user.rol || user.role;
+
+    setEditingUser({
+      ...user,
+      nombre: user.nombre || user.firstName || '',
+      apellido: user.apellido || user.lastName || '',
+      dni: user.dni || '',
+      email: user.email || '',
+      rol: normalizedRole,
+      yearOfAdmission: user.yearOfAdmission || '',
+      completedCoursesWithFinal: user.completedCoursesWithFinal ?? 0,
+      completedCoursesWithoutFinal: user.completedCoursesWithoutFinal ?? 0,
+      specialization: user.specialization || user.categoria || '',
+      isTutor: !!user.isTutor,
+    });
+  };
+
+  // Editar los campos del usuario en el backend
+  const handleEditUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editingUser) return;
 
-    const raw = localStorage.getItem('users');
-    const usersList = raw ? JSON.parse(raw) : [];
-    const idx = usersList.findIndex((user: any) => user.id === editingUser.id);
-    if (idx !== -1) {
-      usersList[idx] = {
-        ...usersList[idx],
-        nombre: editingUser.nombre,
-        apellido: editingUser.apellido,
+    try {
+      const token = localStorage.getItem('token') || '';
+      const userId = editingUser.id;
+
+      const updateData: any = {
+        firstName: editingUser.nombre,
+        lastName: editingUser.apellido,
         dni: editingUser.dni,
-        legajo: editingUser.legajo,
-        updatedAt: new Date().toISOString()
+        email: editingUser.email,
       };
-      localStorage.setItem('users', JSON.stringify(usersList));
-      dispatch<any>(fetchUsers());
-    }
-    setEditingUser(null);
-  };
 
-  // Restaurar de papelera
-  const handleRestoreUser = async (u: any) => {
-    const updated = { ...u, estado: 'active', updatedAt: new Date().toISOString() };
-    const raw = localStorage.getItem('users');
-    const usersList = raw ? JSON.parse(raw) : [];
-    const idx = usersList.findIndex((user: any) => user.id === u.id);
-    if (idx !== -1) {
-      usersList[idx] = updated;
-      localStorage.setItem('users', JSON.stringify(usersList));
-      dispatch<any>(fetchUsers());
-    }
-  };
+      if (editingUser.rol === 'ESTUDIANTE') {
+        updateData.yearOfAdmission = Number(editingUser.yearOfAdmission);
+        updateData.completedCoursesWithFinal = Number(editingUser.completedCoursesWithFinal);
+        updateData.completedCoursesWithoutFinal = Number(editingUser.completedCoursesWithoutFinal);
+      } else if (editingUser.rol === 'DOCENTE') {
+        updateData.specialization = editingUser.specialization;
+        updateData.isTutor = !!editingUser.isTutor;
+      }
 
-  // Eliminar definitivo
-  const handleDeletePermanently = async (u: any) => {
-    if (window.confirm('¿Eliminar definitivamente este usuario?')) { // revisar si es necesario
+      await userService.updateUser(userId, token, updateData);
+
+      // También actualizamos en localStorage local para la simulación
       const raw = localStorage.getItem('users');
       const usersList = raw ? JSON.parse(raw) : [];
-      const updated = usersList.filter((user: any) => user.id !== u.id);
-      localStorage.setItem('users', JSON.stringify(updated));
+      const idx = usersList.findIndex((user: any) => user.id === editingUser.id);
+      if (idx !== -1) {
+        usersList[idx] = {
+          ...usersList[idx],
+          nombre: editingUser.nombre,
+          apellido: editingUser.apellido,
+          firstName: editingUser.nombre,
+          lastName: editingUser.apellido,
+          dni: editingUser.dni,
+          email: editingUser.email,
+          yearOfAdmission: updateData.yearOfAdmission,
+          completedCoursesWithFinal: updateData.completedCoursesWithFinal,
+          completedCoursesWithoutFinal: updateData.completedCoursesWithoutFinal,
+          specialization: updateData.specialization,
+          categoria: updateData.specialization,
+          isTutor: updateData.isTutor,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem('users', JSON.stringify(usersList));
+      }
+      
       dispatch<any>(fetchUsers());
+      alert('Usuario actualizado correctamente');
+    } catch (error: any) {
+      console.error('Error al actualizar usuario:', error);
+      alert(error.message || 'Error al actualizar el usuario');
+    } finally {
+      setEditingUser(null);
+    }
+  };
+
+  // Ver detalles completos del usuario en otra pantalla
+  const handleViewUser = async (user: any) => {
+    setLoadingDetail(true);
+    try {
+      const token = localStorage.getItem('token') || '';
+      const userId = user.id;
+      const data = await userService.getUserProfile(userId, token);
+      
+      const roleMap: Record<string, string> = {
+        student: 'ESTUDIANTE',
+        professor: 'DOCENTE',
+        admin: 'ADMIN',
+        ESTUDIANTE: 'ESTUDIANTE',
+        DOCENTE: 'DOCENTE',
+        ADMIN: 'ADMIN',
+        SUPER_ADMIN: 'SUPER_ADMIN',
+      };
+
+      const normalizedRole = roleMap[data.role] || roleMap[user.rol] || user.rol || data.role;
+
+      setSelectedUserDetail({
+        ...user,
+        ...data,
+        nombre: data.firstName || user.nombre || user.firstName,
+        apellido: data.lastName || user.apellido || user.lastName,
+        rol: normalizedRole,
+      });
+    } catch (error: any) {
+      console.error('Error al obtener detalles del usuario:', error);
+      // Fallback a los datos locales si falla la petición (útil para usuarios mock)
+      setSelectedUserDetail(user);
+    } finally {
+      setSelectedUserDetail(prev => prev ? prev : user); // En caso de que se retorne vacío
+      setLoadingDetail(false);
     }
   };
 
@@ -219,10 +303,31 @@ const UsersList: React.FC = () => {
     await dispatch<any>(toggleUserActivation({ id, enable }));
   };
 
-  // Soft delete (Papelera)
-  const handleDeleteUser = async (id: string) => {
-    if (confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) { // ver si volamos la papelera
-      await dispatch<any>(deleteUser({ id }));
+  // Iniciar proceso de eliminación (abrir modal de confirmación)
+  const handleDeleteUser = (user: any) => {
+    setUserToDelete(user);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      const token = localStorage.getItem('token') || '';
+      const userId = userToDelete.id;
+      await userService.deleteUser(userId, token);
+
+      // Eliminar de localStorage para coherencia en el mockup local
+      const raw = localStorage.getItem('users');
+      const usersList = raw ? JSON.parse(raw) : [];
+      const updated = usersList.filter((u: any) => u.id !== userToDelete.id);
+      localStorage.setItem('users', JSON.stringify(updated));
+
+      dispatch<any>(fetchUsers());
+      alert('Usuario eliminado correctamente');
+    } catch (error: any) {
+      console.error('Error al eliminar usuario:', error);
+      alert(error.message || 'Error al eliminar el usuario');
+    } finally {
+      setUserToDelete(null);
     }
   };
 
@@ -236,9 +341,7 @@ const UsersList: React.FC = () => {
     const q = filters.q.trim().toLowerCase();
     const matchesQ = !q || [u.email, u.nombre, u.apellido].filter(Boolean).join(' ').toLowerCase().includes(q);
     const matchesRol = filters.rol === 'ALL' || u.rol === filters.rol;
-    const matchesEstado = filters.estado === 'papelera'
-      ? u.estado === 'papelera'
-      : (filters.estado === 'ALL' || u.estado === filters.estado) && u.estado !== 'papelera';
+    const matchesEstado = (filters.estado === 'ALL' || u.estado === filters.estado) && u.estado !== 'papelera';
     return matchesQ && matchesRol && matchesEstado;
   });
 
@@ -248,6 +351,127 @@ const UsersList: React.FC = () => {
   });
 
   const paginatedUsers = sortedUsers.slice((page - 1) * pageSize, page * pageSize);
+
+  if (selectedUserDetail) {
+    return (
+      <div className="unla-page users-page-container">
+        <div className="unla-card users-card-main">
+          {/* Header */}
+          <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+              <h1 className="m-0 users-title">Detalles del Usuario</h1>
+              <p className="m-0 text-muted users-subtitle">Información completa de {selectedUserDetail.email}</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary d-flex align-items-center gap-2"
+              onClick={() => setSelectedUserDetail(null)}
+              style={{ fontWeight: '600' }}
+            >
+              ← Volver al listado
+            </button>
+          </div>
+
+          {/* Details Body */}
+          <div className="row g-4">
+            {/* Tarjeta de Información General */}
+            <div className="col-md-6">
+              <div className="card shadow-sm h-100" style={{ borderRadius: '12px', border: '1px solid var(--unla-border)' }}>
+                <div className="card-header bg-light py-3" style={{ borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
+                  <h5 className="m-0 mb-0 font-weight-bold" style={{ color: 'var(--unla-primary)', fontWeight: 600 }}>Información General</h5>
+                </div>
+                <div className="card-body d-flex flex-column gap-3">
+                  <div>
+                    <span className="text-muted d-block small">Nombre completo</span>
+                    <strong style={{ fontSize: '18px' }}>
+                      {[selectedUserDetail.nombre || selectedUserDetail.firstName, selectedUserDetail.apellido || selectedUserDetail.lastName].filter(Boolean).join(' ') || 'Sin nombre'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-muted d-block small">Email</span>
+                    <strong>{selectedUserDetail.email || '-'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted d-block small">DNI</span>
+                    <strong>{selectedUserDetail.dni || '-'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted d-block small">Rol del Sistema</span>
+                    <span className="badge mt-1" style={{
+                      backgroundColor: selectedUserDetail.rol === 'ESTUDIANTE' ? '#fae8ff' : (selectedUserDetail.rol === 'DOCENTE' ? '#e0f2fe' : '#dcfce7'),
+                      color: selectedUserDetail.rol === 'ESTUDIANTE' ? '#a21caf' : (selectedUserDetail.rol === 'DOCENTE' ? '#0369a1' : '#15803d'),
+                      fontWeight: 600,
+                      padding: '6px 12px',
+                      borderRadius: '16px'
+                    }}>
+                      {selectedUserDetail.rol || selectedUserDetail.role}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted d-block small">Estado de la cuenta</span>
+                    <strong className="text-capitalize">{selectedUserDetail.estado || '-'}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tarjeta de Información de Rol Específico */}
+            <div className="col-md-6">
+              {(selectedUserDetail.rol === 'ESTUDIANTE' || selectedUserDetail.role === 'ESTUDIANTE') ? (
+                <div className="card shadow-sm h-100" style={{ borderRadius: '12px', border: '1px solid var(--unla-border)' }}>
+                  <div className="card-header bg-light py-3" style={{ borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
+                    <h5 className="m-0 mb-0 font-weight-bold text-success" style={{ fontWeight: 600 }}>Detalles del Estudiante</h5>
+                  </div>
+                  <div className="card-body d-flex flex-column gap-3">
+                    <div>
+                      <span className="text-muted d-block small">Año de Ingreso</span>
+                      <strong style={{ fontSize: '18px' }}>{selectedUserDetail.yearOfAdmission || 'No especificado'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-muted d-block small">Materias aprobadas con final</span>
+                      <strong style={{ fontSize: '18px' }}>{selectedUserDetail.completedCoursesWithFinal ?? '0'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-muted d-block small">Materias cursadas sin final</span>
+                      <strong style={{ fontSize: '18px' }}>{selectedUserDetail.completedCoursesWithoutFinal ?? '0'}</strong>
+                    </div>
+                  </div>
+                </div>
+              ) : (selectedUserDetail.rol === 'DOCENTE' || selectedUserDetail.role === 'DOCENTE') ? (
+                <div className="card shadow-sm h-100" style={{ borderRadius: '12px', border: '1px solid var(--unla-border)' }}>
+                  <div className="card-header bg-light py-3" style={{ borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
+                    <h5 className="m-0 mb-0 font-weight-bold text-primary" style={{ fontWeight: 600 }}>Detalles del Docente</h5>
+                  </div>
+                  <div className="card-body d-flex flex-column gap-3">
+                    <div>
+                      <span className="text-muted d-block small">Especialidad / Categoría</span>
+                      <strong style={{ fontSize: '18px' }}>{selectedUserDetail.specialization || selectedUserDetail.categoria || 'No especificada'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-muted d-block small">¿Es Tutor de Proyectos?</span>
+                      <strong style={{ fontSize: '18px' }}>
+                        {selectedUserDetail.isTutor ? 'Sí' : 'No'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="card shadow-sm h-100 d-flex align-items-center justify-content-center border-0 bg-transparent">
+                  <div className="text-center p-4 text-muted">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" className="bi bi-info-circle mb-3" viewBox="0 0 16 16">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                      <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                    </svg>
+                    <p className="mb-0">Los usuarios administradores no poseen información adicional específica.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="unla-page users-page-container">
@@ -373,15 +597,9 @@ const UsersList: React.FC = () => {
           onClearFilters={handleClearFilters}
         />
 
-        {/* Barra del Listado con Interruptor para ver Papelera */}
+        {/* Barra del Listado */}
         <div className="d-flex align-items-center justify-content-between mb-3">
           <h2 className="m-0 list-section-title">Listado de usuarios</h2>
-          <button
-            className="btn btn-sm btn-secondary btn-toggle-trash"
-            onClick={() => setFilters(f => ({ ...f, estado: f.estado === 'papelera' ? 'ALL' : 'papelera' }))}
-          >
-            {filters.estado === 'papelera' ? 'Ver activos' : 'Ver papelera'}
-          </button>
         </div>
 
         {/* Sección 3: Tabla de Usuarios */}
@@ -392,14 +610,12 @@ const UsersList: React.FC = () => {
           canManage={canManage}
           sort={sort}
           onToggleSort={toggleSort}
-          onRestoreUser={handleRestoreUser}
-          onDeletePermanently={handleDeletePermanently}
           onActivateClick={(user) => setActivatingTeacher(user)}
           onResetPassword={handleResetPassword}
           onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
-          onEditClick={(user) => setEditingUser(user)}
-          filtersEstado={filters.estado}
+          onEditClick={handleStartEdit}
+          onViewClick={handleViewUser}
         />
 
         {/* Espaciador flexible para empujar la paginación al fondo */}
@@ -442,6 +658,16 @@ const UsersList: React.FC = () => {
                 <form onSubmit={handleEditUser}>
                   <div className="modal-body custom-modal-body d-flex flex-column gap-3">
                     <div>
+                      <label className="form-label" style={{ fontWeight: 500 }}>Email</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        required
+                        value={editingUser.email || ''}
+                        onChange={(e) => setEditingUser((u: any) => ({ ...u, email: e.target.value }))}
+                      />
+                    </div>
+                    <div>
                       <label className="form-label" style={{ fontWeight: 500 }}>Nombre</label>
                       <input
                         type="text"
@@ -472,15 +698,68 @@ const UsersList: React.FC = () => {
                         onChange={(e) => setEditingUser((u: any) => ({ ...u, dni: e.target.value.replace(/\D/g, '') }))}
                       />
                     </div>
-                    <div>
-                      <label className="form-label" style={{ fontWeight: 500 }}>Legajo</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editingUser.legajo || ''}
-                        onChange={(e) => setEditingUser((u: any) => ({ ...u, legajo: e.target.value }))}
-                      />
-                    </div>
+
+                    {/* Campos específicos de Estudiante */}
+                    {editingUser.rol === 'ESTUDIANTE' && (
+                      <>
+                        <div>
+                          <label className="form-label" style={{ fontWeight: 500 }}>Año de Ingreso</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            required
+                            value={editingUser.yearOfAdmission || ''}
+                            onChange={(e) => setEditingUser((u: any) => ({ ...u, yearOfAdmission: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontWeight: 500 }}>Materias aprobadas con final</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={editingUser.completedCoursesWithFinal ?? ''}
+                            onChange={(e) => setEditingUser((u: any) => ({ ...u, completedCoursesWithFinal: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontWeight: 500 }}>Materias cursadas sin final</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={editingUser.completedCoursesWithoutFinal ?? ''}
+                            onChange={(e) => setEditingUser((u: any) => ({ ...u, completedCoursesWithoutFinal: e.target.value }))}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Campos específicos de Docente */}
+                    {editingUser.rol === 'DOCENTE' && (
+                      <>
+                        <div>
+                          <label className="form-label" style={{ fontWeight: 500 }}>Especialidad / Categoría</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            required
+                            value={editingUser.specialization || ''}
+                            onChange={(e) => setEditingUser((u: any) => ({ ...u, specialization: e.target.value }))}
+                          />
+                        </div>
+                        <div className="form-check mt-2">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="isTutorEdit"
+                            checked={!!editingUser.isTutor}
+                            onChange={(e) => setEditingUser((u: any) => ({ ...u, isTutor: e.target.checked }))}
+                          />
+                          <label className="form-check-label" htmlFor="isTutorEdit" style={{ fontWeight: 500 }}>
+                            ¿Es Tutor?
+                          </label>
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="modal-footer custom-modal-footer">
                     <button
@@ -577,6 +856,66 @@ const UsersList: React.FC = () => {
         onClose={() => setIsCreateTeacherModalOpen(false)}
         onSubmit={handleCreateTeacherSubmit}
       />
+
+      {/* --- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --- */}
+      {userToDelete && (
+        <>
+          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1} style={{ display: 'block' }}>
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
+                  <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
+                    Confirmar Eliminación
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setUserToDelete(null)}
+                    aria-label="Close"
+                  />
+                </div>
+                <div className="modal-body custom-modal-body text-center py-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--unla-primary)" className="bi bi-exclamation-triangle mb-3" viewBox="0 0 16 16">
+                    <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+                    <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                  </svg>
+                  <p className="mb-0" style={{ fontSize: '18px', fontWeight: 500 }}>
+                    ¿Está seguro de que desea eliminar al usuario <strong>{userToDelete.email}</strong>?
+                  </p>
+                  <p className="text-muted small mt-2">
+                    Esta acción lo eliminará definitivamente de la base de datos.
+                  </p>
+                </div>
+                <div className="modal-footer custom-modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setUserToDelete(null)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={handleConfirmDelete}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="custom-modal-backdrop" />
+        </>
+      )}
+
+      {loadingDetail && (
+        <div className="custom-modal-backdrop d-flex align-items-center justify-content-center" style={{ zIndex: 2000 }}>
+          <div className="spinner-border text-light" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Cargando detalles...</span>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -8,14 +8,12 @@ interface UserTableProps {
   canManage: (role: string) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
   onToggleSort: (key: string) => void;
-  onRestoreUser: (user: any) => void;
-  onDeletePermanently: (user: any) => void;
   onActivateClick: (user: any) => void; // Prop para abrir el modal de activación del docente
   onResetPassword: (user: any) => void;
   onToggleActivation: (id: string, enable: boolean) => void;
-  onDeleteUser: (id: string) => void;
+  onDeleteUser: (user: any) => void;
   onEditClick: (user: any) => void; // Prop para abrir el modal de edición de un usuario
-  filtersEstado: string;
+  onViewClick: (user: any) => void; // Prop para ver los detalles del usuario
 }
 
 /**
@@ -29,14 +27,12 @@ const UserTable: React.FC<UserTableProps> = ({
   canManage,
   sort,
   onToggleSort,
-  onRestoreUser,
-  onDeletePermanently,
   onActivateClick,
   onResetPassword,
   onToggleActivation,
   onDeleteUser,
   onEditClick,
-  filtersEstado,
+  onViewClick,
 }) => {
   // Estado local para abrir el dropdown del usuario correspondiente
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -175,7 +171,7 @@ const UserTable: React.FC<UserTableProps> = ({
           {users.length === 0 ? (
             <tr>
               <td colSpan={isSuperAdmin ? 8 : 7} className="text-center py-4 text-muted">
-                {filtersEstado === 'papelera' ? 'La papelera está vacía.' : 'No hay usuarios para mostrar.'}
+                No hay usuarios para mostrar.
               </td>
             </tr>
           ) : (
@@ -272,6 +268,24 @@ const UserTable: React.FC<UserTableProps> = ({
                               onClick={() => setOpenDropdownId(null)}
                             />
                             <ul className="custom-dropdown-menu dropdown-menu-end">
+                              {/* Acción: Ver usuario */}
+                              <li>
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    onViewClick(u);
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ minWidth: '14px' }}>
+                                    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                    <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                                  </svg>
+                                  Ver usuario
+                                </button>
+                              </li>
+
                               {/* Acción: Editar */}
                               <li>
                                 <button
@@ -367,51 +381,22 @@ const UserTable: React.FC<UserTableProps> = ({
 
                               {/* Division y Acciones de eliminación */}
                               <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                              {u.estado === 'papelera' ? (
-                                <>
-                                  <li>
-                                    <button
-                                      type="button"
-                                      className="custom-dropdown-item text-success"
-                                      onClick={() => {
-                                        setOpenDropdownId(null);
-                                        onRestoreUser(u);
-                                      }}
-                                    >
-                                      ♻️ Restaurar
-                                    </button>
-                                  </li>
-                                  <li>
-                                    <button
-                                      type="button"
-                                      className="custom-dropdown-item text-danger"
-                                      onClick={() => {
-                                        setOpenDropdownId(null);
-                                        onDeletePermanently(u);
-                                      }}
-                                    >
-                                      🗑️ Eliminar definitivo
-                                    </button>
-                                  </li>
-                                </>
-                              ) : (
-                                <li>
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item text-danger"
-                                    onClick={() => {
-                                      setOpenDropdownId(null);
-                                      onDeleteUser(u.id);
-                                    }}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                                      <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                                    </svg>
-                                    Eliminar
-                                  </button>
-                                </li>
-                              )}
+                              <li>
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item text-danger"
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    onDeleteUser(u);
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                  </svg>
+                                  Eliminar
+                                </button>
+                              </li>
                             </ul>
                           </>
                         )}

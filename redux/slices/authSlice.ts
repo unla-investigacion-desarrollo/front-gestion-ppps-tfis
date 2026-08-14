@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { authService } from '../../src/services/authService';
 
 // Un slice es una porción del store que maneja un dominio específico del estado. 
 // En este caso, authSlice maneja todo lo relacionado con la autenticación.
@@ -114,14 +115,7 @@ export const loginUser = createAsyncThunk<
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await authService.login(credentials);
 
       const data = await response.json();
 

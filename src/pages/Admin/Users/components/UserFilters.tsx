@@ -76,7 +76,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChange, onC
             <option value="invited">Invitado</option>
             <option value="rejected">Rechazado</option>
             <option value="disabled">Deshabilitado</option>
-            <option value="papelera">Papelera</option>
           </select>
         </div>
 
