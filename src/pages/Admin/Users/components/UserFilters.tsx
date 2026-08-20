@@ -59,7 +59,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChange, onC
             <option value="ESTUDIANTE">Estudiante</option>
             <option value="DOCENTE">Docente</option>
             <option value="ADMIN">Admin</option>
-            <option value="SUPER_ADMIN">Super Admin</option>
           </select>
         </div>
 

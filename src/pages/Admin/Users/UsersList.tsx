@@ -40,11 +40,10 @@ const UsersList: React.FC = () => {
 
   // --- LÓGICA DE ROLES Y PERMISOS ---
   const isSuperAdmin = !!currentUser?.roles?.includes('SUPER_ADMIN');
-  const isAdminOnly = !!currentUser?.roles?.includes('ADMIN') && !isSuperAdmin;
+  const isAdmin = !!currentUser?.roles?.includes('ADMIN') || isSuperAdmin;
 
   const canManage = (targetRole: string) => {
-    if (isSuperAdmin) return true;
-    if (isAdminOnly) return targetRole === 'DOCENTE' || targetRole === 'ESTUDIANTE';
+    if (isSuperAdmin || isAdmin) return ['DOCENTE', 'ADMIN', 'ESTUDIANTE'].includes(targetRole);
     return false;
   };
 
@@ -355,7 +354,7 @@ const UsersList: React.FC = () => {
               <div className="modal-content custom-modal-content">
                 <div className="modal-header custom-modal-header">
                   <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
-                    {isSuperAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
+                    {isAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
                   </h5>
                   <button
                     type="button"
@@ -366,7 +365,7 @@ const UsersList: React.FC = () => {
                 </div>
                 <div className="modal-body custom-modal-body">
                   <UserForm
-                    isSuperAdmin={isSuperAdmin}
+                    isSuperAdmin={isAdmin}
                     onSubmit={async (data) => {
                       await handleCreateOrInvite(data);
                       setIsInviteModalOpen(false);
