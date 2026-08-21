@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 // Interfaz para definir las propiedades del componente del formulario de usuario.
 interface UserFormProps {
-  isSuperAdmin: boolean; // Indica si el usuario actual es Super Admin para permitir seleccionar roles.
+  isAdmin: boolean;
+  initialRole?: 'DOCENTE' | 'ADMIN';
   onSubmit: (data: {
     email: string;
     nombre: string;
@@ -18,7 +19,7 @@ interface UserFormProps {
  * Componente que encapsula el formulario para crear o invitar a un nuevo docente/administrador.
  * Gestiona localmente su propio estado, validaciones y comprobación asíncrona de disponibilidad de DNI y Email.
  */
-const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
+const UserForm: React.FC<UserFormProps> = ({ isAdmin, initialRole = 'DOCENTE', onSubmit }) => {
   // Estado local para los campos del formulario
   const [form, setForm] = useState({
     email: '',
@@ -27,7 +28,7 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
     dni: '',
     invite: true,
     password: '',
-    rol: 'DOCENTE' as 'DOCENTE' | 'ADMIN',
+    rol: initialRole,
   });
 
   // Estados para controlar el chequeo de disponibilidad (debonced)
@@ -114,18 +115,18 @@ const UserForm: React.FC<UserFormProps> = ({ isSuperAdmin, onSubmit }) => {
       dni: '',
       invite: true,
       password: '',
-      rol: 'DOCENTE',
+      rol: initialRole,
     });
   };
 
   return (
     <>
       <h2 className="unla-section-title">
-        {isSuperAdmin ? 'Crear/Invitar Admin o Docente' : 'Crear/Invitar Docente'}
+        {isAdmin ? 'Crear/Invitar Admin o Docente' : 'Crear/Invitar Docente'}
       </h2>
       <form className="row g-3" onSubmit={handleSubmit}>
-        {/* Selector de rol: solo visible para el Super Admin */}
-        {isSuperAdmin && (
+        {/* Cualquier administrador puede crear administradores y docentes. */}
+        {isAdmin && (
           <div className="col-md-6">
             <select
               className="form-select"

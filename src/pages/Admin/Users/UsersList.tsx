@@ -30,7 +30,7 @@ import { userService } from '../../../services/userService';
 
 
 /**
- * Componente Contenedor Principal para la Gestión de Usuarios (Vistas de Admin/Super Admin).
+ * Componente contenedor principal para la gestión de usuarios por administradores.
  * Orquesta la carga de datos, cálculo de estadísticas, filtrado de datos y visualización interactiva.
  * Incorpora modales de invitación y edición, tarjetas de estadísticas y filtros desacoplados.
  */
@@ -42,11 +42,14 @@ const UsersList: React.FC = () => {
   const currentUser = useSelector(selectCurrentUser);
 
   // --- LÓGICA DE ROLES Y PERMISOS ---
-  const isSuperAdmin = !!currentUser?.roles?.includes('SUPER_ADMIN');
-  const isAdmin = !!currentUser?.roles?.includes('ADMIN') || isSuperAdmin;
+  const isAdmin = !!currentUser?.roles?.some((role) => ['ADMIN', 'ADMINISTRADOR'].includes(role));
 
-  const canManage = (targetRole: string) => {
-    if (isSuperAdmin || isAdmin) return ['DOCENTE', 'ADMIN', 'ESTUDIANTE'].includes(targetRole);
+  const isCurrentUser = (user: any) => (
+    !!currentUser?.id && String(user?.id) === String(currentUser.id)
+  );
+
+  const canManage = (targetRole: string, targetUser?: any) => {
+    if (isAdmin && !isCurrentUser(targetUser)) return ['DOCENTE', 'ADMIN', 'ESTUDIANTE'].includes(targetRole);
     return false;
   };
 
@@ -60,6 +63,7 @@ const UsersList: React.FC = () => {
 
   // Estados para modales de creación, edición, eliminación y detalles del usuario
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [creationRole, setCreationRole] = useState<'DOCENTE' | 'ADMIN'>('DOCENTE');
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [activatingTeacher, setActivatingTeacher] = useState<any | null>(null);
   const [activatePasswordVal, setActivatePasswordVal] = useState('');
@@ -123,7 +127,6 @@ const UsersList: React.FC = () => {
       ESTUDIANTE: 'ESTUDIANTE',
       DOCENTE: 'DOCENTE',
       ADMIN: 'ADMIN',
-      SUPER_ADMIN: 'SUPER_ADMIN',
     };
 
     const normalizedRole = roleMap[user.role] || roleMap[user.rol] || user.rol || user.role;
@@ -157,6 +160,7 @@ const UsersList: React.FC = () => {
         lastName: editingUser.apellido,
         dni: editingUser.dni,
         email: editingUser.email,
+        role: editingUser.rol,
       };
 
       if (editingUser.rol === 'ESTUDIANTE') {
@@ -183,6 +187,7 @@ const UsersList: React.FC = () => {
           lastName: editingUser.apellido,
           dni: editingUser.dni,
           email: editingUser.email,
+          rol: editingUser.rol,
           yearOfAdmission: updateData.yearOfAdmission,
           completedCoursesWithFinal: updateData.completedCoursesWithFinal,
           completedCoursesWithoutFinal: updateData.completedCoursesWithoutFinal,
@@ -219,7 +224,6 @@ const UsersList: React.FC = () => {
         ESTUDIANTE: 'ESTUDIANTE',
         DOCENTE: 'DOCENTE',
         ADMIN: 'ADMIN',
-        SUPER_ADMIN: 'SUPER_ADMIN',
       };
 
       const normalizedRole = roleMap[data.role] || roleMap[user.rol] || user.rol || data.role;
@@ -285,17 +289,16 @@ const UsersList: React.FC = () => {
   const handleResetPassword = async (u: any) => {
     const res = await dispatch<any>(resetPassword({ id: u.id }));
     if (res && res.payload) {
-      if (isSuperAdmin) {
-        const nuevaPass = res.payload.password || (u.dni ? `DNI${u.dni}` : 'alumno123');
-        alert(`Contraseña reseteada a: ${nuevaPass}`); // reemplazar todos los alert por algo copado
-      } else {
-        alert('Contraseña reseteada correctamente');
-      }
+      alert('Contraseña reseteada correctamente');
     }
   };
 
   // Habilitar/Deshabilitar cuenta
   const handleToggleActivation = async (id: string, enable: boolean) => {
+    if (String(id) === String(currentUser?.id)) {
+      alert('No podés desactivar tu propia cuenta.');
+      return;
+    }
     const actionLabel = enable ? 'Activar' : 'Desactivar';
     const ok = confirm(`¿${actionLabel} esta cuenta?`);
     if (!ok) return;
@@ -304,11 +307,20 @@ const UsersList: React.FC = () => {
 
   // Iniciar proceso de eliminación (abrir modal de confirmación)
   const handleDeleteUser = (user: any) => {
+    if (isCurrentUser(user)) {
+      alert('No podés eliminar tu propia cuenta.');
+      return;
+    }
     setUserToDelete(user);
   };
 
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
+    if (isCurrentUser(userToDelete)) {
+      alert('No podés eliminar tu propia cuenta.');
+      setUserToDelete(null);
+      return;
+    }
     try {
       const token = localStorage.getItem('token') || '';
       const userId = userToDelete.id;
@@ -499,7 +511,10 @@ const UsersList: React.FC = () => {
                 <button
                   type="button"
                   className="dropdown-item d-flex align-items-center gap-2 py-2"
-                  onClick={() => setIsInviteModalOpen(true)}
+                  onClick={() => {
+                    setCreationRole('DOCENTE');
+                    setIsInviteModalOpen(true);
+                  }}
                   style={{ fontSize: '14px' }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-envelope" viewBox="0 0 16 16">
@@ -508,6 +523,22 @@ const UsersList: React.FC = () => {
                   Invitar docente (correo)
                 </button>
               </li>
+              {isAdmin && (
+                <li>
+                  <button
+                    type="button"
+                    className="dropdown-item d-flex align-items-center gap-2 py-2"
+                    onClick={() => {
+                      setCreationRole('ADMIN');
+                      setIsInviteModalOpen(true);
+                    }}
+                    style={{ fontSize: '14px' }}
+                  >
+                    <span aria-hidden="true">+</span>
+                    Crear admin
+                  </button>
+                </li>
+              )}
               <li>
                 <button
                   type="button"
@@ -604,7 +635,6 @@ const UsersList: React.FC = () => {
         {/* Sección 3: Tabla de Usuarios */}
         <UserTable
           users={paginatedUsers}
-          isSuperAdmin={isSuperAdmin}
           showActionsColumn={showActionsColumn}
           canManage={canManage}
           sort={sort}
@@ -632,7 +662,8 @@ const UsersList: React.FC = () => {
       {/* --- MODAL PARA CREAR/INVITAR DOCENTES --- */}
       <InviteTeacherModal
         isOpen={isInviteModalOpen}
-        isSuperAdmin={isSuperAdmin}
+        isAdmin={isAdmin}
+        initialRole={creationRole}
         onClose={() => setIsInviteModalOpen(false)}
         onSubmit={handleCreateOrInvite}
       />
@@ -697,6 +728,20 @@ const UsersList: React.FC = () => {
                         onChange={(e) => setEditingUser((u: any) => ({ ...u, dni: e.target.value.replace(/\D/g, '') }))}
                       />
                     </div>
+                    {isAdmin && (
+                      <div>
+                        <label className="form-label" style={{ fontWeight: 500 }}>Rol</label>
+                        <select
+                          className="form-select"
+                          value={editingUser.rol || 'DOCENTE'}
+                          onChange={(e) => setEditingUser((u: any) => ({ ...u, rol: e.target.value }))}
+                        >
+                          <option value="ESTUDIANTE">Estudiante</option>
+                          <option value="DOCENTE">Docente</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                      </div>
+                    )}
 
                     {/* Campos específicos de Estudiante */}
                     {editingUser.rol === 'ESTUDIANTE' && (

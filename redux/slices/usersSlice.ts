@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../../src/services/authService';
 import { userService } from '../../src/services/userService';
 
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
+export type UserRole = 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
 export type UserStatus = 'pending' | 'active' | 'rejected' | 'invited' | 'disabled' | 'papelera';
 
 export interface User {
@@ -94,7 +94,7 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
         ESTUDIANTE: 'ESTUDIANTE',
         DOCENTE: 'DOCENTE',
         ADMIN: 'ADMIN',
-        SUPER_ADMIN: 'SUPER_ADMIN',
+        SUPER_ADMIN: 'ADMIN',
       };
 
       return data.map((u: any) => ({

@@ -20,8 +20,8 @@ const AuthenticatedLayout = ({ children }) => {
   const rawRoles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
   if (user?.rol) rawRoles.push(user.rol);
   const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
-  const isAdmin = normalizedRoles.some((r) => ['ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(r));
-  const isTeacher = normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(r));
+  const isAdmin = normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
+  const isTeacher = normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'ADMINISTRADOR'].includes(r));
   const mustChange = !!user?.mustChangePassword;
 
   // Toast handling con cola por usuario (localStorage 'userNotifications')

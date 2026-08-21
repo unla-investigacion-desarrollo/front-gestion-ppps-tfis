@@ -87,7 +87,7 @@ const TeacherProjectsList: React.FC = () => {
           : [];
       const normalizedRoles = rolesArray.map((role: any) => String(role).toUpperCase().trim());
       return normalizedRoles.some((role: string) =>
-        ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'SUPER_ADMIN', 'ADMINISTRADOR'].includes(role)
+        ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'ADMINISTRADOR'].includes(role)
       );
     });
   }, [users]);

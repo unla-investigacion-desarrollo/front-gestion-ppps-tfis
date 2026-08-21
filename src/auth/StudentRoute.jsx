@@ -13,7 +13,6 @@ const StudentRoute = ({ children }) => {
     'TEACHER',
     'PROFESSOR',
     'ADMIN',
-    'SUPER_ADMIN',
     'ADMINISTRADOR'
   ].includes(r));
   return !isTeacherOrAbove ? children : <Navigate to="/dashboard" />;

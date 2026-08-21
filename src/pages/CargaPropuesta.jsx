@@ -32,14 +32,14 @@ const CargaPropuesta = () => {
     } catch { return null; }
   }, [user]);
 
-  const allSubmissions = useMemo(() => {
+  const allSubmissions = (() => {
     try {
       const raw = localStorage.getItem('proposals');
       const arr = raw ? JSON.parse(raw) : [];
       const mine = user ? arr.filter((p) => p.userId === user.id) : arr;
       return mine;
     } catch { return []; }
-  }, [user, submitting]);
+  })();
 
   const visibleSubmissions = useMemo(() => {
     const filtered = filterEstado ? allSubmissions.filter((p) => p.estado === filterEstado) : allSubmissions;

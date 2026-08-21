@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-// Permite acceso a usuarios con rol docente o superior (DOCENTE, ADMIN, SUPER_ADMIN)
+// Permite acceso a usuarios con rol docente o administrador.
 const TeacherRoute = ({ children }) => {
   const user = useSelector((state) => state.auth.user);
   const roles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
@@ -13,7 +13,6 @@ const TeacherRoute = ({ children }) => {
     'TEACHER',
     'PROFESSOR',
     'ADMIN',
-    'SUPER_ADMIN',
     'ADMINISTRADOR'
   ].includes(r));
   return isTeacherOrAbove ? children : <Navigate to="/dashboard" />;

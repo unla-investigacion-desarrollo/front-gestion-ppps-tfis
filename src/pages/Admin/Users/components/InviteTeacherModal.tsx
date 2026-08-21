@@ -3,14 +3,16 @@ import UserForm from './UserForm';
 
 interface InviteTeacherModalProps {
   isOpen: boolean;
-  isSuperAdmin: boolean;
+  isAdmin: boolean;
+  initialRole?: 'DOCENTE' | 'ADMIN';
   onClose: () => void;
   onSubmit: (formData: any) => Promise<void>;
 }
 
 const InviteTeacherModal: React.FC<InviteTeacherModalProps> = ({
   isOpen,
-  isSuperAdmin,
+  isAdmin,
+  initialRole = 'DOCENTE',
   onClose,
   onSubmit,
 }) => {
@@ -23,7 +25,7 @@ const InviteTeacherModal: React.FC<InviteTeacherModalProps> = ({
           <div className="modal-content custom-modal-content">
             <div className="modal-header custom-modal-header">
               <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
-                {isSuperAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
+                {isAdmin ? 'Crear / Invitar Usuario' : 'Crear / Invitar Docente'}
               </h5>
               <button
                 type="button"
@@ -34,7 +36,8 @@ const InviteTeacherModal: React.FC<InviteTeacherModalProps> = ({
             </div>
             <div className="modal-body custom-modal-body">
               <UserForm
-                isSuperAdmin={isSuperAdmin}
+                isAdmin={isAdmin}
+                initialRole={initialRole}
                 onSubmit={async (data) => {
                   await onSubmit(data);
                   onClose();

@@ -18,7 +18,7 @@ const EstadoGeneral = () => {
     try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
   }, []);
 
-  const { proposals, myLast, queue, stats } = useMemo(() => {
+  const { myLast, queue, stats } = useMemo(() => {
     try {
       const raw = localStorage.getItem('proposals');
       const arr = raw ? JSON.parse(raw) : [];
@@ -36,9 +36,9 @@ const EstadoGeneral = () => {
         return acc;
       }, { total: 0, byEstado: {} });
 
-      return { proposals: arr, myLast, queue, stats };
+      return { myLast, queue, stats };
     } catch {
-      return { proposals: [], myLast: null, queue: [], stats: { total: 0, byEstado: {} } };
+      return { myLast: null, queue: [], stats: { total: 0, byEstado: {} } };
     }
   }, [user]);
 

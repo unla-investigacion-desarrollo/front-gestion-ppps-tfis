@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 // Interfaz que define las propiedades del componente de la tabla de usuarios
 interface UserTableProps {
   users: any[];
-  isSuperAdmin: boolean;
   showActionsColumn: boolean;
-  canManage: (role: string) => boolean;
+  canManage: (role: string, user: any) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
   onToggleSort: (key: string) => void;
   onActivateClick: (user: any) => void; // Prop para abrir el modal de activación del docente
@@ -22,7 +21,6 @@ interface UserTableProps {
  */
 const UserTable: React.FC<UserTableProps> = ({
   users,
-  isSuperAdmin,
   showActionsColumn,
   canManage,
   sort,
@@ -59,8 +57,6 @@ const UserTable: React.FC<UserTableProps> = ({
       styles = { backgroundColor: '#e0f2fe', color: '#0369a1' }; // Azul
     } else if (rol === 'ADMIN') {
       styles = { backgroundColor: '#dcfce7', color: '#15803d' }; // Verde
-    } else if (rol === 'SUPER_ADMIN') {
-      styles = { backgroundColor: '#fef3c7', color: '#b45309' }; // Naranja
     }
 
     return (
@@ -163,14 +159,13 @@ const UserTable: React.FC<UserTableProps> = ({
             </th>
             <th>DNI</th>
             <th>Legajo</th>
-            {isSuperAdmin && <th>Contraseña</th>}
             {showActionsColumn && <th style={{ textAlign: 'center' }}>Acciones</th>}
           </tr>
         </thead>
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={isSuperAdmin ? 8 : 7} className="text-center py-4 text-muted">
+              <td colSpan={showActionsColumn ? 7 : 6} className="text-center py-4 text-muted">
                 No hay usuarios para mostrar.
               </td>
             </tr>
@@ -208,50 +203,10 @@ const UserTable: React.FC<UserTableProps> = ({
                 {/* Celda del Legajo */}
                 <td style={{ padding: '12px 16px' }}>{u.legajo ?? '-'}</td>
 
-                {/* Celda de Contraseña (Solo para Super Admin, revelable en hover/clic) */}
-                {isSuperAdmin && (
-                  <td
-                    style={{ cursor: 'pointer', userSelect: 'none', padding: '12px 16px', fontFamily: 'monospace' }}
-                    onClick={e => {
-                      const el = e.currentTarget;
-                      el.textContent = u.password ?? '-';
-                      el.dataset.revealed = 'true';
-                      el.style.userSelect = 'text';
-                    }}
-                    onContextMenu={e => {
-                      e.preventDefault();
-                      const el = e.currentTarget;
-                      if (el.dataset.revealed !== 'true') {
-                        el.textContent = u.password ?? '-';
-                        el.dataset.revealed = 'true';
-                        el.style.userSelect = 'text';
-                      }
-                      const range = document.createRange();
-                      range.selectNodeContents(el);
-                      const sel = window.getSelection();
-                      if (sel) {
-                        sel.removeAllRanges();
-                        sel.addRange(range);
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      const el = e.currentTarget;
-                      el.textContent = '••••••••';
-                      el.dataset.revealed = 'false';
-                      el.style.userSelect = 'none';
-                      const sel = window.getSelection();
-                      if (sel) sel.removeAllRanges();
-                    }}
-                    data-revealed="false"
-                  >
-                    ••••••••
-                  </td>
-                )}
-                
                 {/* Columna de Acciones Unificadas en un Botón Dropdown (⋮) */}
                 {showActionsColumn && (
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    {canManage(u.rol) && (
+                    {canManage(u.rol, u) && (
                       <div className="actions-dropdown-wrapper">
                         <button
                           type="button"
