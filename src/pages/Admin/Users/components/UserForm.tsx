@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from '../../../../utils/toast';
 
 // Interfaz para definir las propiedades del componente del formulario de usuario.
 interface UserFormProps {
@@ -88,11 +89,11 @@ const UserForm: React.FC<UserFormProps> = ({ isAdmin, initialRole = 'DOCENTE', o
 
     // Validaciones del formulario antes del envío
     if (!form.email) {
-      alert('Email es obligatorio');
+      showToast('Email es obligatorio', 'error');
       return;
     }
     if (!/^\d{8}$/.test(form.dni)) {
-      alert('DNI debe tener 8 dígitos');
+      showToast('DNI debe tener 8 dígitos', 'error');
       return;
     }
 

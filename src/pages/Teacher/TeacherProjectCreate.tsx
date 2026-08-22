@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { createProject } from '../../../redux/slices/projectsSlice';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../../utils/toast';
 
 const TeacherProjectCreate: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -26,14 +27,14 @@ const TeacherProjectCreate: React.FC = () => {
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validate()) return;
-    if (!user?.id) { alert('Usuario no autenticado'); return; }
+    if (!user?.id) { showToast('Usuario no autenticado', 'error'); return; }
     setSubmitting(true);
     try {
       await dispatch(createProject({ teacherId: user.id, titulo: form.titulo, descripcion: form.descripcion, categoria: form.categoria })).unwrap();
       setForm({ titulo: '', descripcion: '', categoria: '' });
       navigate('/docente/proyectos');
     } catch (err: any) {
-      alert(err?.message || 'Error al crear el proyecto');
+      showToast(err?.message || 'Error al crear el proyecto', 'error');
     } finally {
       setSubmitting(false);
     }

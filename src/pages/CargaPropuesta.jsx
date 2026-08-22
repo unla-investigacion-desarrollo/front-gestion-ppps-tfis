@@ -5,6 +5,7 @@ import bgImage from '../assets/fondo-rojo.jpg';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../utils/toast';
 
 const CargaPropuesta = () => {
   const user = useSelector(selectCurrentUser);
@@ -153,7 +154,7 @@ const CargaPropuesta = () => {
       // Redirigir al inicio (dashboard)
       navigate('/dashboard');
     } catch {
-      alert('Ocurrió un error al enviar la propuesta');
+      showToast('Ocurrió un error al enviar la propuesta', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -2,3 +2,7 @@
     background-image: url("../../assets/fondo-rojo.jpg");
     background-size: cover;
 }
+
+.register-success {
+    border-left: 4px solid #198754;
+}

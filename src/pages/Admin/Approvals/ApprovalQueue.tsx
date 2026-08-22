@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, selectPendingUsers, approveUser, rejectUser } from '../../../../redux/slices/usersSlice';
 import '../../../styles/unla.css';
 import bgImage from '../../../assets/fondo-rojo.jpg';
+import { showToast } from '../../../utils/toast';
 
 const ApprovalQueue: React.FC = () => {
   const dispatch = useDispatch();
@@ -18,7 +19,7 @@ const ApprovalQueue: React.FC = () => {
       // Mostrar contraseña temporal para estudiantes aprobados
       const u = result.payload as any;
       if (u.password) {
-        alert(`Aprobado. Contraseña temporal: ${u.password}`);
+        showToast(`Aprobado. Contraseña temporal: ${u.password}`, 'success');
       }
     }
   };

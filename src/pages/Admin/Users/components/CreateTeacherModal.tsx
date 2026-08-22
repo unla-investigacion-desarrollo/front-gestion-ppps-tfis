@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { showToast } from '../../../../utils/toast';
 
 interface CreateTeacherModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password.length < 6) {
-      alert('La contraseña debe tener al menos 6 caracteres');
+      showToast('La contraseña debe tener al menos 6 caracteres', 'error');
       return;
     }
     await onSubmit(form);

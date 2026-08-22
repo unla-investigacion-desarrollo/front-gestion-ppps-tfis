@@ -182,12 +182,54 @@ const AuthenticatedLayout = ({ children }) => {
             timerRef.current = null;
             intervalRef.current = null;
           }}
-          style={{ position: 'fixed', top: 12, right: 12, background: toast.type === 'error' ? '#c62828' : toast.type === 'info' ? '#1976d2' : '#2e7d32', color: 'white', padding: '10px 14px', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000, cursor: 'pointer', minWidth: 280 }}
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            background: toast.type === 'error' ? '#fff5f5' : toast.type === 'info' ? '#f0f7ff' : '#f0fff6',
+            color: toast.type === 'error' ? '#842029' : toast.type === 'info' ? '#084298' : '#146c43',
+            padding: '14px 16px 12px',
+            border: `1px solid ${toast.type === 'error' ? '#f1aeb5' : toast.type === 'info' ? '#9ec5fe' : '#a3cfbb'}`,
+            borderLeft: `5px solid ${toast.type === 'error' ? '#dc3545' : toast.type === 'info' ? '#0d6efd' : '#198754'}`,
+            borderRadius: 10,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
+            zIndex: 1000,
+            cursor: 'pointer',
+            minWidth: 320,
+            maxWidth: 'min(420px, calc(100vw - 40px))',
+          }}
           title="Click para cerrar"
         >
-          <div style={{ marginBottom: 6 }}>{toast.message}</div>
-          <div style={{ width: '100%', height: 4, background: 'rgba(255,255,255,0.35)', borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{ width: `${Math.round(progress * 100)}%`, height: '100%', background: 'rgba(255,255,255,0.85)', transition: 'width 100ms linear' }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: 24,
+                height: 24,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%',
+                background: toast.type === 'error' ? '#dc3545' : toast.type === 'info' ? '#0d6efd' : '#198754',
+                color: '#fff',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {toast.type === 'error' ? '!' : toast.type === 'info' ? 'i' : '✓'}
+            </span>
+            <div style={{ flex: 1, lineHeight: 1.4 }}>
+              <strong style={{ display: 'block', marginBottom: 2 }}>
+                {toast.type === 'error' ? 'No se pudo completar' : toast.type === 'info' ? 'Información' : 'Operación exitosa'}
+              </strong>
+              <span>{toast.message}</span>
+            </div>
+            <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, opacity: 0.55 }}>×</span>
+          </div>
+          <div style={{ width: '100%', height: 3, background: 'rgba(0,0,0,0.12)', borderRadius: 999, overflow: 'hidden', marginTop: 12 }}>
+            <div style={{ width: `${Math.round(progress * 100)}%`, height: '100%', background: toast.type === 'error' ? '#dc3545' : toast.type === 'info' ? '#0d6efd' : '#198754', transition: 'width 100ms linear' }} />
           </div>
         </div>
       )}

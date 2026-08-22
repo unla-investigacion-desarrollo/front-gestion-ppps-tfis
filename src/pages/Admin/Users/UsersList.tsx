@@ -19,6 +19,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../../../styles/unla.css';
 import bgImage from '../../../assets/fondo-rojo.jpg';
 import './UsersList.css';
+import { showToast } from '../../../utils/toast';
 
 // Refactored Subcomponents
 import UserFilters from './components/UserFilters';
@@ -200,10 +201,10 @@ const UsersList: React.FC = () => {
       }
       
       dispatch<any>(fetchUsers());
-      alert('Usuario actualizado correctamente');
+      showToast('Usuario actualizado correctamente', 'success');
     } catch (error: any) {
       console.error('Error al actualizar usuario:', error);
-      alert(error.message || 'Error al actualizar el usuario');
+      showToast(error.message || 'Error al actualizar el usuario', 'error');
     } finally {
       setEditingUser(null);
     }
@@ -250,12 +251,12 @@ const UsersList: React.FC = () => {
     e.preventDefault();
     if (!activatingTeacher) return;
     if (activatePasswordVal.length < 4) {
-      alert('La contraseña debe tener al menos 4 caracteres');
+      showToast('La contraseña debe tener al menos 4 caracteres', 'error');
       return;
     }
     const res = await dispatch<any>(activateInvitedTeacher({ id: activatingTeacher.id, password: activatePasswordVal }));
     if (res && !res.error) {
-      alert('Docente activado correctamente');
+      showToast('Docente activado correctamente', 'success');
       setActivatingTeacher(null);
       setActivatePasswordVal('');
     }
@@ -275,13 +276,13 @@ const UsersList: React.FC = () => {
       }));
       
       if (res.error) {
-        alert(res.payload || 'Error al registrar el docente');
+        showToast(res.payload || 'Error al registrar el docente', 'error');
       } else {
-        alert('Docente registrado y creado correctamente');
+        showToast('Docente registrado y creado correctamente', 'success');
         setIsCreateTeacherModalOpen(false);
       }
     } catch (err: any) {
-      alert(err.message || 'Error al procesar la solicitud');
+      showToast(err.message || 'Error al procesar la solicitud', 'error');
     }
   };
 
@@ -289,26 +290,31 @@ const UsersList: React.FC = () => {
   const handleResetPassword = async (u: any) => {
     const res = await dispatch<any>(resetPassword({ id: u.id }));
     if (res && res.payload) {
-      alert('Contraseña reseteada correctamente');
+      showToast('Contraseña reseteada correctamente', 'success');
     }
   };
 
   // Habilitar/Deshabilitar cuenta
   const handleToggleActivation = async (id: string, enable: boolean) => {
     if (String(id) === String(currentUser?.id)) {
-      alert('No podés desactivar tu propia cuenta.');
+      showToast('No podés desactivar tu propia cuenta.', 'error');
       return;
     }
     const actionLabel = enable ? 'Activar' : 'Desactivar';
     const ok = confirm(`¿${actionLabel} esta cuenta?`);
     if (!ok) return;
-    await dispatch<any>(toggleUserActivation({ id, enable }));
+    const result = await dispatch<any>(toggleUserActivation({ id, enable }));
+    if (result?.error) {
+      showToast(result.payload || result.error.message || `No se pudo ${actionLabel.toLowerCase()} la cuenta.`, 'error');
+      return;
+    }
+    showToast(`Cuenta ${enable ? 'activada' : 'desactivada'} correctamente.`, 'success');
   };
 
   // Iniciar proceso de eliminación (abrir modal de confirmación)
   const handleDeleteUser = (user: any) => {
     if (isCurrentUser(user)) {
-      alert('No podés eliminar tu propia cuenta.');
+      showToast('No podés eliminar tu propia cuenta.', 'error');
       return;
     }
     setUserToDelete(user);
@@ -317,7 +323,7 @@ const UsersList: React.FC = () => {
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
     if (isCurrentUser(userToDelete)) {
-      alert('No podés eliminar tu propia cuenta.');
+      showToast('No podés eliminar tu propia cuenta.', 'error');
       setUserToDelete(null);
       return;
     }
@@ -333,10 +339,10 @@ const UsersList: React.FC = () => {
       localStorage.setItem('users', JSON.stringify(updated));
 
       dispatch<any>(fetchUsers());
-      alert('Usuario eliminado correctamente');
+      showToast('Usuario eliminado correctamente', 'success');
     } catch (error: any) {
       console.error('Error al eliminar usuario:', error);
-      alert(error.message || 'Error al eliminar el usuario');
+      showToast(error.message || 'Error al eliminar el usuario', 'error');
     } finally {
       setUserToDelete(null);
     }

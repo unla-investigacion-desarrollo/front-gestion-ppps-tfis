@@ -23,6 +23,7 @@ const Register: React.FC = () => {
   };
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState('');
   const [emailCheck, setEmailCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
   const [dniCheck, setDniCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
 
@@ -122,13 +123,15 @@ const Register: React.FC = () => {
           completedCoursesWithFinal: Number(form.completedCoursesWithFinal),
           completedCoursesWithoutFinal: Number(form.completedCoursesWithoutFinal),
         })
-      );
-      window.alert('Registro completado con éxito. Ahora podés iniciar sesión con tus credenciales.');
+      ).unwrap();
+      setSuccessMessage('Registro completado con éxito. Ya podés iniciar sesión con tus credenciales.');
       setForm(initialForm);
       setEmailCheck('idle');
       setDniCheck('idle');
-      navigate('/login');
-    } catch {}
+      window.setTimeout(() => navigate('/login'), 3000);
+    } catch {
+      // El error se muestra mediante el estado de Redux en el formulario.
+    }
   };
 
   return (
@@ -143,6 +146,20 @@ const Register: React.FC = () => {
                 {error && (
                   <div className="alert alert-danger mb-3">
                     {error} — <a href="/help">Ver ayuda</a>
+                  </div>
+                )}
+
+                {successMessage && (
+                  <div className="alert alert-success register-success mb-3" role="status">
+                    <strong>¡Registro exitoso!</strong>
+                    <div>{successMessage}</div>
+                    <button
+                      type="button"
+                      className="btn btn-success btn-sm mt-2"
+                      onClick={() => navigate('/login')}
+                    >
+                      Ir al inicio de sesión
+                    </button>
                   </div>
                 )}
 

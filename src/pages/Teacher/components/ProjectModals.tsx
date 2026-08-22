@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Project } from '../../../../redux/slices/projectsSlice';
+import { showToast } from '../../../utils/toast';
 
 // --- INTERFAZ DE ACTIVIDAD ---
 export interface Activity {
@@ -185,7 +186,7 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
       await onAssign(selectedStudentId);
       onClose();
     } catch (error) {
-      alert('Ocurrió un error al intentar asignar el alumno.');
+      showToast('Ocurrió un error al intentar asignar el alumno.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -289,7 +290,7 @@ export const AddCoTeacherModal: React.FC<AddCoTeacherModalProps> = ({
       await onAdd(selectedTeacherId);
       onClose();
     } catch (error) {
-      alert('Ocurrió un error al intentar agregar el co-docente.');
+      showToast('Ocurrió un error al intentar agregar el co-docente.', 'error');
     } finally {
       setIsSubmitting(false);
     }
