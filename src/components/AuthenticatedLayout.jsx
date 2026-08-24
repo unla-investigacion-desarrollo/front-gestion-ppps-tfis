@@ -1,10 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import logo from '../assets/logo.png';
 import '../styles/unla.css';
 
 const AuthenticatedLayout = ({ children }) => {
   const user = useSelector((state) => state.auth.user);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogoutClick = () => {
+    logout();
+    navigate('/login');
+  };
+
   const displayName = user
     ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
     : '';
@@ -117,43 +140,68 @@ const AuthenticatedLayout = ({ children }) => {
   return (
     <>
       <header className="unla-header">
-        <span className="unla-title">{`Bienvenido${displayName ? ' ' + displayName : ''}`}</span>
-        <div className="spacer" />
-        <Link to="/dashboard">Inicio</Link>
-        {(isAdmin || isTeacher) && (
-          <>
-            <Link to="/admin/proposals">Propuestas</Link>
-            <Link to="/docente/proyectos">Proyectos</Link>
-            <Link to="/docente/entregas">Entregas</Link>
-          </>
-        )}
-        {isAdmin && (
-          <>
-            <Link to="/admin/users">Usuarios</Link>
-            <Link to="/admin/approvals">Aprobaciones</Link>
-          </>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 12 }}>
-          {user && !displayName && (
-            <span style={{ opacity: 0.7 }}>{user.email}</span>
-          )}
-          {user && (
-            <Link
-              to="/change-password"
-              title={mustChange ? 'Debés cambiar tu contraseña' : 'Cambiar contraseña'}
-              style={{
-                padding: '6px 10px',
-                borderRadius: 6,
-                background: mustChange ? '#ffebee' : 'var(--unla-surface)',
-                border: mustChange ? '1px solid #c62828' : '1px solid var(--unla-border)',
-                color: mustChange ? '#b71c1c' : 'inherit',
-                fontWeight: 600,
-              }}
-            >
-              🔒 {mustChange ? 'Cambiar contraseña (pendiente)' : 'Cambiar contraseña'}
-            </Link>
-          )}
+        <div className="unla-header-brand">
+          {/* <img src={logo} alt="UNLa Logo" className="unla-header-logo" /> */}
+          <span className="unla-header-title">Gestión de TFI </span>
         </div>
+        <nav className="unla-nav-links">
+          <NavLink to="/dashboard">Inicio</NavLink>
+          {(isAdmin || isTeacher) && (
+            <>
+              <NavLink to="/admin/proposals">Propuestas</NavLink>
+              <NavLink to="/docente/proyectos">Proyectos</NavLink>
+              <NavLink to="/docente/entregas">Entregas</NavLink>
+            </>
+          )}
+          {isAdmin && (
+            <>
+              <NavLink to="/admin/users">Usuarios</NavLink>
+              <NavLink to="/admin/approvals">Aprobaciones</NavLink>
+            </>
+          )}
+        </nav>
+        <div className="spacer" />
+        {user && (
+          <div className="profile-dropdown-container" ref={dropdownRef}>
+            <button
+              className="profile-dropdown-trigger"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              type="button"
+            >
+              <div className="profile-dropdown-avatar">
+                {user.email.charAt(0).toUpperCase()}
+              </div>
+              <span>{user.email}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </button>
+            <ul className={`profile-dropdown-menu ${dropdownOpen ? 'open' : ''}`}>
+              <li>
+                <button
+                  className="profile-dropdown-item"
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    navigate('/change-password');
+                  }}
+                  type="button"
+                >
+                  Cambiar contraseña
+                </button>
+              </li>
+              <div className="profile-dropdown-divider" />
+              <li>
+                <button
+                  className="profile-dropdown-item"
+                  onClick={handleLogoutClick}
+                  type="button"
+                >
+                  Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          </div>
+        )}
       </header>
       {children}
       {toast && (

@@ -44,25 +44,128 @@ html, body, #root {
 /* Header similar to dashboard-header */
 .unla-header {
   background: var(--unla-surface);
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 2rem;
   display: flex;
-  gap: 1rem;
   align-items: center;
   border-bottom: 1px solid var(--unla-border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
-.unla-header .unla-title {
+.unla-header .unla-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.unla-header .unla-header-logo {
+  height: 32px;
+  width: auto;
+}
+.unla-header .unla-header-title {
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--unla-text);
 }
+.unla-header .unla-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: 3rem;
+}
 .unla-header .spacer { flex: 1; }
 .unla-header a {
-  color: var(--unla-primary);
+  color: #4b5563;
   text-decoration: none;
   font-weight: 500;
+  font-size: 0.95rem;
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
 }
-.unla-header a + a { margin-left: 12px; }
+.unla-header a:hover {
+  color: var(--unla-primary);
+}
+.unla-header a.active {
+  color: var(--unla-primary);
+  border-bottom: 2px solid var(--unla-primary);
+  font-weight: 600;
+}
+
+/* Reusable User Profile Dropdown */
+.profile-dropdown-container {
+  position: relative;
+}
+.profile-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+.profile-dropdown-trigger:hover {
+  background-color: #f3f4f6;
+}
+.profile-dropdown-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #fce7f3;
+  color: #db2777;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.profile-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 1050;
+  min-width: 190px;
+  padding: 6px 0;
+  list-style: none;
+  display: none;
+}
+.profile-dropdown-menu.open {
+  display: block;
+}
+.profile-dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.profile-dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: var(--unla-primary);
+}
+.profile-dropdown-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 4px 0;
+}
 
 /* Buttons */
 .unla-btn {
