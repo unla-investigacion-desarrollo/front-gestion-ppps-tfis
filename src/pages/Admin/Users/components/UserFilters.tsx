@@ -31,7 +31,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChange, onC
     <div className="unla-card filters-card">
       <div className="row g-3 align-items-center">
         {/* Campo de búsqueda por texto con icono de lupa integrado */}
-        <div className="col-md-5">
+        <div className="col-md-6">
           <div className="search-input-wrapper">
             <span className="search-icon-wrapper">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--unla-muted)" viewBox="0 0 24 24">
@@ -49,7 +49,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChange, onC
         </div>
 
         {/* Selector de Rol */}
-        <div className="col-md-3">
+        <div className="col-md-4">
           <select
             className="form-select filter-select-field"
             value={filters.rol}
@@ -59,22 +59,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChange, onC
             <option value="ESTUDIANTE">Estudiante</option>
             <option value="DOCENTE">Docente</option>
             <option value="ADMIN">Admin</option>
-          </select>
-        </div>
-
-        {/* Selector de Estado */}
-        <div className="col-md-2">
-          <select
-            className="form-select filter-select-field"
-            value={filters.estado}
-            onChange={(e) => handleFilterChange('estado', e.target.value)}
-          >
-            <option value="ALL">Estado: todos</option>
-            <option value="pending">Pendiente</option>
-            <option value="active">Activo</option>
-            <option value="invited">Invitado</option>
-            <option value="rejected">Rechazado</option>
-            <option value="disabled">Deshabilitado</option>
           </select>
         </div>
 

@@ -154,9 +154,6 @@ const UserTable: React.FC<UserTableProps> = ({
             <th style={{ cursor: 'pointer', padding: '12px 16px' }} onClick={() => onToggleSort('rol')}>
               Rol{renderSortIndicator('rol')}
             </th>
-            <th style={{ cursor: 'pointer', padding: '12px 16px' }} onClick={() => onToggleSort('estado')}>
-              Estado{renderSortIndicator('estado')}
-            </th>
             <th>DNI</th>
             <th>Legajo</th>
             {showActionsColumn && <th style={{ textAlign: 'center' }}>Acciones</th>}
@@ -165,7 +162,7 @@ const UserTable: React.FC<UserTableProps> = ({
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={showActionsColumn ? 7 : 6} className="text-center py-4 text-muted">
+              <td colSpan={showActionsColumn ? 6 : 5} className="text-center py-4 text-muted">
                 No hay usuarios para mostrar.
               </td>
             </tr>
@@ -192,11 +189,6 @@ const UserTable: React.FC<UserTableProps> = ({
                   {renderRoleBadge(u.rol)}
                 </td>
                 
-                {/* Celda del Estado (Badge de color con punto) */}
-                <td style={{ padding: '12px 16px' }}>
-                  {renderStatusBadge(u.estado)}
-                </td>
-
                 {/* Celda del DNI */}
                 <td style={{ padding: '12px 16px' }}>{u.dni ?? '-'}</td>
                 
