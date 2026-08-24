@@ -8,7 +8,8 @@ import {
   createOrInviteTeacher,
   registerProfessor,
   resetPassword,
-  activateInvitedTeacher
+  activateInvitedTeacher,
+  toggleUserActivation
 } from '../../../../redux/slices/usersSlice';
 import { selectCurrentUser } from '../../../../redux/slices/authSlice';
 
@@ -292,7 +293,22 @@ const UsersList: React.FC = () => {
     }
   };
 
-
+  // Habilitar/Deshabilitar cuenta
+  const handleToggleActivation = async (id: string, enable: boolean) => {
+    if (String(id) === String(currentUser?.id)) {
+      showToast('No podés desactivar tu propia cuenta.', 'error');
+      return;
+    }
+    const actionLabel = enable ? 'Activar' : 'Desactivar';
+    const ok = confirm(`¿${actionLabel} esta cuenta?`);
+    if (!ok) return;
+    const result = await dispatch<any>(toggleUserActivation({ id, enable }));
+    if (result?.error) {
+      showToast(result.payload || result.error.message || `No se pudo ${actionLabel.toLowerCase()} la cuenta.`, 'error');
+      return;
+    }
+    showToast(`Cuenta ${enable ? 'activada' : 'desactivada'} correctamente.`, 'success');
+  };
 
   // Iniciar proceso de eliminación (abrir modal de confirmación)
   const handleDeleteUser = (user: any) => {
@@ -600,6 +616,7 @@ const UsersList: React.FC = () => {
           onToggleSort={toggleSort}
           onActivateClick={(user) => setActivatingTeacher(user)}
           onResetPassword={handleResetPassword}
+          onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
           onEditClick={handleStartEdit}
           onViewClick={handleViewUser}
