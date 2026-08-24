@@ -145,18 +145,6 @@ const DeliveriesReview: React.FC = () => {
       notifMap[all[idx].studentId] = [...list, msg];
       localStorage.setItem('userNotifications', JSON.stringify(notifMap));
     } catch {}
-    // Email simulado a outbox
-    try {
-      const outboxRaw = localStorage.getItem('outboxEmails');
-      const outbox: Array<{ to: string; subject: string; body: string; at: string }> = outboxRaw ? JSON.parse(outboxRaw) : [];
-      outbox.push({
-        to: String(all[idx].studentId),
-        subject: 'Nueva observación en tu entrega',
-        body: `Se agregó una observación a tu entrega del ${new Date(all[idx].uploadedAt).toLocaleString()}${text ? `: \n\n"${text}"` : ''}`,
-        at: new Date().toISOString(),
-      });
-      localStorage.setItem('outboxEmails', JSON.stringify(outbox));
-    } catch {}
     try {
       const evt = new CustomEvent('toast', { detail: { message: 'Observación guardada', type: 'success' } });
       window.dispatchEvent(evt);
