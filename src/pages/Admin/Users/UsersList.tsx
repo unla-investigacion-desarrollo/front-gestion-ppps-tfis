@@ -280,6 +280,7 @@ const UsersList: React.FC = () => {
       } else {
         showToast('Docente registrado y creado correctamente', 'success');
         setIsCreateTeacherModalOpen(false);
+        dispatch<any>(fetchUsers());
       }
     } catch (err: any) {
       showToast(err.message || 'Error al procesar la solicitud', 'error');

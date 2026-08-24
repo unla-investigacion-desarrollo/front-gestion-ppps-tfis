@@ -202,7 +202,7 @@ export const registerStudent = createAsyncThunk<
       return rejectWithValue(data.message || 'Error al registrar el estudiante') as any;
     }
 
-    const rawUser = data.user || {};
+    const rawUser = data.user || data || {};
     const userRoles = Array.isArray(rawUser.roles)
       ? rawUser.roles
       : (rawUser.rol ? [rawUser.rol] : ['ESTUDIANTE']);
@@ -256,7 +256,7 @@ export const registerProfessor = createAsyncThunk<
       return rejectWithValue(data.message || 'Error al registrar el docente') as any;
     }
 
-    const rawUser = data.user || {};
+    const rawUser = data.user || data || {};
     const userRoles = Array.isArray(rawUser.roles)
       ? rawUser.roles
       : (rawUser.rol ? [rawUser.rol] : ['DOCENTE']);
