@@ -1,18 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import useSessionReminder from '../hooks/useSessionReminder';
-import SessionReminderModal from './SessionReminderModal';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import '../styles/unla.css';
 
 const AuthenticatedLayout = ({ children }) => {
-  const {
-    showReminder,
-    timeLeft,
-    extendSession,
-    handleLogout
-  } = useSessionReminder({ inactivityMs: 3 * 60 * 1000, reminderSeconds: 15 }); // 3 minutos inactividad, 15s countdown
-
   const user = useSelector((state) => state.auth.user);
   const displayName = user
     ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
@@ -140,7 +131,6 @@ const AuthenticatedLayout = ({ children }) => {
           <>
             <Link to="/admin/users">Usuarios</Link>
             <Link to="/admin/approvals">Aprobaciones</Link>
-            <Link to="/admin/outbox">Outbox</Link>
           </>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 12 }}>
@@ -166,12 +156,6 @@ const AuthenticatedLayout = ({ children }) => {
         </div>
       </header>
       {children}
-      <SessionReminderModal
-        isOpen={showReminder}
-        timeLeft={timeLeft}
-        onExtendSession={extendSession}
-        onLogout={handleLogout}
-      />
       {toast && (
         <div
           onClick={() => {

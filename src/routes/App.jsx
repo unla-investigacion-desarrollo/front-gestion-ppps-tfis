@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.css'
 import Login from '../pages/Login/Login';
-import Dashboard from '../pages/Dashboard/Dashboard'; 
-import CargaPropuesta from '../pages/CargaPropuesta'; 
+import Dashboard from '../pages/Dashboard/Dashboard';
+import CargaPropuesta from '../pages/CargaPropuesta';
 import PrivateRoute from '../auth/PrivateRoute';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
 import AdminRoute from '../auth/AdminRoute';
@@ -21,11 +21,8 @@ import MyProjects from '../pages/Student/MyProjects';
 import StudentDeliveries from '../pages/Student/Deliveries';
 import TeacherProjectCreate from '../pages/Teacher/TeacherProjectCreate';
 import DeliveriesReview from '../pages/Teacher/DeliveriesReview';
-import Outbox from '../pages/Admin/Outbox/Outbox';
-import ProjectsTrash from '../pages/Teacher/ProjectsTrash';
-
 const App = () => {
-  
+
 
   return (
     <>
@@ -54,7 +51,7 @@ const App = () => {
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
-          
+
           <Route path="/carga-propuesta" element={
             <PrivateRoute>
               <AuthenticatedLayout>
@@ -62,7 +59,7 @@ const App = () => {
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
-          
+
 
           <Route path="/estado" element={
             <PrivateRoute>
@@ -91,16 +88,6 @@ const App = () => {
               </AdminRoute>
             </PrivateRoute>
           } />
-          <Route path="/admin/outbox" element={
-            <PrivateRoute>
-              <AdminRoute>
-                <AuthenticatedLayout>
-                  <Outbox />
-                </AuthenticatedLayout>
-              </AdminRoute>
-            </PrivateRoute>
-          } />
-
           <Route path="/admin/proposals" element={
             <PrivateRoute>
               <TeacherRoute>
@@ -146,15 +133,7 @@ const App = () => {
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
-          <Route path="/docente/proyectos/papelera" element={
-            <PrivateRoute>
-              <TeacherRoute>
-                <AuthenticatedLayout>
-                  <ProjectsTrash />
-                </AuthenticatedLayout>
-              </TeacherRoute>
-            </PrivateRoute>
-          } />
+
           <Route path="/alumno/mis-proyectos" element={
             <PrivateRoute>
               <AuthenticatedLayout>

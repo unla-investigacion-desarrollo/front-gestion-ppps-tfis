@@ -118,20 +118,6 @@ export const assignStudentToProject = createAsyncThunk<
   } catch {
     // ignorar errores de almacenamiento
   }
-  // Enviar email simulado a la bandeja de salida (outbox)
-  try {
-    const outboxRaw = localStorage.getItem('outboxEmails');
-    const outbox: Array<{ to: string; subject: string; body: string; at: string }> = outboxRaw ? JSON.parse(outboxRaw) : [];
-    outbox.push({
-      to: studentId,
-      subject: `Asignación al proyecto: ${projects[idx].titulo}`,
-      body: `Hola, fuiste asignado al proyecto "${projects[idx].titulo}". Ingresá a Mis Proyectos para ver los detalles.`,
-      at: new Date().toISOString(),
-    });
-    localStorage.setItem('outboxEmails', JSON.stringify(outbox));
-  } catch {
-    // ignorar errores de almacenamiento
-  }
   return projects[idx];
 });
 
