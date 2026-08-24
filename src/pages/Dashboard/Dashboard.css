@@ -82,3 +82,240 @@
   color: #333;
   align-content:center;
 }
+
+/* Admin Dashboard Specific Styles */
+.admin-dashboard-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  width: 100%;
+}
+.admin-dashboard-title-section {
+  margin-bottom: 2rem;
+}
+.admin-dashboard-title-section h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+.admin-dashboard-title-section p {
+  color: #6b7280;
+  margin: 4px 0 0 0;
+  font-size: 0.95rem;
+}
+
+/* Metric Cards */
+.metric-card-container {
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  height: 100%;
+}
+.metric-card-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.metric-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.metric-icon-wrapper svg {
+  width: 24px;
+  height: 24px;
+}
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+.metric-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+  margin: 4px 0;
+}
+.metric-trend {
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.trend-up {
+  color: #10b981;
+}
+.trend-down {
+  color: #ef4444;
+}
+.trend-none {
+  color: #f59e0b;
+}
+.metric-arrow-link {
+  color: #d1d5db;
+  transition: color 0.2s ease;
+}
+.metric-card-container:hover .metric-arrow-link {
+  color: var(--unla-primary);
+}
+
+/* Color Themes for Icons */
+.theme-purple {
+  background-color: #f3e8ff;
+  color: #8b5cf6;
+}
+.theme-green {
+  background-color: #dcfce7;
+  color: #10b981;
+}
+.theme-yellow {
+  background-color: #fef3c7;
+  color: #f59e0b;
+}
+.theme-blue {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+/* Activity and Summary Panels */
+.dashboard-panel-card {
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+.panel-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+.panel-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-card-link {
+  color: var(--unla-primary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.panel-card-link:hover {
+  text-decoration: underline;
+}
+
+/* Activity Items */
+.activity-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.activity-icon-wrapper svg {
+  width: 18px;
+  height: 18px;
+}
+.activity-title {
+  font-size: 0.95rem;
+  color: #111827;
+  font-weight: 600;
+}
+.activity-desc {
+  font-size: 0.85rem;
+  color: #6b7280;
+  display: block;
+  margin-top: 2px;
+}
+.activity-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+.border-bottom-custom {
+  border-bottom: 1px solid #f3f4f6;
+}
+.border-bottom-custom:last-child {
+  border-bottom: none;
+  padding-bottom: 0 !important;
+}
+
+/* Summary Rows */
+.summary-bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.summary-label {
+  font-size: 0.95rem;
+  color: #374151;
+  font-weight: 500;
+}
+.summary-value {
+  color: #111827;
+}
+.border-bottom-custom-light {
+  border-bottom: 1px solid #f9fafb;
+}
+.border-bottom-custom-light:last-child {
+  border-bottom: none;
+  padding-bottom: 0 !important;
+}
+
+/* Status Banner */
+.system-status-card {
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+}
+.system-status-title {
+  color: #991b1b;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.system-status-desc {
+  color: #7f1d1d;
+  font-size: 0.85rem;
+  display: block;
+  opacity: 0.85;
+}
+.system-status-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #991b1b;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  font-weight: 500;
+}
