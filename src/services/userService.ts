@@ -1,6 +1,32 @@
 const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
 
 export const userService = {
+  registerAdmin: async (
+    payload: {
+      nombre: string;
+      apellido: string;
+      dni: string;
+      email: string;
+      password?: string;
+    },
+    token: string | null
+  ) => {
+    return fetch(`${API_URL}/users/register-admin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        firstName: payload.nombre,
+        lastName: payload.apellido,
+        dni: payload.dni,
+        email: payload.email,
+        password: payload.password,
+      }),
+    });
+  },
+
   registerProfessor: async (
     payload: {
       nombre: string;

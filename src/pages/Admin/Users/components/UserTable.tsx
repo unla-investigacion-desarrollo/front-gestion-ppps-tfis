@@ -9,7 +9,7 @@ interface UserTableProps {
   onToggleSort: (key: string) => void;
   onActivateClick: (user: any) => void; // Prop para abrir el modal de activación del docente
   onResetPassword: (user: any) => void;
-  onToggleActivation: (id: string, enable: boolean) => void;
+  onToggleActivation: (user: any, enable: boolean) => void;
   onDeleteUser: (user: any) => void;
   onEditClick: (user: any) => void; // Prop para abrir el modal de edición de un usuario
   onViewClick: (user: any) => void; // Prop para ver los detalles del usuario
@@ -304,7 +304,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                     className="custom-dropdown-item text-warning"
                                     onClick={() => {
                                       setOpenDropdownId(null);
-                                      onToggleActivation(u.id, false);
+                                      onToggleActivation(u, false);
                                     }}
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
@@ -322,7 +322,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                     className="custom-dropdown-item text-success"
                                     onClick={() => {
                                       setOpenDropdownId(null);
-                                      onToggleActivation(u.id, true);
+                                      onToggleActivation(u, true);
                                     }}
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">

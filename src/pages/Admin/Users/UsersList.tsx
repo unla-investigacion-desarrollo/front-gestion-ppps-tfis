@@ -7,6 +7,7 @@ import {
   selectUsers,
   createOrInviteTeacher,
   registerProfessor,
+  registerAdmin,
   resetPassword,
   activateInvitedTeacher,
   toggleUserActivation
@@ -263,8 +264,27 @@ const UsersList: React.FC = () => {
   };
 
   // Crear docente mediante registro directo en el backend
-  const handleCreateTeacherSubmit = async (formData: any) => {
+  const handleCreateTeacherSubmit = async (formData: any): Promise<boolean> => {
     try {
+      if (formData.rol === 'ADMIN') {
+        const res = await dispatch<any>(registerAdmin({
+          nombre: formData.nombre,
+          apellido: formData.apellido,
+          dni: formData.dni,
+          email: formData.email,
+          password: formData.password,
+        }));
+
+        if (res.error) {
+          showToast(res.payload || 'Error al registrar el administrador', 'error');
+        } else {
+          showToast('Administrador creado correctamente', 'success');
+          setIsCreateTeacherModalOpen(false);
+          dispatch<any>(fetchUsers());
+        }
+        return !res.error;
+      }
+
       const res = await dispatch<any>(registerProfessor({
         nombre: formData.nombre,
         apellido: formData.apellido,
@@ -282,8 +302,10 @@ const UsersList: React.FC = () => {
         setIsCreateTeacherModalOpen(false);
         dispatch<any>(fetchUsers());
       }
+      return !res.error;
     } catch (err: any) {
       showToast(err.message || 'Error al procesar la solicitud', 'error');
+      return false;
     }
   };
 
@@ -296,7 +318,8 @@ const UsersList: React.FC = () => {
   };
 
   // Habilitar/Deshabilitar cuenta
-  const handleToggleActivation = async (id: string, enable: boolean) => {
+  const handleToggleActivation = async (user: any, enable: boolean) => {
+    const id = user.id;
     if (String(id) === String(currentUser?.id)) {
       showToast('No podés desactivar tu propia cuenta.', 'error');
       return;
@@ -304,7 +327,7 @@ const UsersList: React.FC = () => {
     const actionLabel = enable ? 'Activar' : 'Desactivar';
     const ok = confirm(`¿${actionLabel} esta cuenta?`);
     if (!ok) return;
-    const result = await dispatch<any>(toggleUserActivation({ id, enable }));
+    const result = await dispatch<any>(toggleUserActivation({ id, enable, user }));
     if (result?.error) {
       showToast(result.payload || result.error.message || `No se pudo ${actionLabel.toLowerCase()} la cuenta.`, 'error');
       return;
@@ -530,34 +553,21 @@ const UsersList: React.FC = () => {
                   Invitar docente (correo)
                 </button>
               </li>
-              {isAdmin && (
-                <li>
-                  <button
-                    type="button"
-                    className="dropdown-item d-flex align-items-center gap-2 py-2"
-                    onClick={() => {
-                      setCreationRole('ADMIN');
-                      setIsInviteModalOpen(true);
-                    }}
-                    style={{ fontSize: '14px' }}
-                  >
-                    <span aria-hidden="true">+</span>
-                    Crear admin
-                  </button>
-                </li>
-              )}
               <li>
                 <button
                   type="button"
                   className="dropdown-item d-flex align-items-center gap-2 py-2"
-                  onClick={() => setIsCreateTeacherModalOpen(true)}
+                  onClick={() => {
+                    setCreationRole('DOCENTE');
+                    setIsCreateTeacherModalOpen(true);
+                  }}
                   style={{ fontSize: '14px' }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-plus" viewBox="0 0 16 16">
                     <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
                     <path fillRule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
                   </svg>
-                  Crear docente (directo)
+                  Crear usuario
                 </button>
               </li>
             </ul>
@@ -904,6 +914,7 @@ const UsersList: React.FC = () => {
       {/* --- MODAL PARA CREAR DOCENTE DIRECTO --- */}
       <CreateTeacherModal
         isOpen={isCreateTeacherModalOpen}
+        users={users}
         onClose={() => setIsCreateTeacherModalOpen(false)}
         onSubmit={handleCreateTeacherSubmit}
       />

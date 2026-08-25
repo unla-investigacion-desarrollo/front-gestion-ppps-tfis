@@ -12,6 +12,7 @@ export interface User {
   apellido?: string;
   rol: UserRole;
   estado: UserStatus;
+  activo?: boolean;
   dni?: string;
   fechaNacimiento?: string; // ISO string YYYY-MM-DD
   cuil?: string;
@@ -103,7 +104,8 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
         nombre: u.firstName || u.nombre,
         apellido: u.lastName || u.apellido,
         rol: roleMap[u.role] || roleMap[u.rol] || 'ESTUDIANTE',
-        estado: u.estado || 'active',
+        estado: u.estado || (u.activo === false ? 'disabled' : 'active'),
+        activo: u.activo ?? u.estado !== 'disabled',
         dni: u.dni,
         yearOfAdmission: u.yearOfAdmission,
         completedCoursesWithFinal: u.completedCoursesWithFinal,
@@ -156,13 +158,15 @@ export const changePassword = createAsyncThunk<
 
 export const toggleUserActivation = createAsyncThunk<
   User,
-  { id: string; enable: boolean }
->('users/toggleUserActivation', async ({ id, enable }, { rejectWithValue }) => {
+  { id: string; enable: boolean; user?: User }
+>('users/toggleUserActivation', async ({ id, enable, user }, { rejectWithValue }) => {
   await new Promise((r) => setTimeout(r, 200));
   const users = loadUsers();
   const idx = users.findIndex((u) => u.id === id);
-  if (idx === -1) return rejectWithValue('Usuario no encontrado') as any;
-  const u = users[idx];
+  if (idx === -1 && !user) return rejectWithValue('Usuario no encontrado') as any;
+  const u = idx === -1 ? user : users[idx];
+  if (!u) return rejectWithValue('Usuario no encontrado') as any;
+  let updatedUser: User;
   if (enable) {
     // Activar desde cualquier estado
     let password = u.password;
@@ -170,13 +174,17 @@ export const toggleUserActivation = createAsyncThunk<
       if (u.dni) password = `DNI${u.dni}`;
       else password = 'temporal123';
     }
-    users[idx] = { ...u, estado: 'active', password, updatedAt: new Date().toISOString() };
+    updatedUser = { ...u, estado: 'active', activo: true, password, updatedAt: new Date().toISOString() };
   } else {
     // Desactivar desde cualquier estado
-    users[idx] = { ...u, estado: 'disabled', updatedAt: new Date().toISOString() };
+    updatedUser = { ...u, estado: 'disabled', activo: false, updatedAt: new Date().toISOString() };
   }
-  saveUsers(users);
-  return users[idx];
+  if (idx === -1) saveUsers([...users, updatedUser]);
+  else {
+    users[idx] = updatedUser;
+    saveUsers(users);
+  }
+  return updatedUser;
 });
 
 export const registerStudent = createAsyncThunk<
@@ -282,6 +290,47 @@ export const registerProfessor = createAsyncThunk<
     return mappedUser;
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : 'Error al registrar el docente') as any;
+  }
+});
+
+export const registerAdmin = createAsyncThunk<
+  User,
+  {
+    email: string;
+    nombre: string;
+    apellido: string;
+    dni: string;
+    password?: string;
+  },
+  { rejectValue: string }
+>('users/registerAdmin', async (payload, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await userService.registerAdmin(payload, token);
+    const data = await response.json();
+
+    if (!response.ok) {
+      return rejectWithValue(data.message || 'Error al registrar el administrador') as any;
+    }
+
+    const rawUser = data.user || data || {};
+    const mappedUser: User = {
+      id: rawUser.id || rawUser._id || crypto.randomUUID(),
+      email: rawUser.email || payload.email,
+      nombre: rawUser.firstName || rawUser.nombre || payload.nombre,
+      apellido: rawUser.lastName || rawUser.apellido || payload.apellido,
+      rol: 'ADMIN',
+      estado: rawUser.estado || 'active',
+      dni: rawUser.dni || payload.dni,
+      createdAt: rawUser.createdAt || new Date().toISOString(),
+      updatedAt: rawUser.updatedAt || new Date().toISOString(),
+    };
+
+    const users = loadUsers();
+    saveUsers([...users, mappedUser]);
+    return mappedUser;
+  } catch (error) {
+    return rejectWithValue(error instanceof Error ? error.message : 'Error al registrar el administrador') as any;
   }
 });
 
