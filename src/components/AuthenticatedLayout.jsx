@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import logo from '../assets/logo.png';
+import logo from '../assets/Campus-Virtual-UNLa.png';
 import '../styles/unla.css';
 
 const AuthenticatedLayout = ({ children }) => {
@@ -141,9 +141,10 @@ const AuthenticatedLayout = ({ children }) => {
     <>
       <header className="unla-header">
         <div className="unla-header-brand">
-          {/* <img src={logo} alt="UNLa Logo" className="unla-header-logo" /> */}
-          <span className="unla-header-title">Gestión de TFI </span>
+          <img src={logo} alt="UNLa Logo" className="unla-header-logo" />
+          <span className="unla-header-title">Gestión de TFI</span>
         </div>
+        <div className="spacer" />
         <nav className="unla-nav-links">
           <NavLink to="/dashboard">Inicio</NavLink>
           {(isAdmin || isTeacher) && (
@@ -160,7 +161,6 @@ const AuthenticatedLayout = ({ children }) => {
             </>
           )}
         </nav>
-        <div className="spacer" />
         {user && (
           <div className="profile-dropdown-container" ref={dropdownRef}>
             <button

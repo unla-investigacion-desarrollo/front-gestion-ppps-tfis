@@ -71,7 +71,8 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-left: 3rem;
+  margin-left: 0;
+  margin-right: 2rem;
 }
 .unla-header .spacer { flex: 1; }
 .unla-header a {
