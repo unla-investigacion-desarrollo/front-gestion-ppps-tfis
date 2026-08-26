@@ -140,6 +140,7 @@ const UsersList: React.FC = () => {
       dni: user.dni || '',
       email: user.email || '',
       rol: normalizedRole,
+      legajo: user.legajo || user.fileNumber || '',
       yearOfAdmission: user.yearOfAdmission || '',
       completedCoursesWithFinal: user.completedCoursesWithFinal ?? 0,
       completedCoursesWithoutFinal: user.completedCoursesWithoutFinal ?? 0,
@@ -162,7 +163,7 @@ const UsersList: React.FC = () => {
         lastName: editingUser.apellido,
         dni: editingUser.dni,
         email: editingUser.email,
-        role: editingUser.rol,
+        fileNumber: editingUser.legajo,
       };
 
       if (editingUser.rol === 'ESTUDIANTE') {
@@ -190,6 +191,8 @@ const UsersList: React.FC = () => {
           dni: editingUser.dni,
           email: editingUser.email,
           rol: editingUser.rol,
+          legajo: editingUser.legajo,
+          fileNumber: editingUser.legajo,
           yearOfAdmission: updateData.yearOfAdmission,
           completedCoursesWithFinal: updateData.completedCoursesWithFinal,
           completedCoursesWithoutFinal: updateData.completedCoursesWithoutFinal,
@@ -236,6 +239,7 @@ const UsersList: React.FC = () => {
         nombre: data.firstName || user.nombre || user.firstName,
         apellido: data.lastName || user.apellido || user.lastName,
         rol: normalizedRole,
+        legajo: data.fileNumber || data.legajo || user.legajo || user.fileNumber,
       });
     } catch (error: any) {
       console.error('Error al obtener detalles del usuario:', error);
@@ -435,6 +439,10 @@ const UsersList: React.FC = () => {
                   <div>
                     <span className="text-muted d-block small">DNI</span>
                     <strong>{selectedUserDetail.dni || '-'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted d-block small">Legajo</span>
+                    <strong>{selectedUserDetail.legajo || selectedUserDetail.fileNumber || '-'}</strong>
                   </div>
                   <div>
                     <span className="text-muted d-block small">Rol del Sistema</span>
@@ -743,6 +751,15 @@ const UsersList: React.FC = () => {
                         maxLength={8}
                         value={editingUser.dni || ''}
                         onChange={(e) => setEditingUser((u: any) => ({ ...u, dni: e.target.value.replace(/\D/g, '') }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label" style={{ fontWeight: 500 }}>Legajo</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editingUser.legajo || ''}
+                        onChange={(e) => setEditingUser((u: any) => ({ ...u, legajo: e.target.value }))}
                       />
                     </div>
                     {isAdmin && (
