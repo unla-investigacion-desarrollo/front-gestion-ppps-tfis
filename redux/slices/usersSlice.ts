@@ -107,6 +107,7 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
         estado: u.estado || (u.activo === false ? 'disabled' : 'active'),
         activo: u.activo ?? u.estado !== 'disabled',
         dni: u.dni,
+        legajo: u.fileNumber || u.legajo,
         yearOfAdmission: u.yearOfAdmission,
         completedCoursesWithFinal: u.completedCoursesWithFinal,
         completedCoursesWithoutFinal: u.completedCoursesWithoutFinal,
@@ -158,33 +159,58 @@ export const changePassword = createAsyncThunk<
 
 export const toggleUserActivation = createAsyncThunk<
   User,
-  { id: string; enable: boolean; user?: User }
+  { id: string; enable: boolean; user?: User },
+  { rejectValue: string }
 >('users/toggleUserActivation', async ({ id, enable, user }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 200));
-  const users = loadUsers();
-  const idx = users.findIndex((u) => u.id === id);
-  if (idx === -1 && !user) return rejectWithValue('Usuario no encontrado') as any;
-  const u = idx === -1 ? user : users[idx];
-  if (!u) return rejectWithValue('Usuario no encontrado') as any;
-  let updatedUser: User;
-  if (enable) {
-    // Activar desde cualquier estado
-    let password = u.password;
-    if (!password) {
-      if (u.dni) password = `DNI${u.dni}`;
-      else password = 'temporal123';
+  try {
+    const token = localStorage.getItem('token') || '';
+    // Conexión con el backend para activar / desactivar
+    const response = await userService.updateUserStatus(id, token, enable);
+    const rawUser = response.user || response || {};
+
+    const roleMap: Record<string, UserRole> = {
+      student: 'ESTUDIANTE',
+      professor: 'DOCENTE',
+      admin: 'ADMIN',
+      ESTUDIANTE: 'ESTUDIANTE',
+      DOCENTE: 'DOCENTE',
+      ADMIN: 'ADMIN',
+    };
+
+    const updatedUser: User = {
+      id: String(rawUser.id || id),
+      email: rawUser.email || user?.email || '',
+      nombre: rawUser.firstName || rawUser.nombre || user?.nombre || '',
+      apellido: rawUser.lastName || rawUser.apellido || user?.apellido || '',
+      rol: roleMap[rawUser.role] || roleMap[rawUser.rol] || user?.rol || 'ESTUDIANTE',
+      estado: rawUser.estado || (enable ? 'active' : 'disabled'),
+      activo: rawUser.activo ?? enable,
+      dni: rawUser.dni || user?.dni,
+      legajo: rawUser.fileNumber || rawUser.legajo || user?.legajo,
+      yearOfAdmission: rawUser.yearOfAdmission || user?.yearOfAdmission,
+      completedCoursesWithFinal: rawUser.completedCoursesWithFinal || user?.completedCoursesWithFinal,
+      completedCoursesWithoutFinal: rawUser.completedCoursesWithoutFinal || user?.completedCoursesWithoutFinal,
+      specialization: rawUser.specialization || rawUser.categoria || user?.specialization || user?.categoria,
+      isTutor: rawUser.isTutor !== undefined ? !!rawUser.isTutor : !!user?.isTutor,
+      createdAt: rawUser.createdAt || user?.createdAt || new Date().toISOString(),
+      updatedAt: rawUser.updatedAt || new Date().toISOString(),
+    };
+
+    // También actualizamos en localStorage local para coherencia con el mock
+    const users = loadUsers();
+    const idx = users.findIndex((u) => u.id === id);
+    if (idx !== -1) {
+      users[idx] = updatedUser;
+      saveUsers(users);
+    } else {
+      saveUsers([...users, updatedUser]);
     }
-    updatedUser = { ...u, estado: 'active', activo: true, password, updatedAt: new Date().toISOString() };
-  } else {
-    // Desactivar desde cualquier estado
-    updatedUser = { ...u, estado: 'disabled', activo: false, updatedAt: new Date().toISOString() };
+
+    return updatedUser;
+  } catch (error: any) {
+    console.error('Error toggling user status:', error);
+    return rejectWithValue(error.message || 'Error al cambiar el estado del usuario') as any;
   }
-  if (idx === -1) saveUsers([...users, updatedUser]);
-  else {
-    users[idx] = updatedUser;
-    saveUsers(users);
-  }
-  return updatedUser;
 });
 
 export const registerStudent = createAsyncThunk<

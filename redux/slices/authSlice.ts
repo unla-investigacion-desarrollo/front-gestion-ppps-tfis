@@ -45,8 +45,6 @@ const normalizeRole = (role: any): string => {
     case 'PROFESSOR':
       return 'DOCENTE';
     case 'ADMIN':
-    case 'SUPER_ADMIN':
-      // Compatibilidad con tokens antiguos: el rol único de administración es ADMIN.
       return 'ADMIN';
     case 'DOCENTE':
     case 'ESTUDIANTE':

@@ -108,6 +108,32 @@ export const userService = {
     }
   },
 
+  updateUserStatus: async (userId: number | string, token: string, isActive: boolean) => {
+    const res = await fetch(`${API_URL}/users/${userId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ isActive }),
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      throw new Error(parsedError?.message || text || `Error ${res.status}: Falló la actualización del estado del usuario`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: text };
+    }
+  },
+
   getUserProfile: async (id: number | string, token: string) => {
     const res = await fetch(`${API_URL}/users/${id}/profile`, {
       method: 'GET',
