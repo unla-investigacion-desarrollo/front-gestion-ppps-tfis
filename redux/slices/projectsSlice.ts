@@ -6,6 +6,7 @@ export interface Project {
   titulo: string;
   descripcion: string;
   categoria?: string;
+  estado?: string;
   createdAt: string;
   updatedAt: string;
   students: string[]; // student user IDs
@@ -72,8 +73,8 @@ export const fetchProjects = createAsyncThunk<Project[]>('projects/fetch', async
 
 export const createProject = createAsyncThunk<
   Project,
-  { teacherId: string; titulo: string; descripcion: string; categoria?: string }
->('projects/create', async ({ teacherId, titulo, descripcion, categoria }) => {
+  { teacherId: string; titulo: string; descripcion: string; categoria?: string; estado?: string }
+>('projects/create', async ({ teacherId, titulo, descripcion, categoria, estado }) => {
   await new Promise((r) => setTimeout(r, 200));
   const projects = loadProjects();
   const now = new Date().toISOString();
@@ -83,6 +84,7 @@ export const createProject = createAsyncThunk<
     titulo: titulo.trim(),
     descripcion: descripcion.trim(),
     categoria,
+    estado,
     createdAt: now,
     updatedAt: now,
     students: [],

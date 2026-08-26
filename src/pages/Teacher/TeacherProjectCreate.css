@@ -1,0 +1,343 @@
+/* Premium styling for Teacher Project Creation Screen */
+
+.project-create-container {
+  min-height: calc(100vh - 64px);
+  background-color: #f8f9fa;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.project-create-card {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 1120px;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.project-create-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 2.5rem;
+}
+
+/* Left Column: Form Side */
+.project-create-form-side {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-create-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c62828;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+  width: fit-content;
+  margin-bottom: 0.75rem;
+}
+
+.project-create-back-link:hover {
+  color: #64001D;
+  transform: translateX(-3px);
+}
+
+.project-create-title {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.025em;
+}
+
+.project-create-subtitle {
+  font-size: 0.925rem;
+  color: #6b7280;
+  margin: 0;
+  margin-bottom: 2rem;
+}
+
+/* Form Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-label span {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.input-field,
+.select-field,
+.textarea-field {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  color: #1f2937;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.input-field::placeholder,
+.textarea-field::placeholder {
+  color: #9ca3af;
+}
+
+.input-field:focus,
+.select-field:focus,
+.textarea-field:focus {
+  border-color: #64001D;
+  box-shadow: 0 0 0 3px rgba(100, 0, 29, 0.08);
+}
+
+.input-field.error,
+.select-field.error,
+.textarea-field.error {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.textarea-field {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.character-counter {
+  font-size: 0.775rem;
+  color: #9ca3af;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.error-hint {
+  font-size: 0.775rem;
+  color: #dc2626;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.925rem;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cancel:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.btn-submit {
+  background-color: #64001D;
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(100, 0, 29, 0.1), 0 2px 4px -1px rgba(100, 0, 29, 0.06);
+}
+
+.btn-submit:hover {
+  background-color: #80002b;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(100, 0, 29, 0.15), 0 3px 6px -1px rgba(100, 0, 29, 0.1);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Right Column: Info Side */
+.project-create-info-side {
+  background-color: #faf5f6;
+  border: 1px solid #f3e8eb;
+  border-radius: 12px;
+  padding: 1.75rem;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.info-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+  margin-bottom: 0.25rem;
+}
+
+.info-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  background-color: #fce7f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #db2777;
+  flex-shrink: 0;
+}
+
+.info-icon-wrapper svg {
+  width: 24px;
+  height: 24px;
+}
+
+.info-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.info-subtitle {
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.info-item-icon {
+  width: 32px;
+  height: 32px;
+  background-color: #fce7f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #db2777;
+}
+
+.info-item-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.info-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-item-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-item-desc {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+/* Responsive grid collapsing */
+@media (max-width: 900px) {
+  .project-create-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .project-create-info-side {
+    order: 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .project-create-card {
+    padding: 1.25rem;
+  }
+  
+  .project-create-title {
+    font-size: 1.5rem;
+  }
+}
