@@ -1,0 +1,184 @@
+/* Estilos para el explorador reutilizable de proyectos y solicitudes de unión */
+.project-join-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.project-join-header {
+  margin-bottom: 1.5rem;
+}
+
+.project-join-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--unla-primary, #64001d);
+  margin-bottom: 0.25rem;
+}
+
+.project-join-subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* Pestañas de navegación */
+.project-join-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.project-join-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-join-tab-btn:hover {
+  color: var(--unla-primary, #64001d);
+}
+
+.project-join-tab-btn.active {
+  color: var(--unla-primary, #64001d);
+  border-bottom-color: var(--unla-primary, #64001d);
+}
+
+.project-join-tab-badge {
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+/* Grilla de tarjetas de proyectos */
+.project-join-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+.project-card-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.project-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.project-card-desc {
+  color: #4b5563;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-card-footer {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Badges de estado de postulación */
+.badge-status-approved {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-status-pending {
+  background-color: #fef9c3;
+  color: #854d0e;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Botón solicitar unirse */
+.btn-join-project {
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-join-project:hover:not(:disabled) {
+  background-color: #4a0015;
+}
+
+.btn-join-project:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estado vacío */
+.project-join-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
+  color: #6b7280;
+}

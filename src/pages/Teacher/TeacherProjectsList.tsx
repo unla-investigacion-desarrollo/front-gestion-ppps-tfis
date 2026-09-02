@@ -6,15 +6,18 @@ import { Link } from 'react-router-dom';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchProjects,
+  fetchProjectTypes,
+  updateProject,
   assignStudentToProject,
   removeStudentFromProject,
   deleteProject,
   addCoTeacher,
   removeCoTeacher,
-  selectProjectsByTeacher,
+  selectProjects,
+  selectProjectTypes,
   Project
 } from '../../../redux/slices/projectsSlice';
-import { selectUsers } from '../../../redux/slices/usersSlice';
+import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 
 // Reusable Components
 import Pagination from '../../components/Pagination';
@@ -38,7 +41,7 @@ const ACTIVITY_STORAGE_KEY = 'projectActivity';
 
 /**
  * Componente Principal para la Gestión de Proyectos por parte del Docente.
- * Orquesta la carga de proyectos, filtros avanzados, paginación,
+ * Orquesta la carga de proyectos desde la base de datos, filtros avanzados, paginación,
  * y controla los modales de actividad, asignación, colaboración y edición de proyectos.
  */
 const TeacherProjectsList: React.FC = () => {
@@ -46,7 +49,8 @@ const TeacherProjectsList: React.FC = () => {
 
   // --- SELECTORES DE REDUX ---
   const currentUser = useSelector(selectCurrentUser);
-  const projects = useSelector(selectProjectsByTeacher(currentUser?.id || ''));
+  const projects = useSelector(selectProjects);
+  const projectTypes = useSelector(selectProjectTypes);
   const users = useSelector(selectUsers);
 
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
@@ -60,9 +64,11 @@ const TeacherProjectsList: React.FC = () => {
   const [activeAddCoTeacherProject, setActiveAddCoTeacherProject] = useState<Project | null>(null);
   const [activeEditProject, setActiveEditProject] = useState<Project | null>(null);
 
-  // --- CARGA INICIAL ---
+  // --- CARGA INICIAL DESDE LA BASE DE DATOS ---
   useEffect(() => {
     dispatch(fetchProjects());
+    dispatch(fetchProjectTypes());
+    dispatch(fetchUsers());
   }, [dispatch]);
 
   // Restablecer la página a 1 cuando cambian los criterios de búsqueda o filtrado
@@ -92,7 +98,7 @@ const TeacherProjectsList: React.FC = () => {
     });
   }, [users]);
 
-  // Filtrado de proyectos del docente en base al buscador y filtros seleccionados
+  // Filtrado de proyectos en base al buscador y filtros seleccionados
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
       // 1. Filtro por buscador (Título y Descripción)
@@ -102,10 +108,12 @@ const TeacherProjectsList: React.FC = () => {
         project.titulo.toLowerCase().includes(searchQuery) ||
         project.descripcion.toLowerCase().includes(searchQuery);
 
-      // 2. Filtro por Categoría
+      // 2. Filtro por Categoría / Tipo de Proyecto
       const matchesCategory =
         filters.categoria === 'ALL' ||
-        (project.categoria && project.categoria.toLowerCase() === filters.categoria.toLowerCase());
+        (project.categoria && project.categoria.toLowerCase() === filters.categoria.toLowerCase()) ||
+        (project.projectType?.name && project.projectType.name.toLowerCase() === filters.categoria.toLowerCase()) ||
+        (project.projectTypeId && String(project.projectTypeId) === String(filters.categoria));
 
       // 3. Filtro por Cantidad/Estado de Alumnos Asignados
       const assignedCount = project.students.length;
@@ -172,6 +180,17 @@ const TeacherProjectsList: React.FC = () => {
           new CustomEvent('toast', { detail: { message: 'Alumno asignado correctamente', type: 'success' } })
         );
       } catch { }
+    } else {
+      try {
+        window.dispatchEvent(
+          new CustomEvent('toast', {
+            detail: {
+              message: (response as any).payload || 'Error al asignar alumno',
+              type: 'error',
+            },
+          })
+        );
+      } catch { }
     }
   };
 
@@ -183,6 +202,17 @@ const TeacherProjectsList: React.FC = () => {
         try {
           window.dispatchEvent(
             new CustomEvent('toast', { detail: { message: 'Alumno quitado del proyecto', type: 'success' } })
+          );
+        } catch { }
+      } else {
+        try {
+          window.dispatchEvent(
+            new CustomEvent('toast', {
+              detail: {
+                message: (response as any).payload || 'Error al quitar el alumno',
+                type: 'error',
+              },
+            })
           );
         } catch { }
       }
@@ -201,6 +231,17 @@ const TeacherProjectsList: React.FC = () => {
           new CustomEvent('toast', { detail: { message: 'Co-docente agregado correctamente', type: 'success' } })
         );
       } catch { }
+    } else {
+      try {
+        window.dispatchEvent(
+          new CustomEvent('toast', {
+            detail: {
+              message: (response as any).payload || 'Error al agregar co-docente',
+              type: 'error',
+            },
+          })
+        );
+      } catch { }
     }
   };
 
@@ -214,43 +255,77 @@ const TeacherProjectsList: React.FC = () => {
             new CustomEvent('toast', { detail: { message: 'Co-docente quitado del proyecto', type: 'success' } })
           );
         } catch { }
+      } else {
+        try {
+          window.dispatchEvent(
+            new CustomEvent('toast', {
+              detail: {
+                message: (response as any).payload || 'Error al quitar el co-docente',
+                type: 'error',
+              },
+            })
+          );
+        } catch { }
       }
     }
   };
 
-  // Guardar modificaciones del proyecto en localStorage y recargar Redux
-  const handleSaveProjectEdit = (titulo: string, descripcion: string, categoria: string) => {
+  // Guardar modificaciones del proyecto en la base de datos y recargar Redux
+  const handleSaveProjectEdit = async (
+    titulo: string,
+    descripcion: string,
+    categoria: string,
+    projectTypeId?: number
+  ) => {
     if (!activeEditProject) return;
-    const rawProjects = localStorage.getItem('projects');
-    const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
-    const index = projectsList.findIndex((proj: any) => proj.id === activeEditProject.id);
-
-    if (index !== -1) {
-      projectsList[index] = {
-        ...projectsList[index],
+    const response = await dispatch(
+      updateProject({
+        projectId: activeEditProject.id,
         titulo,
         descripcion,
-        categoria,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem('projects', JSON.stringify(projectsList));
-      dispatch(fetchProjects()); // Recargar proyectos en el store
+        projectTypeId,
+      })
+    );
+
+    if (!(response as any).error) {
       try {
         window.dispatchEvent(
           new CustomEvent('toast', { detail: { message: 'Proyecto modificado correctamente', type: 'success' } })
         );
       } catch { }
+    } else {
+      try {
+        window.dispatchEvent(
+          new CustomEvent('toast', {
+            detail: {
+              message: (response as any).payload || 'Error al modificar el proyecto',
+              type: 'error',
+            },
+          })
+        );
+      } catch { }
     }
   };
 
-  // Mover proyecto a la Papelera (borrado lógico)
+  // Eliminar proyecto en el backend (solo rol Admin)
   const handleDeleteProject = async (projectId: string) => {
-    if (window.confirm('¿Seguro que querés eliminar este proyecto? Se moverá a la Papelera.')) {
+    if (window.confirm('¿Seguro que querés eliminar este proyecto? Esta acción no se puede deshacer.')) {
       const response = await dispatch(deleteProject({ projectId }));
       if (!(response as any).error) {
         try {
           window.dispatchEvent(
-            new CustomEvent('toast', { detail: { message: 'Proyecto enviado a la Papelera', type: 'success' } })
+            new CustomEvent('toast', { detail: { message: 'Proyecto eliminado correctamente', type: 'success' } })
+          );
+        } catch { }
+      } else {
+        try {
+          window.dispatchEvent(
+            new CustomEvent('toast', {
+              detail: {
+                message: (response as any).payload || 'Solo los administradores pueden eliminar proyectos',
+                type: 'error',
+              },
+            })
           );
         } catch { }
       }
@@ -283,6 +358,7 @@ const TeacherProjectsList: React.FC = () => {
           filters={filters}
           onFiltersChange={setFilters}
           onClearFilters={handleClearAllFilters}
+          projectTypes={projectTypes}
         />
 
         {/* Listado principal: Tabla de Proyectos */}
@@ -331,8 +407,10 @@ const TeacherProjectsList: React.FC = () => {
           students={activeStudents.filter(
             (student) => !activeAssignProject.students.includes(student.id)
           )}
+          users={users}
           onClose={() => setActiveAssignProject(null)}
           onAssign={handleAssignStudent}
+          onReject={(studentId) => handleRemoveStudent(activeAssignProject.id, studentId)}
         />
       )}
 
@@ -354,6 +432,7 @@ const TeacherProjectsList: React.FC = () => {
       {activeEditProject && (
         <EditProjectModal
           project={activeEditProject}
+          projectTypes={projectTypes}
           onClose={() => setActiveEditProject(null)}
           onSave={handleSaveProjectEdit}
         />

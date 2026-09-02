@@ -1,126 +1,188 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { projectService, ProjectTypeDTO } from '../../src/services/projectService';
+
+export interface ProjectType {
+  id: number;
+  name: string;
+}
+
+export interface ActiveStudentRelation {
+  id: number;
+  active: boolean;
+  student: {
+    id_user: number;
+    [key: string]: any;
+  };
+}
+
+export interface ActiveProfessorRelation {
+  id: number;
+  active: boolean;
+  professor: {
+    id_user: number;
+    [key: string]: any;
+  };
+}
 
 export interface Project {
   id: string;
-  teacherId: string;
+  teacherId?: string;
   titulo: string;
   descripcion: string;
   categoria?: string;
+  projectType?: ProjectType;
+  projectTypeId?: number;
   estado?: string;
   createdAt: string;
   updatedAt: string;
-  students: string[]; // student user IDs
-  coTeachers?: string[]; // optional list of additional teacher user IDs
+  students: string[]; // IDs de usuario de estudiantes asignados activos
+  coTeachers?: string[]; // IDs de usuario de docentes asignados activos
+  activeStudents?: ActiveStudentRelation[];
+  activeProfessors?: ActiveProfessorRelation[];
+  raw?: any;
 }
 
 interface ProjectsState {
   list: Project[];
+  projectTypes: ProjectType[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 }
 
-const STORAGE_KEY = 'projects';
-const USER_NOTIFICATIONS_KEY = 'userNotifications';
-const TRASH_KEY = 'projectsTrash';
-
-function loadProjects(): Project[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Project[]) : [];
-  } catch {
-    return [];
-  }
-}
-function saveProjects(projects: Project[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-}
-
-function loadProjectsTrash(): (Project & { deletedAt: string })[] {
-  try {
-    const raw = localStorage.getItem(TRASH_KEY);
-    return raw ? (JSON.parse(raw) as (Project & { deletedAt: string })[]) : [];
-  } catch {
-    return [];
-  }
-}
-function saveProjectsTrash(list: (Project & { deletedAt: string })[]) {
-  localStorage.setItem(TRASH_KEY, JSON.stringify(list));
-}
-
-// Estructura de notificaciones: { [userId: string]: string[] }
-function loadUserNotifications(): Record<string, string[]> {
-  try {
-    const raw = localStorage.getItem(USER_NOTIFICATIONS_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
-  } catch {
-    return {};
-  }
-}
-function saveUserNotifications(map: Record<string, string[]>) {
-  localStorage.setItem(USER_NOTIFICATIONS_KEY, JSON.stringify(map));
-}
-
 const initialState: ProjectsState = {
-  list: loadProjects(),
+  list: [],
+  projectTypes: [],
   status: 'idle',
   error: null,
 };
 
-export const fetchProjects = createAsyncThunk<Project[]>('projects/fetch', async () => {
-  await new Promise((r) => setTimeout(r, 200));
-  return loadProjects();
-});
+function normalizeBackendProject(p: any): Project {
+  // Extraer alumnos asignados activos
+  const students = Array.isArray(p.activeStudents)
+    ? p.activeStudents
+        .filter((as: any) => as.active)
+        .map((as: any) => String(as.student?.id_user || as.student?.id || as.id))
+    : Array.isArray(p.students)
+    ? p.students.map(String)
+    : [];
+
+  // Extraer docentes asignados activos
+  const coTeachers = Array.isArray(p.activeProfessors)
+    ? p.activeProfessors
+        .filter((ap: any) => ap.active)
+        .map((ap: any) => String(ap.professor?.id_user || ap.professor?.id || ap.id))
+    : Array.isArray(p.coTeachers)
+    ? p.coTeachers.map(String)
+    : [];
+
+  return {
+    id: String(p.id),
+    teacherId: p.teacherId ? String(p.teacherId) : coTeachers[0] || '',
+    titulo: p.title || p.titulo || 'Sin título',
+    descripcion: p.description || p.descripcion || '',
+    categoria: p.projectType?.name || p.categoria || 'Other',
+    projectType: p.projectType,
+    projectTypeId: p.projectType?.id,
+    estado: p.status || p.estado || 'pending',
+    createdAt: p.createdAt || new Date().toISOString(),
+    updatedAt: p.updatedAt || new Date().toISOString(),
+    students,
+    coTeachers,
+    activeStudents: p.activeStudents || [],
+    activeProfessors: p.activeProfessors || [],
+    raw: p,
+  };
+}
+
+export const fetchProjects = createAsyncThunk<Project[], void, { rejectValue: string }>(
+  'projects/fetch',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token') || '';
+      const data = await projectService.getProjects(token);
+      if (!Array.isArray(data)) {
+        return [];
+      }
+      return data.map(normalizeBackendProject);
+    } catch (error: any) {
+      console.error('Error fetching projects from backend:', error);
+      return rejectWithValue(error.message || 'Error al obtener proyectos de la base de datos');
+    }
+  }
+);
+
+export const fetchProjectTypes = createAsyncThunk<ProjectType[], void, { rejectValue: string }>(
+  'projects/fetchTypes',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token') || '';
+      const types = await projectService.getProjectTypes(token);
+      return Array.isArray(types) ? types : [];
+    } catch (error: any) {
+      console.error('Error fetching project types from backend:', error);
+      return rejectWithValue(error.message || 'Error al obtener tipos de proyecto');
+    }
+  }
+);
 
 export const createProject = createAsyncThunk<
   Project,
-  { teacherId: string; titulo: string; descripcion: string; categoria?: string; estado?: string }
->('projects/create', async ({ teacherId, titulo, descripcion, categoria, estado }) => {
-  await new Promise((r) => setTimeout(r, 200));
-  const projects = loadProjects();
-  const now = new Date().toISOString();
-  const project: Project = {
-    id: crypto.randomUUID(),
-    teacherId,
-    titulo: titulo.trim(),
-    descripcion: descripcion.trim(),
-    categoria,
-    estado,
-    createdAt: now,
-    updatedAt: now,
-    students: [],
-    coTeachers: [],
-  };
-  const updated = [...projects, project];
-  saveProjects(updated);
-  return project;
+  {
+    teacherId?: string;
+    titulo: string;
+    descripcion: string;
+    categoria?: string;
+    projectTypeId?: number;
+    customProjectType?: string;
+    estado?: string;
+  },
+  { rejectValue: string }
+>('projects/create', async (payload, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    const res = await projectService.createProject(
+      {
+        title: payload.titulo,
+        description: payload.descripcion,
+        projectTypeId: payload.projectTypeId,
+        customProjectType: payload.customProjectType,
+      },
+      token
+    );
+    dispatch(fetchProjects());
+    return normalizeBackendProject(res);
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al crear el proyecto');
+  }
 });
 
-export const assignStudentToProject = createAsyncThunk<
+export const updateProject = createAsyncThunk<
   Project,
-  { projectId: string; studentId: string },
+  {
+    projectId: string | number;
+    titulo: string;
+    descripcion: string;
+    projectTypeId?: number;
+  },
   { rejectValue: string }
->('projects/assignStudent', async ({ projectId, studentId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 150));
-  const projects = loadProjects();
-  const idx = projects.findIndex((p) => p.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado') as any;
-  const p = projects[idx];
-  if (p.students.includes(studentId)) return rejectWithValue('El alumno ya está asignado a este proyecto') as any;
-  if (p.students.length >= 5) return rejectWithValue('El proyecto ya tiene 5 alumnos asignados') as any;
-  projects[idx] = { ...p, students: [...p.students, studentId], updatedAt: new Date().toISOString() };
-  saveProjects(projects);
-  // Guardar notificación persistente para el alumno asignado
+>('projects/update', async ({ projectId, titulo, descripcion, projectTypeId }, { rejectWithValue, dispatch }) => {
   try {
-    const notifRaw = localStorage.getItem(USER_NOTIFICATIONS_KEY);
-    const notifMap: Record<string, string[]> = notifRaw ? JSON.parse(notifRaw) : {};
-    const msg = `Fuiste asignado al proyecto "${projects[idx].titulo}"`;
-    const list = Array.isArray(notifMap[studentId]) ? notifMap[studentId] : [];
-    notifMap[studentId] = [...list, msg];
-    localStorage.setItem(USER_NOTIFICATIONS_KEY, JSON.stringify(notifMap));
-  } catch {
-    // ignorar errores de almacenamiento
+    const token = localStorage.getItem('token') || '';
+    const response = await projectService.updateProject(
+      projectId,
+      {
+        title: titulo,
+        description: descripcion,
+        projectTypeId,
+      },
+      token
+    );
+    dispatch(fetchProjects());
+    const updated = response.project || response;
+    return normalizeBackendProject(updated);
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al actualizar el proyecto');
   }
-  return projects[idx];
 });
 
 export const deleteProject = createAsyncThunk<
@@ -128,102 +190,73 @@ export const deleteProject = createAsyncThunk<
   { projectId: string },
   { rejectValue: string }
 >('projects/delete', async ({ projectId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 150));
-  const projects = loadProjects();
-  const idx = projects.findIndex((p) => p.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado') as any;
-  const removed = projects[idx];
-  const remaining = projects.filter((p) => p.id !== projectId);
-  saveProjects(remaining);
-  // Move to trash with timestamp
-  const trash = loadProjectsTrash();
-  trash.push({ ...removed, deletedAt: new Date().toISOString() });
-  saveProjectsTrash(trash);
-  return projectId;
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.deleteProject(projectId, token);
+    return projectId;
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al eliminar el proyecto');
+  }
 });
 
-export const addCoTeacher = createAsyncThunk<
-  Project,
-  { projectId: string; teacherId: string },
+export const assignStudentToProject = createAsyncThunk<
+  { projectId: string; studentId: string },
+  { projectId: string; studentId: string },
   { rejectValue: string }
->('projects/addCoTeacher', async ({ projectId, teacherId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 120));
-  const projects = loadProjects();
-  const idx = projects.findIndex(p => p.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado') as any;
-  const p = projects[idx];
-  const current = Array.isArray(p.coTeachers) ? p.coTeachers : [];
-  if (current.includes(teacherId)) return rejectWithValue('El docente ya está agregado') as any;
-  const next = { ...p, coTeachers: [...current, teacherId], updatedAt: new Date().toISOString() } as Project;
-  projects[idx] = next;
-  saveProjects(projects);
-  return next;
-});
-
-export const removeCoTeacher = createAsyncThunk<
-  Project,
-  { projectId: string; teacherId: string },
-  { rejectValue: string }
->('projects/removeCoTeacher', async ({ projectId, teacherId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 120));
-  const projects = loadProjects();
-  const idx = projects.findIndex(p => p.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado') as any;
-  const p = projects[idx];
-  const current = Array.isArray(p.coTeachers) ? p.coTeachers : [];
-  const next = { ...p, coTeachers: current.filter(t => t !== teacherId), updatedAt: new Date().toISOString() } as Project;
-  projects[idx] = next;
-  saveProjects(projects);
-  return next;
-});
-
-export const restoreProject = createAsyncThunk<
-  Project,
-  { projectId: string },
-  { rejectValue: string }
->('projects/restore', async ({ projectId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 150));
-  const trash = loadProjectsTrash();
-  const idx = trash.findIndex(t => t.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado en Papelera') as any;
-  const item = trash[idx];
-  const remainingTrash = trash.filter(t => t.id !== projectId);
-  saveProjectsTrash(remainingTrash);
-  const projects = loadProjects();
-  const now = new Date().toISOString();
-  const restored: Project = { id: item.id, teacherId: item.teacherId, titulo: item.titulo, descripcion: item.descripcion, categoria: item.categoria, createdAt: item.createdAt, updatedAt: now, students: item.students || [] };
-  const updated = [...projects, restored];
-  saveProjects(updated);
-  return restored;
-});
-
-export const purgeProject = createAsyncThunk<
-  string,
-  { projectId: string },
-  { rejectValue: string }
->('projects/purge', async ({ projectId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 150));
-  const trash = loadProjectsTrash();
-  const idx = trash.findIndex(t => t.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado en Papelera') as any;
-  const remaining = trash.filter(t => t.id !== projectId);
-  saveProjectsTrash(remaining);
-  return projectId;
+>('projects/assignStudent', async ({ projectId, studentId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.approveStudentRequest(projectId, studentId, token);
+    dispatch(fetchProjects());
+    return { projectId, studentId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al aprobar o asignar alumno');
+  }
 });
 
 export const removeStudentFromProject = createAsyncThunk<
-  Project,
+  { projectId: string; studentId: string },
   { projectId: string; studentId: string },
   { rejectValue: string }
->('projects/removeStudent', async ({ projectId, studentId }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 150));
-  const projects = loadProjects();
-  const idx = projects.findIndex((p) => p.id === projectId);
-  if (idx === -1) return rejectWithValue('Proyecto no encontrado') as any;
-  const p = projects[idx];
-  projects[idx] = { ...p, students: p.students.filter((s) => s !== studentId), updatedAt: new Date().toISOString() };
-  saveProjects(projects);
-  return projects[idx];
+>('projects/removeStudent', async ({ projectId, studentId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.rejectStudentRequest(projectId, studentId, token);
+    dispatch(fetchProjects());
+    return { projectId, studentId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al quitar el alumno del proyecto');
+  }
+});
+
+export const addCoTeacher = createAsyncThunk<
+  { projectId: string; teacherId: string },
+  { projectId: string; teacherId: string },
+  { rejectValue: string }
+>('projects/addCoTeacher', async ({ projectId, teacherId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.approveProfessorRequest(projectId, teacherId, token);
+    dispatch(fetchProjects());
+    return { projectId, teacherId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al aprobar o agregar docente');
+  }
+});
+
+export const removeCoTeacher = createAsyncThunk<
+  { projectId: string; teacherId: string },
+  { projectId: string; teacherId: string },
+  { rejectValue: string }
+>('projects/removeCoTeacher', async ({ projectId, teacherId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.rejectProfessorRequest(projectId, teacherId, token);
+    dispatch(fetchProjects());
+    return { projectId, teacherId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al quitar el docente del proyecto');
+  }
 });
 
 const projectsSlice = createSlice({
@@ -242,32 +275,47 @@ const projectsSlice = createSlice({
       })
       .addCase(fetchProjects.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message || 'Error al cargar proyectos';
+        state.error = (action.payload as string) || action.error.message || 'Error al cargar proyectos';
+      })
+      .addCase(fetchProjectTypes.fulfilled, (state, action: PayloadAction<ProjectType[]>) => {
+        state.projectTypes = action.payload;
       })
       .addCase(createProject.fulfilled, (state, action) => {
         state.list.push(action.payload);
       })
-      .addCase(assignStudentToProject.fulfilled, (state, action) => {
-        const idx = state.list.findIndex((p) => p.id === action.payload.id);
-        if (idx !== -1) state.list[idx] = action.payload;
-      })
-      .addCase(removeStudentFromProject.fulfilled, (state, action) => {
+      .addCase(updateProject.fulfilled, (state, action) => {
         const idx = state.list.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.list[idx] = action.payload;
       })
       .addCase(deleteProject.fulfilled, (state, action: PayloadAction<string>) => {
         state.list = state.list.filter((p) => p.id !== action.payload);
       })
-      .addCase(restoreProject.fulfilled, (state, action: PayloadAction<Project>) => {
-        state.list.push(action.payload);
+      .addCase(assignStudentToProject.fulfilled, (state, action) => {
+        const p = state.list.find((proj) => proj.id === action.payload.projectId);
+        if (p && !p.students.includes(action.payload.studentId)) {
+          p.students.push(action.payload.studentId);
+        }
       })
-      .addCase(addCoTeacher.fulfilled, (state, action: PayloadAction<Project>) => {
-        const idx = state.list.findIndex(p => p.id === action.payload.id);
-        if (idx !== -1) state.list[idx] = action.payload;
+      .addCase(removeStudentFromProject.fulfilled, (state, action) => {
+        const p = state.list.find((proj) => proj.id === action.payload.projectId);
+        if (p) {
+          p.students = p.students.filter((s) => s !== action.payload.studentId);
+        }
       })
-      .addCase(removeCoTeacher.fulfilled, (state, action: PayloadAction<Project>) => {
-        const idx = state.list.findIndex(p => p.id === action.payload.id);
-        if (idx !== -1) state.list[idx] = action.payload;
+      .addCase(addCoTeacher.fulfilled, (state, action) => {
+        const p = state.list.find((proj) => proj.id === action.payload.projectId);
+        if (p) {
+          if (!p.coTeachers) p.coTeachers = [];
+          if (!p.coTeachers.includes(action.payload.teacherId)) {
+            p.coTeachers.push(action.payload.teacherId);
+          }
+        }
+      })
+      .addCase(removeCoTeacher.fulfilled, (state, action) => {
+        const p = state.list.find((proj) => proj.id === action.payload.projectId);
+        if (p && p.coTeachers) {
+          p.coTeachers = p.coTeachers.filter((t) => t !== action.payload.teacherId);
+        }
       });
   },
 });
@@ -276,4 +324,20 @@ export default projectsSlice.reducer;
 
 // Selectores
 export const selectProjects = (state: any) => state.projects.list as Project[];
-export const selectProjectsByTeacher = (teacherId: string) => (state: any) => (state.projects.list as Project[]).filter(p => p.teacherId === teacherId);
+export const selectProjectTypes = (state: any) => (state.projects.projectTypes || []) as ProjectType[];
+export const selectProjectsStatus = (state: any) => state.projects.status as 'idle' | 'loading' | 'succeeded' | 'failed';
+export const selectProjectsError = (state: any) => state.projects.error as string | null;
+
+export const selectProjectsByTeacher = (teacherId: string) => (state: any) => {
+  const list = state.projects.list as Project[];
+  if (!teacherId) return list;
+  return list.filter(
+    (p) =>
+      p.teacherId === teacherId ||
+      (p.coTeachers && p.coTeachers.includes(teacherId)) ||
+      (p.activeProfessors &&
+        p.activeProfessors.some(
+          (ap) => String(ap.professor?.id_user || ap.professor?.id || ap.id) === String(teacherId)
+        ))
+  );
+};
