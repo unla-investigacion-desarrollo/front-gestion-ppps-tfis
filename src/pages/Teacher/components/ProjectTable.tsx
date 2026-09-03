@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
 // Propiedades recibidas por el componente ProjectTable
@@ -13,6 +13,7 @@ interface ProjectTableProps {
   onActivityClick: (project: Project) => void;
   onEditClick: (project: Project) => void;
   onDeleteClick: (project: Project) => void;
+  onViewProjectClick?: (project: Project) => void;
 }
 
 /**
@@ -30,9 +31,22 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   onActivityClick,
   onEditClick,
   onDeleteClick,
+  onViewProjectClick,
 }) => {
+  const navigate = useNavigate();
+
   // Estado local para identificar el dropdown abierto actualmente en las filas de la tabla
   const [activeDropdownProjectId, setActiveDropdownProjectId] = useState<string | null>(null);
+
+  // Redirige o ejecuta la acción para ver el proyecto / trabajo
+  const handleViewProject = (project: Project) => {
+    setActiveDropdownProjectId(null);
+    if (onViewProjectClick) {
+      onViewProjectClick(project);
+    } else {
+      navigate(`/proyectos/${project.id}/trabajo`);
+    }
+  };
 
   // Resuelve el nombre completo o email de un miembro por su ID de usuario
   const getMemberName = (userId: string) => {
@@ -101,7 +115,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 <td style={{ padding: '12px 16px' }}>
                   {renderCategoryBadge(project.categoria)}
                   <Link
-                    to={`/docente/entregas?projectId=${encodeURIComponent(project.id)}`}
+                    to={`/proyectos/${encodeURIComponent(project.id)}/trabajo`}
                     className="project-title-link"
                   >
                     {project.titulo}
@@ -191,6 +205,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             onClick={() => setActiveDropdownProjectId(null)}
                           />
                           <ul className="custom-dropdown-menu dropdown-menu-end">
+                            {/* Acción: Ver proyecto (Redirige a pantalla Trabajo) */}
+                            <button
+                              type="button"
+                              className="custom-dropdown-item fw-semibold"
+                              style={{ color: 'var(--unla-primary, #64001d)' }}
+                              onClick={() => handleViewProject(project)}
+                            >
+                              Ver proyecto
+                            </button>
+
+                            {/* Divisor */}
+                            <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+
                             {/* Acción: Asignar Alumno */}
                             <button
                               type="button"
