@@ -38,50 +38,8 @@ const ApprovalQueue: React.FC = () => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  // Solicitudes idénticas al mockup en caso de que la BD aún no tenga postulaciones pendientes
-  const sampleRequests: any[] = [
-    {
-      id: 101,
-      projectId: '1',
-      projectTitle: 'Desarrollo TFI Y PPP',
-      projectType: 'Extension',
-      studentUserId: '15',
-      active: false,
-      date: '24 abr 2025, 14:32',
-      studentName: 'Erika Valdez',
-      studentEmail: 'gera@gmail.com',
-      studentLegajo: '38838541',
-    },
-    {
-      id: 102,
-      projectId: '2',
-      projectTitle: 'Worker YPF',
-      projectType: 'Development',
-      studentUserId: '16',
-      active: false,
-      date: '22 abr 2025, 10:18',
-      studentName: 'Erika Valdez',
-      studentEmail: 'gera@gmail.com',
-      studentLegajo: '38838541',
-    },
-    {
-      id: 103,
-      projectId: '3',
-      projectTitle: 'proyecto vaca muerta',
-      projectType: 'Research',
-      studentUserId: '17',
-      active: false,
-      date: '18 abr 2025, 09:05',
-      studentName: 'Erika Valdez',
-      studentEmail: 'gera@gmail.com',
-      studentLegajo: '38838541',
-    },
-  ];
-
-  const pendingProjectRequests =
-    rawPendingProjectRequests && rawPendingProjectRequests.length > 0
-      ? rawPendingProjectRequests
-      : sampleRequests;
+  // Solicitudes pendientes reales traídas de la base de datos a través de Redux
+  const pendingProjectRequests = rawPendingProjectRequests || [];
 
   // Filtrado de solicitudes a proyectos
   const filteredProjectRequests = useMemo(() => {

@@ -43,17 +43,19 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
     return `${first}${second}` || first || 'U';
   };
 
-  // Obtener datos detallados del estudiante
+  // Obtener datos detallados del estudiante exclusivamente desde la base de datos (usersSlice)
   const getStudentDetails = (studentUserId: string, req?: any) => {
     const found = users.find((u) => String(u.id) === String(studentUserId));
-    const fullName = req?.studentName || (found ? [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email : `Erika Valdez`);
-    const email = req?.studentEmail || found?.email || 'gera@gmail.com';
-    const legajo = req?.studentLegajo || found?.legajo || found?.dni || '38838541';
-    const initials = req?.studentName
-      ? getInitials(req.studentName.split(' ')[0], req.studentName.split(' ')[1])
-      : found
+    const fullName = found
+      ? [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email
+      : req?.studentName || `Estudiante #${studentUserId}`;
+    const email = found?.email || req?.studentEmail || '—';
+    const legajo = found?.legajo || found?.dni || req?.studentLegajo || '—';
+    const initials = found
       ? getInitials(found.nombre || '', found.apellido || '')
-      : 'EV';
+      : req?.studentName
+      ? getInitials(req.studentName.split(' ')[0], req.studentName.split(' ')[1])
+      : 'E';
 
     return {
       fullName,
@@ -148,7 +150,15 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
               const isDropdownOpen = openDropdownKey === rowKey;
               const categoryBadge = getCategoryBadgeClass(req.projectType);
 
-              const requestDate = (req as any).date || '24 abr 2025, 14:32';
+              const requestDate = (req as any).createdAt
+                ? new Date((req as any).createdAt).toLocaleDateString('es-AR', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : (req as any).date || 'Pendiente';
 
               return (
                 <tr key={rowKey}>
