@@ -152,12 +152,12 @@ const AuthenticatedLayout = ({ children }) => {
               <NavLink to="/admin/proposals">Propuestas</NavLink>
               <NavLink to="/docente/proyectos">Proyectos</NavLink>
               <NavLink to="/docente/entregas">Entregas</NavLink>
+              <NavLink to="/admin/approvals">Aprobaciones</NavLink>
             </>
           )}
           {isAdmin && (
             <>
               <NavLink to="/admin/users">Usuarios</NavLink>
-              <NavLink to="/admin/approvals">Aprobaciones</NavLink>
             </>
           )}
         </nav>

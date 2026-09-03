@@ -81,11 +81,11 @@ const App = () => {
           } />
           <Route path="/admin/approvals" element={
             <PrivateRoute>
-              <AdminRoute>
+              <TeacherRoute>
                 <AuthenticatedLayout>
                   <ApprovalQueue />
                 </AuthenticatedLayout>
-              </AdminRoute>
+              </TeacherRoute>
             </PrivateRoute>
           } />
           <Route path="/admin/proposals" element={

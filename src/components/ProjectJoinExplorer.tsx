@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { selectCurrentUser } from '../../redux/slices/authSlice';
 import { projectService } from '../services/projectService';
 import { showToast } from '../utils/toast';
@@ -309,10 +310,19 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
                     </div>
                     <p className="project-card-desc">{act.project?.description}</p>
                   </div>
-                  <div className="project-card-footer">
+                  <div className="project-card-footer d-flex justify-content-between align-items-center">
                     <span className="badge-status-approved">
                       ✓ Participando activamente
                     </span>
+                    {act.project?.id && (
+                      <Link
+                        to={`/alumno/entregas?projectId=${encodeURIComponent(act.project.id)}`}
+                        className="btn btn-sm btn-outline-primary"
+                        style={{ fontSize: '0.8rem', padding: '0.25rem 0.6rem' }}
+                      >
+                        Entregas →
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}

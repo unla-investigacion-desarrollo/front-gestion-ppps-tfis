@@ -316,17 +316,105 @@ const projectsSlice = createSlice({
         if (p && p.coTeachers) {
           p.coTeachers = p.coTeachers.filter((t) => t !== action.payload.teacherId);
         }
+      })
+      .addCase(approveStudentProjectRequest.fulfilled, (state, action) => {
+        const p = state.list.find((proj) => proj.id === action.payload.projectId);
+        if (p) {
+          if (!p.students.includes(action.payload.studentUserId)) {
+            p.students.push(action.payload.studentUserId);
+          }
+          if (Array.isArray(p.activeStudents)) {
+            const rel = p.activeStudents.find(
+              (as) => String(as.student?.id_user || as.student?.id || as.id) === action.payload.studentUserId
+            );
+            if (rel) rel.active = true;
+          }
+          if (p.estado === 'pending') {
+            p.estado = 'in_progress';
+          }
+        }
+      })
+      .addCase(rejectStudentProjectRequest.fulfilled, (state, action) => {
+        const p = state.list.find((proj) => proj.id === action.payload.projectId);
+        if (p && Array.isArray(p.activeStudents)) {
+          p.activeStudents = p.activeStudents.filter(
+            (as) => String(as.student?.id_user || as.student?.id || as.id) !== action.payload.studentUserId
+          );
+        }
       });
   },
 });
 
 export default projectsSlice.reducer;
 
+// Thunks específicos para aprobación y rechazo de solicitudes de estudiantes en proyectos
+export const approveStudentProjectRequest = createAsyncThunk<
+  { projectId: string; studentUserId: string },
+  { projectId: string; studentUserId: string },
+  { rejectValue: string }
+>('projects/approveStudentRequest', async ({ projectId, studentUserId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.approveStudentRequest(projectId, studentUserId, token);
+    dispatch(fetchProjects());
+    return { projectId, studentUserId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al aprobar la solicitud del estudiante');
+  }
+});
+
+export const rejectStudentProjectRequest = createAsyncThunk<
+  { projectId: string; studentUserId: string },
+  { projectId: string; studentUserId: string },
+  { rejectValue: string }
+>('projects/rejectStudentRequest', async ({ projectId, studentUserId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.rejectStudentRequest(projectId, studentUserId, token);
+    dispatch(fetchProjects());
+    return { projectId, studentUserId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al rechazar la solicitud del estudiante');
+  }
+});
+
 // Selectores
 export const selectProjects = (state: any) => state.projects.list as Project[];
 export const selectProjectTypes = (state: any) => (state.projects.projectTypes || []) as ProjectType[];
 export const selectProjectsStatus = (state: any) => state.projects.status as 'idle' | 'loading' | 'succeeded' | 'failed';
 export const selectProjectsError = (state: any) => state.projects.error as string | null;
+
+export interface PendingProjectStudentRequest {
+  id: number;
+  projectId: string;
+  projectTitle: string;
+  projectType: string;
+  studentUserId: string;
+  active: boolean;
+}
+
+export const selectPendingProjectRequests = (state: any): PendingProjectStudentRequest[] => {
+  const projects = state.projects.list as Project[];
+  if (!Array.isArray(projects)) return [];
+  const results: PendingProjectStudentRequest[] = [];
+  for (const p of projects) {
+    if (Array.isArray(p.activeStudents)) {
+      for (const as of p.activeStudents) {
+        if (as.active === false) {
+          results.push({
+            id: as.id,
+            projectId: String(p.id),
+            projectTitle: p.titulo,
+            projectType: p.categoria || p.projectType?.name || 'General',
+            studentUserId: String(as.student?.id_user || as.student?.id || as.id),
+            active: false,
+          });
+        }
+      }
+    }
+  }
+  return results;
+};
 
 export const selectProjectsByTeacher = (teacherId: string) => (state: any) => {
   const list = state.projects.list as Project[];
