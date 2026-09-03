@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Project } from '../../../../redux/slices/projectsSlice';
+import { useSelector } from 'react-redux';
+import { Project, selectProjectTypes, ProjectType } from '../../../../redux/slices/projectsSlice';
 import { showToast } from '../../../utils/toast';
 
 // --- INTERFAZ DE ACTIVIDAD ---
@@ -156,26 +157,66 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 };
 
 // ==========================================
-// 2. MODAL DE ASIGNAR ALUMNO
+// 2. MODAL DE ASIGNAR / APROBAR ALUMNO
 // ==========================================
 interface AssignStudentModalProps {
   project: Project;
   students: any[];
+  users?: any[];
   onClose: () => void;
   onAssign: (studentId: string) => Promise<void>;
+  onReject?: (studentId: string) => Promise<void>;
 }
 
 export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
   project,
   students,
+  users = [],
   onClose,
   onAssign,
+  onReject,
 }) => {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actioningId, setActioningId] = useState<string | null>(null);
 
   const totalAssigned = project.students.length;
   const isLimitReached = totalAssigned >= 5;
+
+  // Filtrar solicitudes pendientes de alumnos en este proyecto (active === false)
+  const pendingRequests = useMemo(() => {
+    if (!Array.isArray(project.activeStudents)) return [];
+    return project.activeStudents.filter((as) => as.active === false);
+  }, [project.activeStudents]);
+
+  const getStudentInfo = (studentUserId: string | number) => {
+    const found = users.find((u) => String(u.id) === String(studentUserId)) ||
+      students.find((s) => String(s.id) === String(studentUserId));
+    if (!found) return { name: `Estudiante #${studentUserId}`, email: '' };
+    const name = [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email || `Estudiante #${studentUserId}`;
+    return { name, email: found.email || '' };
+  };
+
+  const handleApprove = async (studentId: string) => {
+    setActioningId(studentId);
+    try {
+      await onAssign(studentId);
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const handleReject = async (studentId: string) => {
+    if (!onReject) return;
+    if (window.confirm('¿Seguro que deseas rechazar la solicitud de este alumno?')) {
+      setActioningId(studentId);
+      try {
+        await onReject(studentId);
+      } finally {
+        setActioningId(null);
+      }
+    }
+  };
 
   const handleSubmitAssign = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -199,33 +240,90 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
           <div className="modal-content custom-modal-content">
             <div className="modal-header custom-modal-header">
               <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary, #64001d)' }}>
-                Asignar Alumno
+                Gestión de Alumnos en el Proyecto
               </h5>
               <button type="button" className="btn-close" onClick={onClose} aria-label="Close" />
             </div>
 
-            <form onSubmit={handleSubmitAssign}>
-              <div className="modal-body custom-modal-body d-flex flex-column gap-3">
-                <div>
-                  <strong>Proyecto:</strong> {project.titulo}
-                </div>
-                <div>
-                  <strong>Alumnos asignados actualmente:</strong> {totalAssigned} de 5
-                </div>
+            <div className="modal-body custom-modal-body d-flex flex-column gap-3">
+              <div>
+                <strong>Proyecto:</strong> {project.titulo}
+              </div>
+              <div>
+                <strong>Alumnos asignados actualmente:</strong> {totalAssigned} de 5
+              </div>
 
-                {isLimitReached ? (
-                  <div className="alert alert-warning py-2 mb-0 small">
-                    ⚠️ Se alcanzó el límite máximo de 5 alumnos en este proyecto. No es posible asignar más estudiantes.
+              {isLimitReached && (
+                <div className="alert alert-warning py-2 mb-0 small">
+                  ⚠️ Se alcanzó el límite máximo de 5 alumnos en este proyecto. No es posible asignar más estudiantes.
+                </div>
+              )}
+
+              {/* SECCIÓN 1: Solicitudes pendientes recibidas */}
+              <div>
+                <h6 style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '8px' }}>
+                  Solicitudes pendientes de aprobación ({pendingRequests.length}):
+                </h6>
+
+                {pendingRequests.length === 0 ? (
+                  <div className="alert alert-info py-2 small mb-0">
+                    ℹ️ No hay solicitudes pendientes de alumnos para este proyecto.
+                    <br />
+                    Para que un alumno sea asignado, debe ingresar desde su cuenta y hacer clic en <strong>"Solicitar unirse"</strong>.
                   </div>
                 ) : (
-                  <div>
-                    <label className="form-label" style={{ fontWeight: 500 }} htmlFor="studentSelectBox">
-                      Seleccionar Estudiante
-                    </label>
+                  <div className="list-group">
+                    {pendingRequests.map((req) => {
+                      const studentId = String(req.student?.id_user || req.student?.id || req.id);
+                      const { name, email } = getStudentInfo(studentId);
+                      const isProcessing = actioningId === studentId;
+
+                      return (
+                        <div
+                          key={req.id}
+                          className="list-group-item d-flex justify-content-between align-items-center p-2"
+                        >
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{name}</div>
+                            {email && <div className="text-muted small">{email}</div>}
+                          </div>
+                          <div className="d-flex gap-2">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-success"
+                              disabled={isLimitReached || isProcessing}
+                              onClick={() => handleApprove(studentId)}
+                            >
+                              {isProcessing ? 'Procesando...' : 'Aprobar'}
+                            </button>
+                            {onReject && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger"
+                                disabled={isProcessing}
+                                onClick={() => handleReject(studentId)}
+                              >
+                                Rechazar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* SECCIÓN 2: Asignación directa si se requiere */}
+              {!isLimitReached && (
+                <form onSubmit={handleSubmitAssign} className="pt-2 border-top">
+                  <label className="form-label" style={{ fontWeight: 500 }} htmlFor="studentSelectBox">
+                    O seleccionar estudiante para procesar solicitud:
+                  </label>
+                  <div className="d-flex gap-2">
                     <select
                       id="studentSelectBox"
                       className="form-select"
-                      required
                       value={selectedStudentId}
                       onChange={(e) => setSelectedStudentId(e.target.value)}
                     >
@@ -236,24 +334,24 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
                         </option>
                       ))}
                     </select>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ backgroundColor: 'var(--unla-primary, #64001d)', border: 'none', whiteSpace: 'nowrap' }}
+                      disabled={!selectedStudentId || isSubmitting}
+                    >
+                      {isSubmitting ? 'Asignando...' : 'Asignar'}
+                    </button>
                   </div>
-                )}
-              </div>
+                </form>
+              )}
+            </div>
 
-              <div className="modal-footer custom-modal-footer">
-                <button type="button" className="btn btn-outline-secondary" onClick={onClose}>
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  style={{ backgroundColor: 'var(--unla-primary, #64001d)', border: 'none' }}
-                  disabled={isLimitReached || !selectedStudentId || isSubmitting}
-                >
-                  {isSubmitting ? 'Asignando...' : 'Asignar Alumno'}
-                </button>
-              </div>
-            </form>
+            <div className="modal-footer custom-modal-footer">
+              <button type="button" className="btn btn-outline-secondary" onClick={onClose}>
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -363,18 +461,33 @@ export const AddCoTeacherModal: React.FC<AddCoTeacherModalProps> = ({
 interface EditProjectModalProps {
   project: Project;
   onClose: () => void;
-  onSave: (titulo: string, descripcion: string, categoria: string) => void;
+  onSave: (titulo: string, descripcion: string, categoria: string, projectTypeId?: number) => void;
+  projectTypes?: ProjectType[];
 }
 
 export const EditProjectModal: React.FC<EditProjectModalProps> = ({
   project,
   onClose,
   onSave,
+  projectTypes: propTypes,
 }) => {
+  const reduxTypes = useSelector(selectProjectTypes);
+  const availableTypes = (propTypes && propTypes.length > 0) ? propTypes : (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
+    { id: 1, name: 'Development' },
+    { id: 2, name: 'Research' },
+    { id: 3, name: 'Extension' },
+    { id: 4, name: 'Other' },
+  ];
+
+  const initialTypeId = project.projectTypeId || project.projectType?.id || (
+    availableTypes.find(t => t.name.toLowerCase() === (project.categoria || '').toLowerCase())?.id
+  );
+
   const [formValues, setFormValues] = useState({
     titulo: project.titulo,
     descripcion: project.descripcion,
-    categoria: project.categoria || '',
+    projectTypeId: initialTypeId,
+    categoria: project.categoria || project.projectType?.name || '',
   });
   const [formErrors, setFormErrors] = useState<{ titulo?: string; descripcion?: string }>({});
 
@@ -397,7 +510,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
     event.preventDefault();
     if (!validateForm()) return;
 
-    onSave(formValues.titulo.trim(), formValues.descripcion.trim(), formValues.categoria);
+    onSave(formValues.titulo.trim(), formValues.descripcion.trim(), formValues.categoria, formValues.projectTypeId);
     onClose();
   };
 
@@ -431,21 +544,31 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
                   {formErrors.titulo && <div className="invalid-feedback">{formErrors.titulo}</div>}
                 </div>
 
-                {/* Campo: Categoría */}
+                {/* Campo: Categoría / Tipo de Proyecto */}
                 <div>
                   <label className="form-label" style={{ fontWeight: 500 }} htmlFor="editCategorySelect">
-                    Categoría
+                    Tipo de Proyecto
                   </label>
                   <select
                     id="editCategorySelect"
                     className="form-select"
-                    value={formValues.categoria}
-                    onChange={(e) => setFormValues({ ...formValues, categoria: e.target.value })}
+                    value={formValues.projectTypeId ?? ''}
+                    onChange={(e) => {
+                      const selectedId = e.target.value ? Number(e.target.value) : undefined;
+                      const foundType = availableTypes.find(t => t.id === selectedId);
+                      setFormValues({
+                        ...formValues,
+                        projectTypeId: selectedId,
+                        categoria: foundType ? foundType.name : '',
+                      });
+                    }}
                   >
-                    <option value="">Categoría (opcional)</option>
-                    <option value="desarrollo">Desarrollo</option>
-                    <option value="investigacion">Investigación</option>
-                    <option value="extension">Extensión</option>
+                    <option value="">Seleccioná tipo de proyecto...</option>
+                    {availableTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

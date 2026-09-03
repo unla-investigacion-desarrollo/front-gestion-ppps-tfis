@@ -36,21 +36,21 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   // Resuelve el nombre completo o email de un miembro por su ID de usuario
   const getMemberName = (userId: string) => {
-    const userFound = users.find((u) => u.id === userId);
-    return userFound ? ([userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email) : userId;
+    const userFound = users.find((u) => String(u.id) === String(userId));
+    return userFound ? ([userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email) : `Usuario #${userId}`;
   };
 
-  // Renderiza el badge estilizado de la categoría de proyecto
+  // Renderiza el badge estilizado de la categoría o tipo de proyecto
   const renderCategoryBadge = (category?: string) => {
     if (!category) return null;
     const cleanCategory = category.toLowerCase().trim();
     let badgeStyleClass = 'badge-generic';
 
-    if (cleanCategory === 'desarrollo') {
+    if (cleanCategory === 'desarrollo' || cleanCategory === 'development') {
       badgeStyleClass = 'badge-desarrollo';
-    } else if (cleanCategory === 'investigacion') {
+    } else if (cleanCategory === 'investigacion' || cleanCategory === 'investigación' || cleanCategory === 'research') {
       badgeStyleClass = 'badge-investigacion';
-    } else if (cleanCategory === 'extension') {
+    } else if (cleanCategory === 'extension' || cleanCategory === 'extensión') {
       badgeStyleClass = 'badge-extension';
     }
 

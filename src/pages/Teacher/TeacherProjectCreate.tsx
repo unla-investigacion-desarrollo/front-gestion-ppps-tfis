@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TeacherProjectCreate.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
-import { createProject } from '../../../redux/slices/projectsSlice';
+import { createProject, fetchProjectTypes, selectProjectTypes, ProjectType } from '../../../redux/slices/projectsSlice';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../../utils/toast';
 
@@ -11,17 +11,35 @@ const TeacherProjectCreate: React.FC = () => {
   const user = useSelector(selectCurrentUser);
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ titulo: '', descripcion: '', categoria: '', estado: '' });
+  const reduxTypes = useSelector(selectProjectTypes);
+  const projectTypes: ProjectType[] = (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
+    { id: 1, name: 'Development' },
+    { id: 2, name: 'Research' },
+    { id: 3, name: 'Extension' },
+    { id: 4, name: 'Other' },
+  ];
+
+  const [form, setForm] = useState({
+    titulo: '',
+    descripcion: '',
+    projectTypeId: '' as string | number,
+    categoria: '',
+    estado: 'activo'
+  });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchProjectTypes());
+  }, [dispatch]);
 
   const validate = () => {
     const e: { [k: string]: string } = {};
     if (!form.titulo.trim()) {
       e.titulo = 'El título es obligatorio';
     }
-    if (!form.categoria) {
-      e.categoria = 'La categoría es obligatoria';
+    if (!form.projectTypeId && !form.categoria) {
+      e.categoria = 'El tipo de proyecto es obligatorio';
     }
     if (!form.estado) {
       e.estado = 'El estado es obligatorio';
@@ -49,11 +67,13 @@ const TeacherProjectCreate: React.FC = () => {
           teacherId: user.id,
           titulo: form.titulo,
           descripcion: form.descripcion,
+          projectTypeId: form.projectTypeId ? Number(form.projectTypeId) : undefined,
           categoria: form.categoria,
           estado: form.estado
         })
       ).unwrap();
-      setForm({ titulo: '', descripcion: '', categoria: '', estado: '' });
+      showToast('Proyecto creado exitosamente', 'success');
+      setForm({ titulo: '', descripcion: '', projectTypeId: '', categoria: '', estado: 'activo' });
       navigate('/docente/proyectos');
     } catch (err: any) {
       showToast(err?.message || 'Error al crear el proyecto', 'error');
@@ -112,18 +132,24 @@ const TeacherProjectCreate: React.FC = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label" htmlFor="categoria">
-                    Categoría <span>*</span>
+                    Tipo de Proyecto <span>*</span>
                   </label>
                   <select
                     id="categoria"
                     className={`select-field ${errors.categoria ? 'error' : ''}`}
-                    value={form.categoria}
-                    onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+                    value={form.projectTypeId}
+                    onChange={(e) => {
+                      const selId = e.target.value ? Number(e.target.value) : '';
+                      const found = projectTypes.find((t) => t.id === selId);
+                      setForm({ ...form, projectTypeId: selId, categoria: found ? found.name : '' });
+                    }}
                   >
-                    <option value="">Selecciona una categoría</option>
-                    <option value="desarrollo">Desarrollo</option>
-                    <option value="investigacion">Investigación</option>
-                    <option value="extension">Extensión</option>
+                    <option value="">Selecciona un tipo de proyecto</option>
+                    {projectTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
                   </select>
                   {errors.categoria && (
                     <span className="error-hint">

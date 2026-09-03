@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectProjectTypes, ProjectType } from '../../../../redux/slices/projectsSlice';
 
 // Interfaz que define la estructura del estado de los filtros de proyectos
 export interface ProjectFiltersState {
@@ -12,19 +14,30 @@ interface ProjectFiltersProps {
   filters: ProjectFiltersState;
   onFiltersChange: (newFilters: ProjectFiltersState) => void;
   onClearFilters: () => void;
+  projectTypes?: ProjectType[];
 }
 
 /**
  * Componente que renderiza la barra de búsqueda y el panel colapsable de filtros avanzados.
- * Permite buscar proyectos por texto y filtrar por categoría o estado de asignación de alumnos.
+ * Permite buscar proyectos por texto y filtrar por tipo de proyecto o estado de asignación de alumnos.
  */
 const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   filters,
   onFiltersChange,
   onClearFilters,
+  projectTypes: propTypes,
 }) => {
   // Estado local para abrir o cerrar el panel colapsable de filtros avanzados
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  // Tipos de proyectos desde Redux o props, con respaldo por defecto
+  const reduxTypes = useSelector(selectProjectTypes);
+  const availableTypes = (propTypes && propTypes.length > 0) ? propTypes : (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
+    { id: 1, name: 'Desarrollo' },
+    { id: 2, name: 'Investigación' },
+    { id: 3, name: 'Extensión' },
+    { id: 4, name: 'Otro' },
+  ];
 
   // Manejador genérico de cambios en los inputs y selectores de filtros
   const handleFilterChange = (key: keyof ProjectFiltersState, value: string) => {
@@ -77,18 +90,20 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
       {isPanelOpen && (
         <div className="advanced-filters-panel">
           <div className="row g-3">
-            {/* Selector por Categoría */}
+            {/* Selector por Categoría / Tipo de Proyecto */}
             <div className="col-md-5">
-              <label className="form-label text-muted small mb-1" style={{ fontWeight: 500 }}>Categoría</label>
+              <label className="form-label text-muted small mb-1" style={{ fontWeight: 500 }}>Tipo de Proyecto</label>
               <select
                 className="form-select filter-select-field"
                 value={filters.categoria}
                 onChange={(e) => handleFilterChange('categoria', e.target.value)}
               >
-                <option value="ALL">Todas las categorías</option>
-                <option value="desarrollo">Desarrollo</option>
-                <option value="investigacion">Investigación</option>
-                <option value="extension">Extensión</option>
+                <option value="ALL">Todos los tipos</option>
+                {availableTypes.map((type) => (
+                  <option key={type.id} value={type.name}>
+                    {type.name}
+                  </option>
+                ))}
               </select>
             </div>
 
