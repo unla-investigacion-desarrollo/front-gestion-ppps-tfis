@@ -22,6 +22,8 @@ import StudentDeliveries from '../pages/Student/Deliveries';
 import TeacherProjectCreate from '../pages/Teacher/TeacherProjectCreate';
 import DeliveriesReview from '../pages/Teacher/DeliveriesReview';
 import Trabajo from '../pages/Trabajo/Trabajo';
+import PPPCaseDetail from '../pages/PPP/PPPCaseDetail';
+import PPPWorkspace from '../pages/PPP/PPPWorkspace';
 const App = () => {
 
 
@@ -49,6 +51,32 @@ const App = () => {
             <PrivateRoute>
               <AuthenticatedLayout>
                 <ChangePassword />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+
+          <Route path="/ppp/proposals" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <PPPWorkspace />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+
+          <Route path="/ppp" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <PPPWorkspace />
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+
+          <Route path="/ppp/:id" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <PPPCaseDetail />
               </AuthenticatedLayout>
             </PrivateRoute>
           } />

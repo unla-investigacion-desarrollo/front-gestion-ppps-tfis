@@ -1,0 +1,48 @@
+.ppp-detail-page { background: #f7f5f2; }
+
+.ppp-back-link {
+  background: transparent;
+  border: 0;
+  color: var(--unla-primary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding: 0;
+}
+
+.ppp-detail-heading {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.ppp-detail-heading h1 { color: #2d2527; margin: 0.35rem 0 0; }
+.ppp-detail-status,
+.ppp-detail-status-large { background: #eee7e8; border-radius: 999px; color: var(--unla-primary); font-weight: 700; padding: 0.45rem 0.75rem; }
+.ppp-detail-status-large { display: inline-block; font-size: 1rem; margin: 0.5rem 0 1rem; }
+
+.ppp-detail-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.ppp-detail-grid h2, .ppp-actions-card h2 { color: #2d2527; font-size: 1.15rem; margin: 0 0 1rem; }
+.ppp-detail-facts { display: grid; gap: 0.8rem; }
+.ppp-detail-facts div { display: grid; gap: 0.2rem; }
+.ppp-detail-facts span { color: var(--unla-muted); font-size: 0.82rem; }
+.ppp-detail-facts strong { color: #3d3537; font-weight: 600; }
+.ppp-observation { background: #fff8e1; border-left: 3px solid #d99b20; color: #6b4f13; margin-top: 1rem; padding: 0.75rem; }
+.ppp-observation p { margin: 0.35rem 0 0; white-space: pre-wrap; }
+.ppp-detail-grid p { color: var(--unla-muted); line-height: 1.5; }
+.ppp-inline-button { display: inline-block; text-decoration: none; }
+.ppp-muted { color: var(--unla-muted); font-size: 0.9rem; }
+.ppp-actions-card { margin-top: 1rem; }
+.ppp-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.ppp-action-warning, .ppp-action-danger { border: 0; border-radius: 4px; color: #fff; cursor: pointer; padding: 0.55rem 1rem; }
+.ppp-action-warning { background: #b7791f; }
+.ppp-action-danger { background: #a62645; }
+.ppp-action-warning:disabled, .ppp-action-danger:disabled, .unla-btn:disabled { cursor: wait; opacity: 0.65; }
+.ppp-detail-error { color: #9f1239; }
+
+@media (max-width: 640px) {
+  .ppp-detail-heading { align-items: flex-start; flex-direction: column; }
+}

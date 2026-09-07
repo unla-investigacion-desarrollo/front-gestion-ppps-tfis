@@ -1,0 +1,191 @@
+.ppp-page {
+  background: #f7f5f2;
+}
+
+.ppp-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ppp-eyebrow {
+  color: var(--unla-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ppp-heading h1 {
+  margin: 0.35rem 0;
+  color: #2d2527;
+}
+
+.ppp-heading p {
+  margin: 0;
+  color: var(--unla-muted);
+}
+
+.ppp-refresh {
+  white-space: nowrap;
+}
+
+.ppp-alert {
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.ppp-alert-error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+}
+
+.ppp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.ppp-proposal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.ppp-card-topline,
+.ppp-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ppp-proposal-card h2,
+.ppp-create-card h2,
+.ppp-modal h2 {
+  margin: 0;
+  color: #2d2527;
+  font-size: 1.2rem;
+}
+
+.ppp-description {
+  flex: 1;
+  margin: 0;
+  color: #51494b;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.ppp-status {
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+}
+
+.ppp-status.is-open { background: #e5f5eb; color: #176b38; }
+.ppp-status.is-closed { background: #eeeeee; color: #666666; }
+
+.ppp-switch-label {
+  align-items: center;
+  color: var(--unla-muted);
+  display: flex;
+  font-size: 0.8rem;
+  gap: 0.4rem;
+}
+
+.ppp-private-note {
+  background: #fff8e1;
+  border-left: 3px solid #d99b20;
+  color: #6b4f13;
+  font-size: 0.88rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.ppp-drive-link {
+  color: var(--unla-primary);
+  font-weight: 600;
+}
+
+.ppp-secondary-action {
+  background: transparent;
+  border: 1px solid var(--unla-border);
+  border-radius: 4px;
+  color: var(--unla-muted);
+  padding: 0.55rem 1rem;
+}
+
+.ppp-create-card {
+  margin-top: 1.5rem;
+}
+
+.ppp-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ppp-form label {
+  color: #3d3537;
+  display: grid;
+  font-weight: 600;
+  gap: 0.4rem;
+}
+
+.ppp-form label span {
+  color: var(--unla-muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+.ppp-form input,
+.ppp-form textarea {
+  border: 1px solid #d5d0d0;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+.ppp-form textarea { resize: vertical; }
+
+.ppp-empty {
+  color: var(--unla-muted);
+  grid-column: 1 / -1;
+}
+
+.ppp-modal-backdrop {
+  align-items: center;
+  background: rgba(31, 24, 26, 0.52);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 1100;
+}
+
+.ppp-modal {
+  max-width: 580px;
+  width: 100%;
+}
+
+.ppp-modal-header button {
+  background: transparent;
+  border: 0;
+  color: var(--unla-muted);
+  cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .unla-page.ppp-page { padding: 1rem; }
+  .ppp-heading { align-items: stretch; flex-direction: column; }
+  .ppp-refresh { align-self: flex-start; }
+}

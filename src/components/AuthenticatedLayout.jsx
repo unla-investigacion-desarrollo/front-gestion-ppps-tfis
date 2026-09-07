@@ -28,16 +28,11 @@ const AuthenticatedLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const displayName = user
-    ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
-    : '';
   const rawRoles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
   if (user?.rol) rawRoles.push(user.rol);
   const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
   const isAdmin = normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
   const isTeacher = normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'ADMINISTRADOR'].includes(r));
-  const mustChange = !!user?.mustChangePassword;
-
   // Toast handling con cola por usuario (localStorage 'userNotifications')
   const [toast, setToast] = useState(null);
   const [progress, setProgress] = useState(1); // 1 => 100%
@@ -149,6 +144,7 @@ const AuthenticatedLayout = ({ children }) => {
           <NavLink to="/dashboard">Inicio</NavLink>
           {(isAdmin || isTeacher) && (
             <>
+              <NavLink to="/ppp/proposals">PPP</NavLink>
               <NavLink to="/admin/proposals">Propuestas</NavLink>
               <NavLink to="/docente/proyectos">Proyectos</NavLink>
               <NavLink to="/docente/entregas">Entregas</NavLink>
