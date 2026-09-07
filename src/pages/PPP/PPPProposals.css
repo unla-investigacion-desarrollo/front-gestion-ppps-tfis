@@ -32,6 +32,30 @@
   white-space: nowrap;
 }
 
+.ppp-external-card {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.ppp-external-card h2 {
+  color: #2d2527;
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.ppp-external-card p {
+  color: var(--unla-muted);
+  margin: 0;
+}
+
+.ppp-drive-form {
+  grid-template-columns: 1fr auto;
+  align-items: end;
+}
+
 .ppp-alert {
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -184,8 +208,18 @@
   line-height: 1;
 }
 
+.ppp-applicants-list { display: grid; gap: 0.75rem; margin-top: 1rem; }
+.ppp-applicant { align-items: center; border-bottom: 1px solid var(--unla-border); display: flex; gap: 1rem; justify-content: space-between; padding-bottom: 0.75rem; }
+.ppp-applicant > div:first-child { display: grid; gap: 0.25rem; }
+.ppp-applicant span { color: var(--unla-muted); font-size: 0.88rem; white-space: pre-wrap; }
+.ppp-applicant-actions { display: flex; flex-shrink: 0; gap: 0.5rem; }
+.ppp-applicant-actions .ppp-action-danger { padding: 0.55rem 1rem; }
+
 @media (max-width: 640px) {
   .unla-page.ppp-page { padding: 1rem; }
   .ppp-heading { align-items: stretch; flex-direction: column; }
   .ppp-refresh { align-self: flex-start; }
+  .ppp-external-card { align-items: flex-start; flex-direction: column; }
+  .ppp-drive-form { grid-template-columns: 1fr; }
+  .ppp-applicant { align-items: flex-start; flex-direction: column; }
 }

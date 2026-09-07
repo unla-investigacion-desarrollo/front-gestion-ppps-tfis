@@ -176,8 +176,6 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
   onAssign,
   onReject,
 }) => {
-  const [selectedStudentId, setSelectedStudentId] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
 
   const totalAssigned = project.students.length;
@@ -218,21 +216,6 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
     }
   };
 
-  const handleSubmitAssign = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!selectedStudentId || isLimitReached) return;
-
-    setIsSubmitting(true);
-    try {
-      await onAssign(selectedStudentId);
-      onClose();
-    } catch (error) {
-      showToast('Ocurrió un error al intentar asignar el alumno.', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <>
       <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1}>
@@ -269,7 +252,7 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
                   <div className="alert alert-info py-2 small mb-0">
                     ℹ️ No hay solicitudes pendientes de alumnos para este proyecto.
                     <br />
-                    Para que un alumno sea asignado, debe ingresar desde su cuenta y hacer clic en <strong>"Solicitar unirse"</strong>.
+                    El alumno debe solicitar unirse desde su cuenta para que puedas aprobarlo desde este listado.
                   </div>
                 ) : (
                   <div className="list-group">
@@ -314,37 +297,6 @@ export const AssignStudentModal: React.FC<AssignStudentModalProps> = ({
                 )}
               </div>
 
-              {/* SECCIÓN 2: Asignación directa si se requiere */}
-              {!isLimitReached && (
-                <form onSubmit={handleSubmitAssign} className="pt-2 border-top">
-                  <label className="form-label" style={{ fontWeight: 500 }} htmlFor="studentSelectBox">
-                    O seleccionar estudiante para procesar solicitud:
-                  </label>
-                  <div className="d-flex gap-2">
-                    <select
-                      id="studentSelectBox"
-                      className="form-select"
-                      value={selectedStudentId}
-                      onChange={(e) => setSelectedStudentId(e.target.value)}
-                    >
-                      <option value="">Seleccioná estudiante...</option>
-                      {students.map((stud) => (
-                        <option key={stud.id} value={stud.id}>
-                          {[stud.nombre, stud.apellido].filter(Boolean).join(' ') || stud.email}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      style={{ backgroundColor: 'var(--unla-primary, #64001d)', border: 'none', whiteSpace: 'nowrap' }}
-                      disabled={!selectedStudentId || isSubmitting}
-                    >
-                      {isSubmitting ? 'Asignando...' : 'Asignar'}
-                    </button>
-                  </div>
-                </form>
-              )}
             </div>
 
             <div className="modal-footer custom-modal-footer">

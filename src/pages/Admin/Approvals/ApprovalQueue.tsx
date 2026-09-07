@@ -167,7 +167,7 @@ const ApprovalQueue: React.FC = () => {
               </svg>
             </div>
             <div>
-              <h1 className="approvals-header-title">Aprobaciones</h1>
+              <h1 className="approvals-header-title">Solicitudes</h1>
               <p className="approvals-header-subtitle">
                 Revisa y gestiona las solicitudes de postulación a proyectos y registros de usuarios.
               </p>

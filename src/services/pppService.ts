@@ -9,6 +9,15 @@ export interface PPPProposal {
   isOpen: boolean;
   createdAt?: string;
   updatedAt?: string;
+  applications?: PPPApplication[];
+}
+
+export interface PPPApplication {
+  id?: string | number;
+  studentId?: string | number;
+  student?: Record<string, unknown> | null;
+  status?: string;
+  previousKnowledge?: string;
 }
 
 export interface CreatePPPProposalDTO {
@@ -105,6 +114,20 @@ export const pppService = {
     });
   },
 
+  acceptApplication(proposalId: string | number, studentId: string | number, token: string) {
+    return request<unknown>(`/ppp/proposals/${proposalId}/students/${studentId}/accept`, token, {
+      method: 'PATCH',
+      body: '{}',
+    });
+  },
+
+  rejectApplication(proposalId: string | number, studentId: string | number, token: string) {
+    return request<unknown>(`/ppp/proposals/${proposalId}/students/${studentId}/reject`, token, {
+      method: 'PATCH',
+      body: '{}',
+    });
+  },
+
   applyToProposal(id: string | number, payload: ApplyPPPProposalDTO, token: string) {
     return request<unknown>(`/ppp/proposals/${id}/apply`, token, {
       method: 'POST',
@@ -142,5 +165,19 @@ export const pppService = {
 
   getGeneralDrive(token: string) {
     return request<{ generalDriveUrl: string }>('/ppp/general-drive', token);
+  },
+
+  updateGeneralDrive(generalDriveUrl: string, token: string) {
+    return request<{ generalDriveUrl: string }>('/ppp/general-drive', token, {
+      method: 'PATCH',
+      body: JSON.stringify({ generalDriveUrl }),
+    });
+  },
+
+  startExternalCase(token: string) {
+    return request<PPPCase>('/ppp/external', token, {
+      method: 'POST',
+      body: '{}',
+    });
   },
 };
