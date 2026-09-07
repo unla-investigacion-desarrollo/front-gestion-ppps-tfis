@@ -21,6 +21,7 @@ import MyProjects from '../pages/Student/MyProjects';
 import StudentDeliveries from '../pages/Student/Deliveries';
 import TeacherProjectCreate from '../pages/Teacher/TeacherProjectCreate';
 import DeliveriesReview from '../pages/Teacher/DeliveriesReview';
+import Trabajo from '../pages/Trabajo/Trabajo';
 const App = () => {
 
 
@@ -130,6 +131,20 @@ const App = () => {
             <PrivateRoute>
               <AuthenticatedLayout>
                 <TeacherProjectCreate />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          <Route path="/proyectos/:projectId/trabajo" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <Trabajo />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          <Route path="/docente/proyectos/:projectId/trabajo" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <Trabajo />
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
