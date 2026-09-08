@@ -24,7 +24,6 @@ const TeacherProjectCreate: React.FC = () => {
     descripcion: '',
     projectTypeId: '' as string | number,
     categoria: '',
-    estado: 'activo'
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
@@ -40,9 +39,6 @@ const TeacherProjectCreate: React.FC = () => {
     }
     if (!form.projectTypeId && !form.categoria) {
       e.categoria = 'El tipo de proyecto es obligatorio';
-    }
-    if (!form.estado) {
-      e.estado = 'El estado es obligatorio';
     }
     if (!form.descripcion.trim()) {
       e.descripcion = 'La descripción es obligatoria';
@@ -69,11 +65,10 @@ const TeacherProjectCreate: React.FC = () => {
           descripcion: form.descripcion,
           projectTypeId: form.projectTypeId ? Number(form.projectTypeId) : undefined,
           categoria: form.categoria,
-          estado: form.estado
         })
       ).unwrap();
       showToast('Proyecto creado exitosamente', 'success');
-      setForm({ titulo: '', descripcion: '', projectTypeId: '', categoria: '', estado: 'activo' });
+      setForm({ titulo: '', descripcion: '', projectTypeId: '', categoria: '' });
       navigate('/docente/proyectos');
     } catch (err: any) {
       showToast(err?.message || 'Error al crear el proyecto', 'error');
@@ -129,65 +124,36 @@ const TeacherProjectCreate: React.FC = () => {
                 )}
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="categoria">
-                    Tipo de Proyecto <span>*</span>
-                  </label>
-                  <select
-                    id="categoria"
-                    className={`select-field ${errors.categoria ? 'error' : ''}`}
-                    value={form.projectTypeId}
-                    onChange={(e) => {
-                      const selId = e.target.value ? Number(e.target.value) : '';
-                      const found = projectTypes.find((t) => t.id === selId);
-                      setForm({ ...form, projectTypeId: selId, categoria: found ? found.name : '' });
-                    }}
-                  >
-                    <option value="">Selecciona un tipo de proyecto</option>
-                    {projectTypes.map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {type.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.categoria && (
-                    <span className="error-hint">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                      </svg>
-                      {errors.categoria}
-                    </span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="estado">
-                    Estado <span>*</span>
-                  </label>
-                  <select
-                    id="estado"
-                    className={`select-field ${errors.estado ? 'error' : ''}`}
-                    value={form.estado}
-                    onChange={(e) => setForm({ ...form, estado: e.target.value })}
-                  >
-                    <option value="">Selecciona un estado</option>
-                    <option value="activo">Activo</option>
-                    <option value="borrador">Borrador</option>
-                    <option value="pausado">Pausado</option>
-                    <option value="completado">Completado</option>
-                  </select>
-                  {errors.estado && (
-                    <span className="error-hint">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                      </svg>
-                      {errors.estado}
-                    </span>
-                  )}
-                </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="categoria">
+                  Tipo de Proyecto <span>*</span>
+                </label>
+                <select
+                  id="categoria"
+                  className={`select-field ${errors.categoria ? 'error' : ''}`}
+                  value={form.projectTypeId}
+                  onChange={(e) => {
+                    const selId = e.target.value ? Number(e.target.value) : '';
+                    const found = projectTypes.find((t) => t.id === selId);
+                    setForm({ ...form, projectTypeId: selId, categoria: found ? found.name : '' });
+                  }}
+                >
+                  <option value="">Selecciona un tipo de proyecto</option>
+                  {projectTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.categoria && (
+                  <span className="error-hint">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                      <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+                    </svg>
+                    {errors.categoria}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
@@ -273,19 +239,6 @@ const TeacherProjectCreate: React.FC = () => {
                 <div className="info-item-content">
                   <span className="info-item-title">Categoría</span>
                   <span className="info-item-desc">Elegí la categoría que corresponda.</span>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <div className="info-item-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
-                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
-                  </svg>
-                </div>
-                <div className="info-item-content">
-                  <span className="info-item-title">Estado</span>
-                  <span className="info-item-desc">Definí el estado inicial del proyecto.</span>
                 </div>
               </div>
 
