@@ -271,7 +271,12 @@ const projectsSlice = createSlice({
       })
       .addCase(fetchProjects.fulfilled, (state, action: PayloadAction<Project[]>) => {
         state.status = 'succeeded';
-        state.list = action.payload;
+        state.list = [...action.payload].sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          if (timeB !== timeA) return timeB - timeA;
+          return Number(b.id || 0) - Number(a.id || 0);
+        });
       })
       .addCase(fetchProjects.rejected, (state, action) => {
         state.status = 'failed';
@@ -281,7 +286,7 @@ const projectsSlice = createSlice({
         state.projectTypes = action.payload;
       })
       .addCase(createProject.fulfilled, (state, action) => {
-        state.list.push(action.payload);
+        state.list.unshift(action.payload);
       })
       .addCase(updateProject.fulfilled, (state, action) => {
         const idx = state.list.findIndex((p) => p.id === action.payload.id);
