@@ -282,6 +282,28 @@
   padding: 4px 8px;
   border-radius: 12px;
   text-transform: capitalize;
+  font-weight: 600;
+}
+
+.activity-badge-activo,
+.activity-badge-aprobada {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.activity-badge-pendiente {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.activity-badge-curso {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.activity-badge-inactivo {
+  background-color: #f3f4f6;
+  color: #4b5563;
 }
 
 .border-bottom-custom {
@@ -299,6 +321,27 @@
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+  background-color: #6b7280;
+}
+
+.summary-bullet-tfi {
+  background-color: #6366f1;
+}
+
+.summary-bullet-ppp {
+  background-color: #ec4899;
+}
+
+.summary-bullet-propuestas {
+  background-color: #f59e0b;
+}
+
+.summary-bullet-proyectos {
+  background-color: #3b82f6;
+}
+
+.summary-bullet-entregas {
+  background-color: #10b981;
 }
 
 .summary-label {
@@ -309,6 +352,8 @@
 
 .summary-value {
   color: #111827;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .border-bottom-custom-light {
