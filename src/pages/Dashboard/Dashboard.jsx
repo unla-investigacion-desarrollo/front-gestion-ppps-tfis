@@ -1,30 +1,29 @@
-
-import { useMemo, useState } from 'react';
-import bgImage from '../../assets/fondo-rojo.jpg';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar';
-import { useAuth } from '../../hooks/useAuth';
-import ConfirmLogoutModal from '../../components/ConfirmLogoutModal';
 import './Dashboard.css';
-import logo from '../../assets/logo.png';
 
 // Reusable components for Admin Dashboard
 import MetricCard from './components/MetricCard';
 import ActivityItem from './components/ActivityItem';
 import SummaryRow from './components/SummaryRow';
+import StudentDashboard from './StudentDashboard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const usuario = JSON.parse(localStorage.getItem("user"));
-  const { logout } = useAuth();
-  const [showConfirm, setShowConfirm] = useState(false);
+  const usuario = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
 
   // Check if user is Admin
   const isAdmin = useMemo(() => {
     const rawRoles = Array.isArray(usuario?.roles) ? [...usuario.roles] : usuario?.roles ? [usuario.roles] : [];
     if (usuario?.rol) rawRoles.push(usuario.rol);
-    const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
-    return normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
+    const normalizedRoles = rawRoles.map((role) => String(role).toUpperCase().trim());
+    return normalizedRoles.some((role) => ['ADMIN', 'ADMINISTRADOR'].includes(role));
   }, [usuario]);
 
   // Mostrar propuestas solo para estudiantes
@@ -36,11 +35,19 @@ const Dashboard = () => {
 
   const lastProposal = useMemo(() => {
     try {
-      const raw = localStorage.getItem('proposals');
-      const arr = raw ? JSON.parse(raw) : [];
-      const mine = usuario ? arr.filter((p) => p.userId === usuario.id) : arr;
-      return mine.sort((a, b) => (b.uploadedAt || '').localeCompare(a.uploadedAt || ''))[0] || null;
-    } catch { return null; }
+      const rawProposals = localStorage.getItem('proposals');
+      const proposalsList = rawProposals ? JSON.parse(rawProposals) : [];
+      const userProposals = usuario?.id
+        ? proposalsList.filter((proposal) => proposal.userId === usuario.id)
+        : proposalsList;
+      return (
+        userProposals.sort((proposalA, proposalB) =>
+          (proposalB.uploadedAt || '').localeCompare(proposalA.uploadedAt || '')
+        )[0] || null
+      );
+    } catch {
+      return null;
+    }
   }, [usuario]);
 
   // Render Admin Redesigned Dashboard
@@ -131,7 +138,7 @@ const Dashboard = () => {
                   </svg>
                   Actividad reciente
                 </h3>
-                <a href="#/" onClick={(e) => { e.preventDefault(); navigate('/admin/users'); }} className="panel-card-link">Ver todas →</a>
+                <a href="#/" onClick={(event) => { event.preventDefault(); navigate('/admin/users'); }} className="panel-card-link">Ver todas →</a>
               </div>
               <div className="activity-list">
                 <ActivityItem
@@ -213,11 +220,11 @@ const Dashboard = () => {
                 Resumen por tipo
               </h3>
               <div className="summary-list d-flex flex-column gap-1">
-                <SummaryRow label="TFI" value="7" color="#6366f1" />
-                <SummaryRow label="PPP" value="5" color="#ec4899" />
-                <SummaryRow label="Propuestas" value="3" color="#f59e0b" />
-                <SummaryRow label="Proyectos" value="12" color="#3b82f6" />
-                <SummaryRow label="Entregas" value="5" color="#10b981" />
+                <SummaryRow label="TFI" value="7" theme="tfi" />
+                <SummaryRow label="PPP" value="5" theme="ppp" />
+                <SummaryRow label="Propuestas" value="3" theme="propuestas" />
+                <SummaryRow label="Proyectos" value="12" theme="proyectos" />
+                <SummaryRow label="Entregas" value="5" theme="entregas" />
               </div>
             </div>
 
@@ -244,66 +251,7 @@ const Dashboard = () => {
     );
   }
 
-  return (
-    <div className="dashboard-layout" style={{ minHeight: '100vh', backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-      <header className="dashboard-header">
-        <img src={logo} alt="UNLa Logo" className="dashboard-logo" />
-        <h1>Gestión de Trabajo Final Anual</h1>
-        {usuario && (
-          <div className="usuario-info">
-            <button className="btn btn-danger btn-sm" onClick={() => setShowConfirm(true)}>Cerrar sesión</button>
-            <p><strong>Usuario:</strong> {usuario.name}</p>
-            <p><strong>Rol:</strong> {Array.isArray(usuario.roles) ?
-              Array.from(new Set(usuario.roles.map(r => r.toLowerCase())))
-                .map(r => r.charAt(0).toUpperCase() + r.slice(1).toLowerCase())
-                .join(', ')
-              : (usuario.roles ? usuario.roles.charAt(0).toUpperCase() + usuario.roles.slice(1).toLowerCase() : '')
-            }</p>
-          </div>
-        )}
-      </header>
-      <Sidebar />
-      <main className="dashboard-main">
-        {/* Estado de Propuesta */}
-        {isStudent && (
-          <div className="unla-card" style={{ marginBottom: 16 }}>
-            <h2>Propuesta</h2>
-            {lastProposal ? (
-              <div className="unla-list">
-                <div><strong>Último envío:</strong> {new Date(lastProposal.uploadedAt).toLocaleString()}</div>
-                <div><strong>Título:</strong> {lastProposal.titulo}</div>
-                <div><strong>Estado:</strong> <span className="unla-badge">{lastProposal.estado}</span></div>
-                {lastProposal.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastProposal.reason}</div>}
-                {lastProposal.note && <div className="unla-hint"><strong>Observación:</strong> {lastProposal.note}</div>}
-                <div style={{ marginTop: 8 }}>
-                  <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div className="unla-hint">Aún no enviaste tu propuesta.</div>
-                <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Espacio reservado para otros módulos */}
-      </main>
-
-      {/* Modal de confirmación de cierre de sesión */}
-      <ConfirmLogoutModal 
-        isOpen={showConfirm}
-        onCancel={() => setShowConfirm(false)}
-        onConfirm={() => {
-          logout();
-          localStorage.removeItem("user");
-          setShowConfirm(false);
-          navigate('/');
-        }}
-      />
-    </div>
-  );
+  return <StudentDashboard user={usuario} />;
 };
 
 export default Dashboard;

@@ -12,12 +12,15 @@ const TeacherProjectCreate: React.FC = () => {
   const navigate = useNavigate();
 
   const reduxTypes = useSelector(selectProjectTypes);
-  const projectTypes: ProjectType[] = (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
+  const baseTypes: ProjectType[] = (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
     { id: 1, name: 'Development' },
     { id: 2, name: 'Research' },
     { id: 3, name: 'Extension' },
     { id: 4, name: 'Other' },
   ];
+  const projectTypes: ProjectType[] = baseTypes.some((t) => t.name.toUpperCase() === 'PPP')
+    ? baseTypes
+    : [...baseTypes, { id: 99, name: 'PPP' }];
 
   const [form, setForm] = useState({
     titulo: '',
@@ -141,7 +144,7 @@ const TeacherProjectCreate: React.FC = () => {
                   <option value="">Selecciona un tipo de proyecto</option>
                   {projectTypes.map((type) => (
                     <option key={type.id} value={type.id}>
-                      {type.name}
+                      {type.name.toUpperCase() === 'PPP' ? 'PPP (Práctica Profesional Supervisada)' : `TFI - ${type.name}`}
                     </option>
                   ))}
                 </select>

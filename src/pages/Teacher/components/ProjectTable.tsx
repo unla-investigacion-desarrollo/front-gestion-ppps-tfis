@@ -44,7 +44,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     if (onViewProjectClick) {
       onViewProjectClick(project);
     } else {
-      navigate(`/proyectos/${project.id}/trabajo`);
+      const isPPP =
+        project.categoria?.toUpperCase() === 'PPP' ||
+        project.projectType?.name?.toUpperCase() === 'PPP';
+      if (isPPP) {
+        navigate(`/ppp/${project.id}`);
+      } else {
+        navigate(`/proyectos/${project.id}/trabajo`);
+      }
     }
   };
 
@@ -56,10 +63,20 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   // Renderiza el badge estilizado de la categoría o tipo de proyecto
   const renderCategoryBadge = (category?: string) => {
-    if (!category) return null;
+    if (!category) {
+      return <span className="badge-project-type-tfi me-2">TFI</span>;
+    }
     const cleanCategory = category.toLowerCase().trim();
-    let badgeStyleClass = 'badge-generic';
 
+    if (cleanCategory === 'ppp') {
+      return (
+        <span className="badge-project-type-ppp me-2">
+          PPP
+        </span>
+      );
+    }
+
+    let badgeStyleClass = 'badge-generic';
     if (cleanCategory === 'desarrollo' || cleanCategory === 'development') {
       badgeStyleClass = 'badge-desarrollo';
     } else if (cleanCategory === 'investigacion' || cleanCategory === 'investigación' || cleanCategory === 'research') {
@@ -69,8 +86,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     }
 
     return (
-      <span className={`project-category-badge ${badgeStyleClass}`}>
-        {category}
+      <span className="d-inline-flex align-items-center gap-1.5 me-2">
+        <span className="badge-project-type-tfi">TFI</span>
+        <span className={`project-category-badge ${badgeStyleClass}`}>
+          {category}
+        </span>
       </span>
     );
   };
@@ -114,12 +134,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 {/* Columna: Proyecto (Fusión de Título, Descripción, Categoría y Fecha) */}
                 <td style={{ padding: '12px 16px' }}>
                   {renderCategoryBadge(project.categoria)}
-                  <Link
-                    to={`/proyectos/${encodeURIComponent(project.id)}/trabajo`}
-                    className="project-title-link"
-                  >
-                    {project.titulo}
-                  </Link>
+                  {(() => {
+                    const isPPP =
+                      project.categoria?.toUpperCase() === 'PPP' ||
+                      project.projectType?.name?.toUpperCase() === 'PPP';
+                    const targetUrl = isPPP
+                      ? `/ppp/${encodeURIComponent(project.id)}`
+                      : `/proyectos/${encodeURIComponent(project.id)}/trabajo`;
+                    return (
+                      <Link to={targetUrl} className="project-title-link">
+                        {project.titulo}
+                      </Link>
+                    );
+                  })()}
                   <p className="project-description-text">{project.descripcion}</p>
 
                   {project.createdAt && (

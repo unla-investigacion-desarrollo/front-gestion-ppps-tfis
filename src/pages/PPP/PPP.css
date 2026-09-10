@@ -1,0 +1,554 @@
+/* ==========================================================================
+   ESTILOS GENERALES DEL MÓDULO PPP (Prácticas Profesionales Supervisadas)
+   ========================================================================== */
+
+.ppp-page-wrapper {
+  background-color: #f8fafc;
+  min-height: calc(100vh - 64px);
+  padding: 32px 24px;
+}
+
+.ppp-container {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* Encabezado de Sección */
+.ppp-header-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ppp-header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ppp-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: #fdf2f4;
+  color: var(--unla-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ppp-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.ppp-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 4px 0 0 0;
+}
+
+.ppp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Botones principales */
+.btn-unla-primary {
+  background-color: var(--unla-primary);
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(128, 0, 32, 0.15);
+}
+
+.btn-unla-primary:hover {
+  background-color: var(--unla-primary-hover, #64001d);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-unla-outline {
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-unla-outline:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+/* Barra de Filtros */
+.ppp-filter-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ppp-search-box {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+
+.ppp-search-box input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  transition: border-color 0.2s;
+}
+
+.ppp-search-box input:focus {
+  outline: none;
+  border-color: var(--unla-primary);
+  box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1);
+}
+
+.ppp-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* Grilla de Convocatorias */
+.ppp-proposals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.ppp-proposal-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.ppp-proposal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.ppp-proposal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ppp-proposal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.ppp-proposal-desc {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.55;
+  margin-bottom: 18px;
+  flex: 1;
+}
+
+.ppp-proposal-drive-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0284c7;
+  text-decoration: none;
+  margin-bottom: 14px;
+  background-color: #f0f9ff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.ppp-proposal-drive-link:hover {
+  color: #0369a1;
+  background-color: #e0f2fe;
+}
+
+.ppp-internal-notes-box {
+  background-color: #fffbeb;
+  border: 1px dashed #f59e0b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: #92400e;
+  margin-bottom: 16px;
+}
+
+.ppp-internal-notes-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ppp-proposal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: auto;
+}
+
+/* Interruptor Convocatoria Abierta/Cerrada */
+.ppp-switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-check-input.ppp-switch {
+  cursor: pointer;
+  width: 2.4em;
+  height: 1.25em;
+}
+
+.form-check-input.ppp-switch:checked {
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+
+/* Badges de Estado del Trámite */
+.ppp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ppp-status-pending_application {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.ppp-status-application_rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.ppp-status-pending_documentation {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.ppp-status-in_review {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.ppp-status-observed {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+.ppp-status-approved {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.ppp-status-disapproved {
+  background-color: #ffe4e6;
+  color: #be123c;
+}
+
+.ppp-status-dropped_out {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.ppp-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Badge SIU Guaraní */
+.ppp-siu-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ppp-siu-badge.loaded {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.ppp-siu-badge.pending {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Tabla de Expedientes */
+.ppp-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.ppp-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.ppp-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ppp-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.ppp-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Stepper del Detalle del Trámite */
+.ppp-stepper-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.ppp-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 20px 0;
+}
+
+.ppp-stepper-track {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  right: 40px;
+  height: 3px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.ppp-stepper-progress {
+  height: 100%;
+  background-color: var(--unla-primary);
+  transition: width 0.3s ease;
+}
+
+.ppp-step-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 120px;
+}
+
+.ppp-step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.ppp-step-item.active .ppp-step-circle {
+  border-color: var(--unla-primary);
+  color: #ffffff;
+  background-color: var(--unla-primary);
+  box-shadow: 0 0 0 4px rgba(128, 0, 32, 0.15);
+}
+
+.ppp-step-item.completed .ppp-step-circle {
+  border-color: #16a34a;
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.ppp-step-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.ppp-step-item.active .ppp-step-label {
+  color: var(--unla-primary);
+  font-weight: 700;
+}
+
+/* Callout prioritario para descargar modelos de Drive */
+.ppp-drive-download-banner {
+  background: linear-gradient(135deg, #fdf2f4 0%, #ffffff 100%);
+  border: 1px solid #fecdd3;
+  border-left: 5px solid var(--unla-primary);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ppp-drive-download-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ppp-drive-download-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: var(--unla-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Paneles de Acción para Detalle */
+.ppp-actions-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px 32px;
+  margin-bottom: 24px;
+}
+
+.ppp-actions-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ppp-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Badge distintivo de tipo de proyecto en tablas */
+.badge-project-type-tfi {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge-project-type-ppp {
+  background-color: #fae8ff;
+  color: #a21caf;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
