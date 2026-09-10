@@ -158,14 +158,13 @@ const UserTable: React.FC<UserTableProps> = ({
               Estado{renderSortIndicator('estado')}
             </th>
             <th>DNI</th>
-            <th>Legajo</th>
             {showActionsColumn && <th style={{ textAlign: 'center' }}>Acciones</th>}
           </tr>
         </thead>
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={showActionsColumn ? 7 : 6} className="text-center py-4 text-muted">
+              <td colSpan={showActionsColumn ? 6 : 5} className="text-center py-4 text-muted">
                 No hay usuarios para mostrar.
               </td>
             </tr>
@@ -199,9 +198,6 @@ const UserTable: React.FC<UserTableProps> = ({
 
                 {/* Celda del DNI */}
                 <td style={{ padding: '12px 16px' }}>{u.dni ?? '-'}</td>
-                
-                {/* Celda del Legajo */}
-                <td style={{ padding: '12px 16px' }}>{u.legajo ?? '-'}</td>
 
                 {/* Columna de Acciones Unificadas en un Botón Dropdown (⋮) */}
                 {showActionsColumn && (

@@ -56,7 +56,7 @@ const TeacherProjectsList: React.FC = () => {
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
   const [filters, setFilters] = useState<ProjectFiltersState>({ q: '', categoria: 'ALL', alumnos: 'ALL' });
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(5);
 
   // --- ESTADO DE CONTROL DE MODALES ---
   const [activeActivityProject, setActiveActivityProject] = useState<Project | null>(null);
@@ -98,9 +98,9 @@ const TeacherProjectsList: React.FC = () => {
     });
   }, [users]);
 
-  // Filtrado de proyectos en base al buscador y filtros seleccionados
+  // Filtrado y ordenamiento de proyectos (los más recientes primero)
   const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
+    const list = projects.filter((project) => {
       // 1. Filtro por buscador (Título y Descripción)
       const searchQuery = filters.q.trim().toLowerCase();
       const matchesSearch =
@@ -128,13 +128,29 @@ const TeacherProjectsList: React.FC = () => {
 
       return matchesSearch && matchesCategory && matchesStudents;
     });
+
+    // Ordenar de forma descendente: proyectos más recientes primero
+    return list.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (timeB !== timeA) return timeB - timeA;
+      return Number(b.id || 0) - Number(a.id || 0);
+    });
   }, [projects, filters]);
+
+  // Cálculo de total de páginas y ajuste automático de rango
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   // Cortar la lista filtrada de proyectos según la página actual
   const paginatedProjects = useMemo(() => {
     const startIndex = (page - 1) * pageSize;
     return filteredProjects.slice(startIndex, startIndex + pageSize);
-  }, [filteredProjects, page]);
+  }, [filteredProjects, page, pageSize]);
 
   // --- HISTORIAL DE ACTIVIDAD (LOCALSTORAGE) ---
 
@@ -384,6 +400,11 @@ const TeacherProjectsList: React.FC = () => {
             totalItems={filteredProjects.length}
             pageSize={pageSize}
             onPageChange={setPage}
+            pageSizeOptions={[5, 10, 20]}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPage(1);
+            }}
           />
         )}
       </div>
