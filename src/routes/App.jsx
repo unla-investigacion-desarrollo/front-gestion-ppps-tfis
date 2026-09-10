@@ -22,6 +22,11 @@ import StudentDeliveries from '../pages/Student/Deliveries';
 import TeacherProjectCreate from '../pages/Teacher/TeacherProjectCreate';
 import DeliveriesReview from '../pages/Teacher/DeliveriesReview';
 import Trabajo from '../pages/Trabajo/Trabajo';
+import PPPProposalsCatalog from '../pages/PPP/PPPProposalsCatalog';
+import PPPExpedientesList from '../pages/PPP/PPPExpedientesList';
+import PPPTramiteDetail from '../pages/PPP/PPPTramiteDetail';
+import PPPStudentMyTramite from '../pages/PPP/PPPStudentMyTramite';
+
 const App = () => {
 
 
@@ -163,6 +168,47 @@ const App = () => {
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
+          {/* Rutas Módulo PPP (Prácticas Profesionales Supervisadas) */}
+          <Route path="/ppp/convocatorias" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <PPPProposalsCatalog />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp/expedientes" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <PPPExpedientesList />
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <PPPExpedientesList />
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp/:id" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <PPPTramiteDetail />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          <Route path="/alumno/ppp" element={
+            <PrivateRoute>
+              <AuthenticatedLayout>
+                <PPPStudentMyTramite />
+              </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+
           {/* Fallback */}
           <Route path='*' element={<NotFound />} />
         </Routes>

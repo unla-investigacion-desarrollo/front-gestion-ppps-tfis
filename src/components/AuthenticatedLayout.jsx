@@ -142,17 +142,27 @@ const AuthenticatedLayout = ({ children }) => {
       <header className="unla-header">
         <div className="unla-header-brand">
           <img src={logo} alt="UNLa Logo" className="unla-header-logo" />
-          <span className="unla-header-title">Gestión de TFI</span>
+          <span className="unla-header-title">Gestión de TFI y PPP</span>
         </div>
         <div className="spacer" />
         <nav className="unla-nav-links">
           <NavLink to="/dashboard">Inicio</NavLink>
           {(isAdmin || isTeacher) && (
             <>
-              <NavLink to="/admin/proposals">Propuestas</NavLink>
+              <NavLink to="/admin/proposals">Propuestas TFI</NavLink>
               <NavLink to="/docente/proyectos">Proyectos</NavLink>
-              <NavLink to="/docente/entregas">Entregas</NavLink>
+              <NavLink to="/docente/entregas">Entregas TFI</NavLink>
+              <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
+              <NavLink to="/ppp/expedientes">Expedientes PPP</NavLink>
               <NavLink to="/admin/approvals">Solicitudes</NavLink>
+            </>
+          )}
+          {(!isAdmin && !isTeacher) && (
+            <>
+              <NavLink to="/alumno/mis-proyectos">Proyectos TFI</NavLink>
+              <NavLink to="/alumno/entregas">Entregas TFI</NavLink>
+              <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
+              <NavLink to="/alumno/ppp">Mi Trámite PPP</NavLink>
             </>
           )}
           {isAdmin && (

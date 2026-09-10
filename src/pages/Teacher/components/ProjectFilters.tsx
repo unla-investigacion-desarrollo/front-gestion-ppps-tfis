@@ -32,12 +32,15 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
 
   // Tipos de proyectos desde Redux o props, con respaldo por defecto
   const reduxTypes = useSelector(selectProjectTypes);
-  const availableTypes = (propTypes && propTypes.length > 0) ? propTypes : (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
+  const baseTypes = (propTypes && propTypes.length > 0) ? propTypes : (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
     { id: 1, name: 'Desarrollo' },
     { id: 2, name: 'Investigación' },
     { id: 3, name: 'Extensión' },
     { id: 4, name: 'Otro' },
   ];
+  const availableTypes = baseTypes.some((t) => t.name.toUpperCase() === 'PPP')
+    ? baseTypes
+    : [...baseTypes, { id: 99, name: 'PPP' }];
 
   // Manejador genérico de cambios en los inputs y selectores de filtros
   const handleFilterChange = (key: keyof ProjectFiltersState, value: string) => {

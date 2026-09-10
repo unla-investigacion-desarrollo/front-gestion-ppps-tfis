@@ -364,6 +364,24 @@ const Trabajo: React.FC = () => {
           </div>
         </div>
 
+        {/* Banner Informativo si es Proyecto PPP */}
+        {(project?.categoria?.toUpperCase() === 'PPP' || project?.projectType?.name?.toUpperCase() === 'PPP') && (
+          <div className="alert alert-info border-info d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 shadow-sm">
+            <div className="d-flex align-items-center gap-3">
+              <span className="badge-project-type-ppp">PPP</span>
+              <div>
+                <strong className="d-block text-dark">Proyecto de Práctica Profesional Supervisada (PPP)</strong>
+                <span className="small text-secondary">
+                  Este proyecto se gestiona mediante el módulo de expedientes y convenios oficiales de PPP, diferenciado del esquema de entregas de TFI.
+                </span>
+              </div>
+            </div>
+            <Link to={`/ppp/${projectId}`} className="btn btn-sm btn-primary text-nowrap">
+              Ir al Expediente PPP →
+            </Link>
+          </div>
+        )}
+
         {/* Tarjeta 1: Información del Proyecto */}
         <div className="trabajo-card">
           <div className="trabajo-project-header">

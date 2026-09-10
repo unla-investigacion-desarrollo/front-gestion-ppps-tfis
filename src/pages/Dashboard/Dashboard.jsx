@@ -264,28 +264,46 @@ const Dashboard = () => {
       </header>
       <Sidebar />
       <main className="dashboard-main">
-        {/* Estado de Propuesta */}
+        {/* Estado de Propuesta TFI */}
         {isStudent && (
-          <div className="unla-card" style={{ marginBottom: 16 }}>
-            <h2>Propuesta</h2>
-            {lastProposal ? (
-              <div className="unla-list">
-                <div><strong>Último envío:</strong> {new Date(lastProposal.uploadedAt).toLocaleString()}</div>
-                <div><strong>Título:</strong> {lastProposal.titulo}</div>
-                <div><strong>Estado:</strong> <span className="unla-badge">{lastProposal.estado}</span></div>
-                {lastProposal.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastProposal.reason}</div>}
-                {lastProposal.note && <div className="unla-hint"><strong>Observación:</strong> {lastProposal.note}</div>}
-                <div style={{ marginTop: 8 }}>
-                  <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta</button>
+          <>
+            <div className="unla-card" style={{ marginBottom: 16 }}>
+              <h2>Propuesta de TFI</h2>
+              {lastProposal ? (
+                <div className="unla-list">
+                  <div><strong>Último envío:</strong> {new Date(lastProposal.uploadedAt).toLocaleString()}</div>
+                  <div><strong>Título:</strong> {lastProposal.titulo}</div>
+                  <div><strong>Estado:</strong> <span className="unla-badge">{lastProposal.estado}</span></div>
+                  {lastProposal.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastProposal.reason}</div>}
+                  {lastProposal.note && <div className="unla-hint"><strong>Observación:</strong> {lastProposal.note}</div>}
+                  <div style={{ marginTop: 8 }}>
+                    <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta TFI</button>
+                  </div>
                 </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div className="unla-hint">Aún no enviaste tu propuesta de TFI.</div>
+                  <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta TFI</button>
+                </div>
+              )}
+            </div>
+
+            {/* Módulo Práctica Profesional Supervisada (PPP) */}
+            <div className="unla-card" style={{ marginBottom: 16 }}>
+              <h2>Prácticas Profesionales Supervisadas (PPP)</h2>
+              <p className="text-muted small">
+                Participá en proyectos internos de la universidad o gestioná el convenio oficial para tu práctica en una empresa externa.
+              </p>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
+                <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/ppp/convocatorias')}>
+                  Ver Convocatorias Abiertas
+                </button>
+                <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/alumno/ppp')}>
+                  Mis Trámites de PPP
+                </button>
               </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div className="unla-hint">Aún no enviaste tu propuesta.</div>
-                <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta</button>
-              </div>
-            )}
-          </div>
+            </div>
+          </>
         )}
 
         {/* Espacio reservado para otros módulos */}
