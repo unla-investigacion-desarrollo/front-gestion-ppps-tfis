@@ -46,7 +46,14 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
   const currentUser = useSelector(selectCurrentUser) as any;
   const token = localStorage.getItem('token') || '';
 
-  const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'active'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'active'>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam === 'requests' || tabParam === 'active') return tabParam;
+    } catch {}
+    return 'all';
+  });
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [myRequests, setMyRequests] = useState<RequestItem[]>([]);
   const [myActiveProjects, setMyActiveProjects] = useState<RequestItem[]>([]);

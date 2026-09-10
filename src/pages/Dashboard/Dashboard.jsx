@@ -12,6 +12,7 @@ import logo from '../../assets/logo.png';
 import MetricCard from './components/MetricCard';
 import ActivityItem from './components/ActivityItem';
 import SummaryRow from './components/SummaryRow';
+import StudentDashboard from './StudentDashboard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -244,84 +245,7 @@ const Dashboard = () => {
     );
   }
 
-  return (
-    <div className="dashboard-layout" style={{ minHeight: '100vh', backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-      <header className="dashboard-header">
-        <img src={logo} alt="UNLa Logo" className="dashboard-logo" />
-        <h1>Gestión de Trabajo Final Anual</h1>
-        {usuario && (
-          <div className="usuario-info">
-            <button className="btn btn-danger btn-sm" onClick={() => setShowConfirm(true)}>Cerrar sesión</button>
-            <p><strong>Usuario:</strong> {usuario.name}</p>
-            <p><strong>Rol:</strong> {Array.isArray(usuario.roles) ?
-              Array.from(new Set(usuario.roles.map(r => r.toLowerCase())))
-                .map(r => r.charAt(0).toUpperCase() + r.slice(1).toLowerCase())
-                .join(', ')
-              : (usuario.roles ? usuario.roles.charAt(0).toUpperCase() + usuario.roles.slice(1).toLowerCase() : '')
-            }</p>
-          </div>
-        )}
-      </header>
-      <Sidebar />
-      <main className="dashboard-main">
-        {/* Estado de Propuesta TFI */}
-        {isStudent && (
-          <>
-            <div className="unla-card" style={{ marginBottom: 16 }}>
-              <h2>Propuesta de TFI</h2>
-              {lastProposal ? (
-                <div className="unla-list">
-                  <div><strong>Último envío:</strong> {new Date(lastProposal.uploadedAt).toLocaleString()}</div>
-                  <div><strong>Título:</strong> {lastProposal.titulo}</div>
-                  <div><strong>Estado:</strong> <span className="unla-badge">{lastProposal.estado}</span></div>
-                  {lastProposal.reason && <div className="unla-hint error"><strong>Rechazo:</strong> {lastProposal.reason}</div>}
-                  {lastProposal.note && <div className="unla-hint"><strong>Observación:</strong> {lastProposal.note}</div>}
-                  <div style={{ marginTop: 8 }}>
-                    <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Ir a Propuesta TFI</button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div className="unla-hint">Aún no enviaste tu propuesta de TFI.</div>
-                  <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/carga-propuesta')}>Cargar propuesta TFI</button>
-                </div>
-              )}
-            </div>
-
-            {/* Módulo Práctica Profesional Supervisada (PPP) */}
-            <div className="unla-card" style={{ marginBottom: 16 }}>
-              <h2>Prácticas Profesionales Supervisadas (PPP)</h2>
-              <p className="text-muted small">
-                Participá en proyectos internos de la universidad o gestioná el convenio oficial para tu práctica en una empresa externa.
-              </p>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
-                <button className="btn btn-primary btn-sm" type="button" onClick={() => navigate('/ppp/convocatorias')}>
-                  Ver Convocatorias Abiertas
-                </button>
-                <button className="btn btn-secondary btn-sm" type="button" onClick={() => navigate('/alumno/ppp')}>
-                  Mis Trámites de PPP
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Espacio reservado para otros módulos */}
-      </main>
-
-      {/* Modal de confirmación de cierre de sesión */}
-      <ConfirmLogoutModal 
-        isOpen={showConfirm}
-        onCancel={() => setShowConfirm(false)}
-        onConfirm={() => {
-          logout();
-          localStorage.removeItem("user");
-          setShowConfirm(false);
-          navigate('/');
-        }}
-      />
-    </div>
-  );
+  return <StudentDashboard user={usuario} />;
 };
 
 export default Dashboard;

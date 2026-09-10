@@ -162,7 +162,7 @@ const AuthenticatedLayout = ({ children }) => {
               <NavLink to="/alumno/mis-proyectos">Proyectos TFI</NavLink>
               <NavLink to="/alumno/entregas">Entregas TFI</NavLink>
               <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
-              <NavLink to="/alumno/ppp">Mi Trámite PPP</NavLink>
+              <NavLink to="/alumno/ppp">Mis trámites PPP</NavLink>
             </>
           )}
           {isAdmin && (
