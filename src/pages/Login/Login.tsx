@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
+import { loginUser, setMockAuth, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
 import './Login.css';
 import logo from '../../assets/logo.png';
 
@@ -22,6 +22,53 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
 
+  const handleQuickLoginTeacher = (isTutor: boolean, customEmail?: string) => {
+    const emailToUse = customEmail || (isTutor ? 'jose.gomez@unla.edu.ar' : 'erika.valdez@unla.edu.ar');
+    const emailLower = emailToUse.toLowerCase().trim();
+
+    // Buscar si existe un usuario registrado en localStorage con este correo
+    let matchedUser: any = null;
+    try {
+      const raw = localStorage.getItem('users');
+      const usersList = raw ? JSON.parse(raw) : [];
+      matchedUser = usersList.find((u: any) => u.email?.toLowerCase().trim() === emailLower);
+    } catch {}
+
+    const determinedIsTutor = Boolean(
+      matchedUser?.isTutor !== undefined ? matchedUser.isTutor :
+      isTutor || emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez')
+    );
+
+    const emailParts = emailToUse.split('@')[0].split('.');
+    const defaultNombre = emailParts[0] ? (emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1)) : (determinedIsTutor ? 'José' : 'Erika');
+    const defaultApellido = emailParts[1] ? (emailParts[1].charAt(0).toUpperCase() + emailParts[1].slice(1)) : (determinedIsTutor ? 'Gómez' : 'Valdez');
+
+    const nombre = matchedUser?.nombre || matchedUser?.firstName || defaultNombre;
+    const apellido = matchedUser?.apellido || matchedUser?.lastName || defaultApellido;
+    const fullName = [nombre, apellido].filter(Boolean).join(' ') || `${nombre} ${apellido}`.trim();
+
+    const mockTeacher = {
+      id: matchedUser?.id || (determinedIsTutor ? 'tutor-1' : 'eval-1'),
+      email: emailToUse,
+      nombre,
+      apellido,
+      firstName: nombre,
+      lastName: apellido,
+      name: fullName,
+      roles: ['DOCENTE'],
+      rol: 'DOCENTE',
+      isTutor: determinedIsTutor,
+    };
+
+    dispatch(setMockAuth({
+      user: mockTeacher,
+      token: 'mock-teacher-token-' + Date.now(),
+    }));
+    localStorage.setItem('user', JSON.stringify(mockTeacher));
+    localStorage.setItem('teacherViewProfile', determinedIsTutor ? 'tutor' : 'evaluador');
+    navigate('/dashboard');
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -30,6 +77,21 @@ function LoginForm() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Error en login:', err);
+      // Fallback para pruebas sin backend activo
+      const emailLower = (credentials.email || '').toLowerCase().trim();
+      const isDocente =
+        emailLower.includes('docente') ||
+        emailLower.includes('profesor') ||
+        emailLower.includes('tutor') ||
+        emailLower.includes('erika') ||
+        emailLower.includes('jose') ||
+        emailLower.includes('valdez') ||
+        emailLower.includes('gomez');
+
+      if (isDocente) {
+        const isTutor = emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez');
+        handleQuickLoginTeacher(isTutor, credentials.email);
+      }
     }
   };
 
@@ -150,6 +212,30 @@ function LoginForm() {
             <div className="login-link-item">
               ¿Necesitás ayuda para recuperar tu contraseña?{' '}
               <Link to="/help" className="login-link">Ver ayuda</Link>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed #cbd5e1', textAlign: 'center' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
+              ACCESO RÁPIDO DEMO PROFESOR
+            </span>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger"
+                style={{ fontSize: '12px', borderRadius: '6px' }}
+                onClick={() => handleQuickLoginTeacher(false)}
+              >
+                Profesor Evaluador
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                style={{ fontSize: '12px', borderRadius: '6px' }}
+                onClick={() => handleQuickLoginTeacher(true)}
+              >
+                Profesor Tutor
+              </button>
             </div>
           </div>
         </div>

@@ -11,6 +11,11 @@ interface User {
   name: string;
   roles?: string[];
   mustChangePassword?: boolean;
+  isTutor?: boolean;
+  nombre?: string;
+  apellido?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface AuthState {
@@ -134,24 +139,100 @@ export const loginUser = createAsyncThunk<
 
       const email = data.email || decoded.email || decoded.sub || credentials.email;
 
-      // Intentar obtener los roles del JWT (pueden venir como array de strings, string separado por comas, u objeto)
-      const rolesSource = decoded.roles || decoded.role || decoded.rol || decoded.authorities || [];
+      // Buscar si el usuario fue registrado localmente para recuperar nombre, apellido e isTutor
+      let localUser: any = null;
+      try {
+        const usersList = JSON.parse(localStorage.getItem('users') || '[]');
+        localUser = usersList.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+      } catch {}
+
+      // Intentar obtener los roles del JWT o de localUser
+      const rolesSource = decoded.roles || decoded.role || decoded.rol || decoded.authorities || localUser?.rol || [];
       const normalizedRoles = normalizeRoles(rolesSource);
 
-      // Si no se encuentran roles en el JWT, usar 'ESTUDIANTE' como valor por defecto
-      const finalRoles = normalizedRoles.length > 0 ? normalizedRoles : ['ESTUDIANTE'];
+      // Si no se encuentran roles en el JWT, usar rol de localUser o 'ESTUDIANTE'
+      const finalRoles = normalizedRoles.length > 0
+        ? normalizedRoles
+        : (localUser?.rol ? [normalizeRole(localUser.rol)] : ['ESTUDIANTE']);
+
+      let firstName =
+        data.firstName ||
+        data.nombre ||
+        data.user?.firstName ||
+        data.user?.nombre ||
+        localUser?.nombre ||
+        localUser?.firstName ||
+        decoded.firstName ||
+        decoded.nombre ||
+        '';
+
+      let lastName =
+        data.lastName ||
+        data.apellido ||
+        data.user?.lastName ||
+        data.user?.apellido ||
+        localUser?.apellido ||
+        localUser?.lastName ||
+        decoded.lastName ||
+        decoded.apellido ||
+        '';
+
+      let isTutor = Boolean(
+        data.isTutor !== undefined ? data.isTutor :
+        data.user?.isTutor !== undefined ? data.user.isTutor :
+        localUser?.isTutor !== undefined ? localUser.isTutor :
+        decoded.isTutor !== undefined ? decoded.isTutor :
+        (email.toLowerCase().includes('tutor') || normalizedRoles.includes('TUTOR'))
+      );
+
+      // Si falta el nombre o apellido, consultar el directorio del backend
+      if (!firstName && token) {
+        try {
+          const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+          const res = await fetch(`${API_URL}/users`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (res.ok) {
+            const list = await res.json();
+            if (Array.isArray(list)) {
+              const matched = list.find((u: any) => u.email?.toLowerCase().trim() === email.toLowerCase().trim());
+              if (matched) {
+                firstName = matched.firstName || matched.nombre || '';
+                lastName = matched.lastName || matched.apellido || '';
+                if (matched.isTutor !== undefined) isTutor = Boolean(matched.isTutor);
+              }
+            }
+          }
+        } catch {}
+      }
+
+      const fullName =
+        [firstName, lastName].filter(Boolean).join(' ') ||
+        data.name ||
+        data.user?.name ||
+        decoded.name ||
+        email.split('@')[0];
 
       const mappedUser: User = {
-        id: decoded.id || decoded.sub || email,
+        id: String(data.user?.id || decoded.id || decoded.sub || localUser?.id || email),
         email: email,
-        name: decoded.name || decoded.nombre || [decoded.firstName, decoded.lastName].filter(Boolean).join(' ') || email.split('@')[0] || 'Usuario',
+        name: fullName,
+        nombre: firstName,
+        apellido: lastName,
+        firstName: firstName,
+        lastName: lastName,
         roles: finalRoles,
         mustChangePassword: !!(decoded.mustChangePassword || data.mustChangePassword),
+        isTutor: isTutor,
       };
 
       // Guardar token y usuario en localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(mappedUser));
+      localStorage.setItem('teacherViewProfile', isTutor ? 'tutor' : 'evaluador');
       localStorage.setItem('lastLogin', new Date().toISOString());
 
       return { user: mappedUser, token };
@@ -198,7 +279,16 @@ const authSlice = createSlice({
           } catch { }
         }
       }
-    }
+    },
+    setMockAuth: (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.loading = 'succeeded';
+      state.error = null;
+      localStorage.setItem('token', action.payload.token);
+      localStorage.setItem('user', JSON.stringify(action.payload.user));
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -253,7 +343,7 @@ const authSlice = createSlice({
 });
 
 // Exportar acciones y reducer
-export const { logout, clearError, setMustChangePassword } = authSlice.actions;
+export const { logout, clearError, setMustChangePassword, setMockAuth } = authSlice.actions;
 export default authSlice.reducer;
 
 // Selectores

@@ -302,6 +302,35 @@ const UsersList: React.FC = () => {
       if (res.error) {
         showToast(res.payload || 'Error al registrar el docente', 'error');
       } else {
+        try {
+          const raw = localStorage.getItem('users');
+          const usersList = raw ? JSON.parse(raw) : [];
+          const idx = usersList.findIndex((u: any) => u.email?.toLowerCase().trim() === formData.email?.toLowerCase().trim());
+          const newDocente = {
+            id: res.payload?.id || 'prof-' + Date.now(),
+            email: formData.email,
+            nombre: formData.nombre,
+            apellido: formData.apellido,
+            firstName: formData.nombre,
+            lastName: formData.apellido,
+            dni: formData.dni,
+            password: formData.password,
+            specialization: formData.specialization,
+            categoria: formData.specialization,
+            isTutor: !!formData.isTutor,
+            rol: 'DOCENTE',
+            roles: ['DOCENTE'],
+            estado: 'active',
+            createdAt: new Date().toISOString(),
+          };
+          if (idx >= 0) {
+            usersList[idx] = { ...usersList[idx], ...newDocente };
+          } else {
+            usersList.push(newDocente);
+          }
+          localStorage.setItem('users', JSON.stringify(usersList));
+        } catch {}
+
         showToast('Docente registrado y creado correctamente', 'success');
         setIsCreateTeacherModalOpen(false);
         dispatch<any>(fetchUsers());

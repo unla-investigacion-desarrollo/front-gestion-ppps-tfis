@@ -26,6 +26,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
+  isTutor?: boolean;
 }
 
 interface UsersState {
@@ -296,7 +297,7 @@ export const registerProfessor = createAsyncThunk<
       : (rawUser.rol ? [rawUser.rol] : ['DOCENTE']);
 
     const mappedUser: User = {
-      id: rawUser.id || rawUser._id || crypto.randomUUID(),
+      id: String(rawUser.id || rawUser._id || crypto.randomUUID()),
       email: rawUser.email || payload.email,
       nombre: rawUser.firstName || rawUser.nombre || payload.nombre,
       apellido: rawUser.lastName || rawUser.apellido || payload.apellido,
@@ -304,13 +305,24 @@ export const registerProfessor = createAsyncThunk<
       estado: rawUser.estado || 'active',
       dni: rawUser.dni || payload.dni,
       categoria: rawUser.specialization || payload.specialization,
+      isTutor: rawUser.isTutor !== undefined ? Boolean(rawUser.isTutor) : Boolean(payload.isTutor),
+      password: payload.password,
       createdAt: rawUser.createdAt || new Date().toISOString(),
       updatedAt: rawUser.updatedAt || new Date().toISOString(),
     };
 
-    // Agregar a localStorage local para simular coherencia en el resto del front
+    // Agregar o actualizar en localStorage local para simular coherencia en el resto del front
     const users = loadUsers();
-    const updatedUserList = [...users, mappedUser];
+    const existingIndex = users.findIndex(
+      (u) => u.email?.toLowerCase().trim() === mappedUser.email?.toLowerCase().trim()
+    );
+    let updatedUserList: User[];
+    if (existingIndex >= 0) {
+      updatedUserList = [...users];
+      updatedUserList[existingIndex] = { ...updatedUserList[existingIndex], ...mappedUser };
+    } else {
+      updatedUserList = [...users, mappedUser];
+    }
     saveUsers(updatedUserList);
 
     return mappedUser;
@@ -462,6 +474,23 @@ const usersSlice = createSlice({
       .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<User[]>) => {
         state.status = 'succeeded';
         state.list = action.payload;
+        const localUsers = loadUsers();
+        const merged = [...action.payload];
+        localUsers.forEach((lu) => {
+          const idx = merged.findIndex(
+            (m) => m.email?.toLowerCase().trim() === lu.email?.toLowerCase().trim() || m.id === lu.id
+          );
+          if (idx >= 0) {
+            merged[idx] = {
+              ...lu,
+              ...merged[idx],
+              isTutor: merged[idx].isTutor !== undefined ? merged[idx].isTutor : lu.isTutor,
+            };
+          } else {
+            merged.push(lu);
+          }
+        });
+        saveUsers(merged);
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.status = 'failed';

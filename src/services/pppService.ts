@@ -38,8 +38,14 @@ export interface PPPEpidiente {
   status: PPPStatus;
   isSiuLoaded: boolean;
   studentId?: number | string;
+  studentUserId?: number | string;
+  userId?: number | string;
   studentName?: string;
   studentEmail?: string;
+  student?: any;
+  user?: any;
+  estudiante?: any;
+  alumno?: any;
   proposalId?: number | string;
   proposalTitle?: string;
   previousKnowledge?: string;
@@ -48,6 +54,7 @@ export interface PPPEpidiente {
   observations?: string;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: any;
 }
 
 export interface CreateProposalDTO {
@@ -465,8 +472,16 @@ export const pppService = {
         },
       });
       const data = await handleResponse(res, 'Error al obtener expedientes');
-      if (Array.isArray(data)) return data;
-      return data?.expedientes || data?.items || [];
+      const rawList = Array.isArray(data) ? data : data?.expedientes || data?.items || [];
+      return rawList.map((item: any) => {
+        const resolvedName = getStudentDisplayName(item);
+        const resolvedEmail = getStudentEmail(item);
+        return {
+          ...item,
+          studentName: resolvedName !== 'Estudiante' ? resolvedName : item.studentName || resolvedName,
+          studentEmail: resolvedEmail || item.studentEmail || '',
+        };
+      });
     } catch (error) {
       console.warn('pppService.getExpedientes: Usando respaldo local', error);
       return getLocalExpedientes();
@@ -485,7 +500,15 @@ export const pppService = {
           Authorization: `Bearer ${token}`,
         },
       });
-      return await handleResponse(res, 'Error al obtener detalle del trámite');
+      const data = await handleResponse(res, 'Error al obtener detalle del trámite');
+      if (!data) return null;
+      const resolvedName = getStudentDisplayName(data);
+      const resolvedEmail = getStudentEmail(data);
+      return {
+        ...data,
+        studentName: resolvedName !== 'Estudiante' ? resolvedName : data.studentName || resolvedName,
+        studentEmail: resolvedEmail || data.studentEmail || '',
+      };
     } catch (error) {
       console.warn('pppService.getExpedienteById: Usando respaldo local', error);
       const list = getLocalExpedientes();
@@ -752,3 +775,166 @@ export const pppService = {
     }
   },
 };
+
+function getStoredUsersList(): any[] {
+  try {
+    const raw = localStorage.getItem('users');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+
+export function formatNameFromEmail(email: string): string {
+  if (!email || !email.includes('@')) return email || '';
+  const prefix = email.split('@')[0];
+  const parts = prefix.split(/[._-]/).filter(Boolean);
+  if (parts.length > 0) {
+    return parts
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+  return email;
+}
+
+export function getStudentDisplayName(exp: any, users?: any[]): string {
+  if (!exp) return 'Estudiante';
+
+  // 1. Direct name on exp
+  const directName = exp.studentName || exp.student_name || exp.nombreEstudiante;
+  if (
+    directName &&
+    typeof directName === 'string' &&
+    directName.trim() &&
+    directName.trim().toLowerCase() !== 'estudiante'
+  ) {
+    return directName.trim();
+  }
+
+  // 2. Direct full name on exp
+  const directFull = [exp.nombre || exp.firstName, exp.apellido || exp.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+  if (directFull && directFull.toLowerCase() !== 'estudiante') return directFull;
+
+  // 3. Nested student, user, estudiante, or alumno relation
+  const nested = exp.student || exp.user || exp.estudiante || exp.alumno;
+  if (nested) {
+    if (typeof nested === 'string' && nested.trim() && nested.trim().toLowerCase() !== 'estudiante') {
+      return nested.trim();
+    }
+    const nestedFull = [
+      nested.nombre || nested.firstName || nested.name,
+      nested.apellido || nested.lastName,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    if (nestedFull && nestedFull.toLowerCase() !== 'estudiante') return nestedFull;
+
+    if (nested.user) {
+      const subFull = [
+        nested.user.nombre || nested.user.firstName || nested.user.name,
+        nested.user.apellido || nested.user.lastName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (subFull && subFull.toLowerCase() !== 'estudiante') return subFull;
+    }
+  }
+
+  // 4. Look up in users list (from Redux or localStorage)
+  const studentId = exp.studentId || exp.studentUserId || exp.userId || exp.idStudent || exp.alumnoId;
+  const usersList = Array.isArray(users) && users.length > 0 ? users : getStoredUsersList();
+
+  if (studentId && Array.isArray(usersList) && usersList.length > 0) {
+    const matched = usersList.find((u: any) => String(u.id) === String(studentId));
+    if (matched) {
+      const matchedFull = [
+        matched.nombre || matched.firstName,
+        matched.apellido || matched.lastName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (matchedFull) return matchedFull;
+      if (matched.email) return formatNameFromEmail(matched.email);
+    }
+  }
+
+  // 5. Match by email in usersList
+  const expEmail = exp.studentEmail || exp.email || exp.student?.email || exp.user?.email || exp.estudiante?.email;
+  if (expEmail && Array.isArray(usersList) && usersList.length > 0) {
+    const matchedByEmail = usersList.find(
+      (u: any) => u.email && u.email.toLowerCase() === expEmail.toLowerCase()
+    );
+    if (matchedByEmail) {
+      const matchedFull = [
+        matchedByEmail.nombre || matchedByEmail.firstName,
+        matchedByEmail.apellido || matchedByEmail.lastName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (matchedFull) return matchedFull;
+    }
+  }
+
+  // 6. Infer readable name from email
+  if (expEmail && expEmail.includes('@')) {
+    return formatNameFromEmail(expEmail);
+  }
+
+  // 7. Check if logged user matches
+  try {
+    const loggedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (studentId && (String(loggedUser.id) === String(studentId) || studentId === 'me')) {
+      const loggedFull = [
+        loggedUser.nombre || loggedUser.firstName,
+        loggedUser.apellido || loggedUser.lastName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (loggedFull) return loggedFull;
+    }
+  } catch {}
+
+  if (studentId && studentId !== 'me') {
+    return `Estudiante #${studentId}`;
+  }
+
+  return 'Estudiante';
+}
+
+export function getStudentEmail(exp: any, users?: any[]): string {
+  if (!exp) return '';
+
+  if (exp.studentEmail && exp.studentEmail !== '-' && exp.studentEmail.trim()) {
+    return exp.studentEmail.trim();
+  }
+  if (exp.student_email && exp.student_email.trim()) return exp.student_email.trim();
+  if (exp.email && exp.email.includes('@')) return exp.email.trim();
+
+  const nested = exp.student || exp.user || exp.estudiante || exp.alumno;
+  if (nested?.email && nested.email.includes('@')) return nested.email.trim();
+  if (nested?.user?.email && nested.user.email.includes('@')) return nested.user.email.trim();
+
+  const studentId = exp.studentId || exp.studentUserId || exp.userId || exp.idStudent;
+  const usersList = Array.isArray(users) && users.length > 0 ? users : getStoredUsersList();
+
+  if (studentId && Array.isArray(usersList)) {
+    const matched = usersList.find((u: any) => String(u.id) === String(studentId));
+    if (matched?.email) return matched.email;
+  }
+
+  try {
+    const loggedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (studentId && (String(loggedUser.id) === String(studentId) || studentId === 'me')) {
+      if (loggedUser.email) return loggedUser.email;
+    }
+  } catch {}
+
+  return '';
+}
