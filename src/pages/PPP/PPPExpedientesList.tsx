@@ -6,7 +6,13 @@ import {
   selectPPPExpedientes,
   selectPPPStatus,
 } from '../../../redux/slices/pppSlice';
-import { PPPEpidiente, PPPStatus } from '../../services/pppService';
+import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
+import {
+  PPPEpidiente,
+  PPPStatus,
+  getStudentDisplayName,
+  getStudentEmail,
+} from '../../services/pppService';
 import './PPP.css';
 
 export const PPPExpedientesList: React.FC = () => {
@@ -14,6 +20,7 @@ export const PPPExpedientesList: React.FC = () => {
   const navigate = useNavigate();
 
   const expedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
+  const allUsers = useSelector(selectUsers);
   const status = useSelector(selectPPPStatus);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +29,7 @@ export const PPPExpedientesList: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchPPPExpedientes());
+    dispatch(fetchUsers());
   }, [dispatch]);
 
   // Filtrado de expedientes
@@ -38,17 +46,21 @@ export const PPPExpedientesList: React.FC = () => {
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      list = list.filter(
-        (e) =>
-          (e.studentName && e.studentName.toLowerCase().includes(q)) ||
-          (e.studentEmail && e.studentEmail.toLowerCase().includes(q)) ||
-          (e.proposalTitle && e.proposalTitle.toLowerCase().includes(q)) ||
+      list = list.filter((e) => {
+        const studentName = getStudentDisplayName(e, allUsers).toLowerCase();
+        const studentEmail = getStudentEmail(e, allUsers).toLowerCase();
+        const proposalTitle = (e.proposalTitle || '').toLowerCase();
+        return (
+          studentName.includes(q) ||
+          studentEmail.includes(q) ||
+          proposalTitle.includes(q) ||
           String(e.id).includes(q)
-      );
+        );
+      });
     }
 
     return list;
-  }, [expedientes, filterType, filterStatus, searchQuery]);
+  }, [expedientes, filterType, filterStatus, searchQuery, allUsers]);
 
   // Helper para renderizar nombres de estado legibles
   const getStatusLabel = (statusKey: PPPStatus) => {
@@ -166,7 +178,7 @@ export const PPPExpedientesList: React.FC = () => {
               <thead>
                 <tr>
                   <th>Expediente</th>
-                  <th>Alumno</th>
+                  <th>Estudiante</th>
                   <th>Modalidad</th>
                   <th>Propuesta / Práctica</th>
                   <th>Estado del Trámite</th>
@@ -181,8 +193,14 @@ export const PPPExpedientesList: React.FC = () => {
                       #{exp.id}
                     </td>
                     <td>
-                      <div className="fw-semibold text-dark">{exp.studentName || 'Estudiante'}</div>
-                      <div className="text-muted small">{exp.studentEmail || '-'}</div>
+                      <div className="fw-semibold text-dark">
+                        {getStudentDisplayName(exp, allUsers)}
+                      </div>
+                      {getStudentEmail(exp, allUsers) ? (
+                        <div className="text-muted small">
+                          {getStudentEmail(exp, allUsers)}
+                        </div>
+                      ) : null}
                     </td>
                     <td>
                       <span

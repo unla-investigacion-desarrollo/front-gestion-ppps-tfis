@@ -16,7 +16,12 @@ import {
   selectPPPGeneralDrive,
   selectPPPStatus,
 } from '../../../redux/slices/pppSlice';
-import { PPPStatus } from '../../services/pppService';
+import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
+import {
+  PPPStatus,
+  getStudentDisplayName,
+  getStudentEmail,
+} from '../../services/pppService';
 import { showToast } from '../../utils/toast';
 import './PPP.css';
 
@@ -25,6 +30,7 @@ export const PPPTramiteDetail: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const currentUser = useSelector(selectCurrentUser) as any;
+  const allUsers = useSelector(selectUsers);
 
   // Roles
   const roles = useMemo(() => {
@@ -53,6 +59,7 @@ export const PPPTramiteDetail: React.FC = () => {
     if (id) {
       dispatch(fetchPPPExpedienteById(id));
       dispatch(fetchPPPGeneralDrive());
+      dispatch(fetchUsers());
     }
   }, [dispatch, id]);
 
@@ -236,7 +243,7 @@ export const PPPTramiteDetail: React.FC = () => {
               <p className="ppp-subtitle">
                 {isStudent
                   ? 'Seguimiento oficial de tu trámite de práctica profesional en la carrera.'
-                  : `Expediente del alumno: ${expediente.studentName || 'Estudiante'} (${expediente.studentEmail || '-'})`}
+                  : `Expediente del estudiante: ${getStudentDisplayName(expediente, allUsers)}${getStudentEmail(expediente, allUsers) ? ` (${getStudentEmail(expediente, allUsers)})` : ''}`}
               </p>
             </div>
           </div>
@@ -351,11 +358,11 @@ export const PPPTramiteDetail: React.FC = () => {
               <div className="row g-3">
                 <div className="col-sm-6">
                   <span className="text-muted small d-block">Estudiante:</span>
-                  <span className="fw-semibold text-dark">{expediente.studentName || 'Estudiante'}</span>
+                  <span className="fw-semibold text-dark">{getStudentDisplayName(expediente, allUsers)}</span>
                 </div>
                 <div className="col-sm-6">
                   <span className="text-muted small d-block">Email de contacto:</span>
-                  <span className="fw-semibold text-dark">{expediente.studentEmail || '-'}</span>
+                  <span className="fw-semibold text-dark">{getStudentEmail(expediente, allUsers) || '-'}</span>
                 </div>
                 <div className="col-sm-6">
                   <span className="text-muted small d-block">Tipo de Práctica:</span>

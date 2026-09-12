@@ -1,0 +1,1240 @@
+/* ==========================================================================
+   DASHBOARD DE PROFESOR (Evaluador y Tutor) - UNLa Design System
+   ========================================================================== */
+
+:root {
+  --unla-sidebar-bg: #530917;
+  --unla-sidebar-hover: rgba(255, 255, 255, 0.08);
+  --unla-sidebar-active: rgba(255, 255, 255, 0.16);
+  --unla-wine: #64001d;
+  --unla-wine-dark: #4a0015;
+  --unla-wine-light: #fbebee;
+  --unla-text-main: #1e293b;
+  --unla-text-muted: #64748b;
+  --unla-border-light: #e2e8f0;
+  --unla-bg-page: #f8fafc;
+}
+
+/* Layout Principal */
+.teacher-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--unla-bg-page);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ==========================================================================
+   SIDEBAR LATERAL INSTITUCIONAL (BORDÓ UNLa)
+   ========================================================================== */
+
+.teacher-sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100%;
+  background-color: var(--unla-sidebar-bg);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+/* Brand superior en Sidebar */
+.teacher-sidebar-brand {
+  padding: 20px 20px 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.teacher-sidebar-logo {
+  height: 38px;
+  width: auto;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.teacher-sidebar-title-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.teacher-sidebar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+}
+
+.teacher-sidebar-subtitle {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* Menú de Navegación */
+.teacher-sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.teacher-sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.teacher-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.teacher-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.teacher-sidebar-item:hover {
+  background-color: var(--unla-sidebar-hover);
+  color: #ffffff;
+}
+
+.teacher-sidebar-item.active {
+  background-color: var(--unla-sidebar-active);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.teacher-sidebar-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.teacher-sidebar-sublist {
+  list-style: none;
+  padding: 4px 0 6px 36px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.teacher-sidebar-subitem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.teacher-sidebar-subitem:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.teacher-sidebar-subitem.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+}
+
+.teacher-sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 12px 6px;
+}
+
+/* Tarjeta Inferior de Perfil de Docente en Sidebar */
+.teacher-sidebar-footer {
+  padding: 14px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.teacher-role-badge-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+  user-select: none;
+}
+
+.teacher-role-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+.teacher-role-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.teacher-role-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   ÁREA DE CONTENIDO Y HEADER SUPERIOR
+   ========================================================================== */
+
+.teacher-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Header Superior Blanco */
+.teacher-topbar {
+  height: 64px;
+  min-height: 64px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--unla-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 32px;
+  gap: 20px;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.teacher-topbar-date {
+  font-size: 13.5px;
+  color: var(--unla-text-muted);
+  font-weight: 500;
+}
+
+.teacher-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.teacher-icon-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.teacher-icon-btn:hover {
+  background-color: #f1f5f9;
+  color: var(--unla-wine);
+}
+
+.teacher-icon-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+}
+
+/* Dropdown de Usuario */
+.teacher-profile-dropdown-container {
+  position: relative;
+}
+
+.teacher-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.teacher-profile-trigger:hover {
+  background-color: #f8fafc;
+}
+
+.teacher-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: var(--unla-wine);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.teacher-user-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.teacher-user-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--unla-text-main);
+}
+
+.teacher-user-role {
+  font-size: 11px;
+  color: var(--unla-text-muted);
+}
+
+.teacher-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  min-width: 220px;
+  padding: 6px 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  color: #334155;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.teacher-dropdown-item:hover {
+  background-color: #f8fafc;
+  color: var(--unla-wine);
+}
+
+.teacher-dropdown-divider {
+  height: 1px;
+  background-color: var(--unla-border-light);
+  margin: 6px 0;
+}
+
+/* Área de Contenido con Scroll */
+.teacher-main-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 36px 48px 36px;
+  box-sizing: border-box;
+}
+
+/* Breadcrumb */
+.teacher-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--unla-text-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: color 0.15s ease;
+}
+
+.teacher-breadcrumb:hover {
+  color: var(--unla-wine);
+}
+
+/* Encabezados de Página */
+.teacher-page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacher-page-subtitle {
+  font-size: 14px;
+  color: var(--unla-text-muted);
+  margin: 0 0 24px 0;
+}
+
+/* ==========================================================================
+   CARDS DE RESUMEN / MÉTRICAS (MOCKUP 1 & 3)
+   ========================================================================== */
+
+.teacher-card {
+  background: #ffffff;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.teacher-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Card con Desglose (Mockup 1) */
+.teacher-breakdown-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.teacher-breakdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.teacher-breakdown-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-card-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.teacher-card-icon-box.red {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.teacher-card-icon-box.amber {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.teacher-card-icon-box.green {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.teacher-card-icon-box.blue {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.teacher-card-icon-box.purple {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+}
+
+.teacher-card-icon-box.cyan {
+  background-color: #ecfeff;
+  color: #0891b2;
+}
+
+.teacher-breakdown-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.teacher-counter-badge {
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 12px;
+}
+
+.teacher-breakdown-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.teacher-breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.teacher-breakdown-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacher-dot-amber {
+  width: 7px;
+  height: 7px;
+  background-color: #f59e0b;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.teacher-breakdown-count {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.teacher-card-action-link {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #475569;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  margin-top: auto;
+}
+
+.teacher-card-action-link:hover {
+  color: var(--unla-wine);
+}
+
+/* Card Métrica Grande (Mockup 3) */
+.teacher-metric-large-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.teacher-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.teacher-metric-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+
+.teacher-metric-value {
+  font-size: 38px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+/* Sección Resumen General (5 métricas en fila) */
+.teacher-general-summary-card {
+  background: #ffffff;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.teacher-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.teacher-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.teacher-metrics-5grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.teacher-submetric-card {
+  border: 1px solid #f1f5f9;
+  background-color: #fafbfc;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.teacher-submetric-title {
+  font-size: 12.5px;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.teacher-submetric-num {
+  font-size: 30px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+}
+
+/* Banner de Acompañamiento (Mockup 3 Derecha) */
+.teacher-tutor-banner-card {
+  background-color: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.teacher-tutor-banner-icon {
+  width: 72px;
+  height: 72px;
+  color: #0284c7;
+  margin-bottom: 18px;
+}
+
+.teacher-tutor-banner-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.teacher-tutor-banner-text {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 320px;
+}
+
+/* ==========================================================================
+   TABLAS CON BOOTSTRAP Y COMPONENTES
+   ========================================================================== */
+
+.teacher-table-card {
+  background: #ffffff;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.teacher-table-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--unla-border-light);
+}
+
+.teacher-table-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.teacher-table-link {
+  font-size: 13.5px;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.teacher-table-link:hover {
+  color: var(--unla-wine);
+}
+
+/* Bootstrap Table Customization */
+.teacher-bootstrap-table {
+  margin-bottom: 0 !important;
+}
+
+.teacher-bootstrap-table thead th {
+  background-color: #fafbfc;
+  color: #64748b;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--unla-border-light);
+  padding: 14px 20px;
+}
+
+.teacher-bootstrap-table tbody td {
+  padding: 14px 20px;
+  color: #334155;
+  font-size: 13.5px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.teacher-bootstrap-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teacher-bootstrap-table tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Celdas de Estudiante con Avatar */
+.teacher-student-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-student-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.teacher-student-avatar.ag { background-color: #fee2e2; color: #b91c1c; }
+.teacher-student-avatar.lv { background-color: #fce7f3; color: #be185d; }
+.teacher-student-avatar.mp { background-color: #fee2e2; color: #e11d48; }
+.teacher-student-avatar.fd { background-color: #fee2e2; color: #b91c1c; }
+.teacher-student-avatar.cl { background-color: #ffedd5; color: #c2410c; }
+.teacher-student-avatar.default { background-color: #e2e8f0; color: #475569; }
+
+.teacher-student-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.teacher-student-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.teacher-student-email {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.teacher-student-dni {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+/* Badges y Pills */
+.teacher-badge-interna {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.teacher-badge-externa {
+  background-color: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.teacher-badge-tfi {
+  background-color: #f0fdfa;
+  color: #0d9488;
+  border: 1px solid #ccfbf1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.teacher-badge-ppi {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* Pills de Estado con punto */
+.teacher-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.teacher-status-pill .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.teacher-status-pill.revision {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+.teacher-status-pill.revision .status-dot { background-color: #f59e0b; }
+
+.teacher-status-pill.observaciones {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+.teacher-status-pill.observaciones .status-dot { background-color: #f97316; }
+
+.teacher-status-pill.documentacion {
+  background-color: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+.teacher-status-pill.documentacion .status-dot { background-color: #0284c7; }
+
+.teacher-status-pill.aprobada {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+.teacher-status-pill.aprobada .status-dot { background-color: #16a34a; }
+
+.teacher-status-pill.siu {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+  color: #7e22ce;
+}
+.teacher-status-pill.siu .status-dot { background-color: #9333ea; }
+
+.teacher-status-pill.curso {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+.teacher-status-pill.curso .status-dot { background-color: #16a34a; }
+
+.teacher-status-pill.finalizado {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+.teacher-status-pill.finalizado .status-dot { background-color: #94a3b8; }
+
+.teacher-status-pill.sin-entrega {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.teacher-status-pill.sin-entrega .status-dot { background-color: #ef4444; }
+
+/* Indicadores SIU */
+.teacher-siu-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 16px;
+}
+
+.teacher-siu-pill.pendiente {
+  color: #b91c1c;
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.teacher-siu-pill.cargado {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+/* Botones de Acción en Tablas */
+.teacher-btn-register-tutoria {
+  background-color: var(--unla-wine) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.teacher-btn-register-tutoria:hover {
+  background-color: var(--unla-wine-dark) !important;
+}
+
+.teacher-btn-view-outline {
+  border: 1px solid var(--unla-border-light) !important;
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+}
+
+.teacher-btn-view-outline:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.teacher-btn-more-actions {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.teacher-btn-more-actions:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+}
+
+/* Pestañas de Filtros de Gestión de PPP (Mockup 2) */
+.teacher-filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid var(--unla-border-light);
+  margin-bottom: 20px;
+}
+
+.teacher-filter-tab {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  padding: 10px 0 12px 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.teacher-filter-tab:hover {
+  color: var(--unla-wine);
+}
+
+.teacher-filter-tab.active {
+  color: var(--unla-wine);
+  font-weight: 600;
+}
+
+.teacher-filter-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--unla-wine);
+}
+
+/* Barra de Filtros y Búsqueda */
+.teacher-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.teacher-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+}
+
+.teacher-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.teacher-search-input {
+  width: 100%;
+  height: 40px;
+  padding-left: 36px;
+  padding-right: 14px;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 8px;
+  font-size: 13.5px;
+  background-color: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.teacher-search-input:focus {
+  border-color: var(--unla-wine);
+  box-shadow: 0 0 0 3px rgba(100, 0, 29, 0.08);
+}
+
+.teacher-filter-select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #334155;
+  background-color: #ffffff;
+  outline: none;
+  min-width: 150px;
+  cursor: pointer;
+}
+
+.teacher-btn-clear-filters {
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 13.5px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.teacher-btn-clear-filters:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Paginación de Tabla */
+.teacher-table-pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-top: 1px solid var(--unla-border-light);
+  font-size: 13px;
+  color: #64748b;
+  background-color: #ffffff;
+}
+
+.teacher-pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.teacher-page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--unla-border-light);
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.teacher-page-btn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.teacher-page-btn.active {
+  background-color: var(--unla-wine);
+  border-color: var(--unla-wine);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.teacher-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   MODALES
+   ========================================================================== */
+.teacher-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.teacher-modal-dialog {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+}
+
+.teacher-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--unla-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.teacher-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.teacher-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.teacher-modal-body {
+  padding: 24px;
+}
+
+.teacher-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--unla-border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background-color: #fafbfc;
+}
