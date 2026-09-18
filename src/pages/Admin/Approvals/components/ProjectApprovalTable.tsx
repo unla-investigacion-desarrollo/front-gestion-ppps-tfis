@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { FaHourglassHalf, FaCheck, FaXmark, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
 import { PendingProjectStudentRequest } from '../../../../../redux/slices/projectsSlice';
 import { User } from '../../../../../redux/slices/usersSlice';
 
@@ -187,9 +188,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                   {/* Columna Estado */}
                   <td>
                     <span className="badge-status-mockup-pending">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '2px' }}>
-                        <path d="M2 1.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13.5v1h1a.5.5 0 0 1 0 1h-11a.5.5 0 0 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3.5v-1h-1a.5.5 0 0 1-.5-.5zm2.5.5v1a3.5 3.5 0 0 0 1.989 3.158c.533.256.886.772.886 1.342v.7c0 .57-.353 1.086-.886 1.342A3.5 3.5 0 0 0 4.5 13.5v1h7v-1a3.5 3.5 0 0 0-1.989-3.158C8.978 10.086 8.625 9.57 8.625 9v-.7c0-.57.353-1.086.886-1.342A3.5 3.5 0 0 0 11.5 3.5v-1h-7z"/>
-                      </svg>
+                      <FaHourglassHalf size={12} style={{ marginRight: '4px' }} />
                       Pendiente
                     </span>
                   </td>
@@ -212,9 +211,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                         ) : (
                           <>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
-                              <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                            </svg>
+                            <FaCheck size={13} />
                             Aprobar
                           </>
                         )}
@@ -226,9 +223,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                         disabled={isBusy}
                         onClick={() => handleRejectClick(req.projectId, req.studentUserId)}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-                        </svg>
+                        <FaXmark size={12} />
                         Rechazar
                       </button>
 
@@ -240,9 +235,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                           onClick={() => setOpenDropdownKey(isDropdownOpen ? null : rowKey)}
                           title="Más opciones"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
-                          </svg>
+                          <FaEllipsisVertical size={16} />
                         </button>
 
                         {isDropdownOpen && (
@@ -257,10 +250,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                               }}
                             >
                               <div className="approvals-dropdown-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
-                                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
-                                </svg>
+                                <FaEye size={16} />
                               </div>
                               <div className="approvals-dropdown-text">
                                 <span className="approvals-dropdown-title">Ver expediente</span>

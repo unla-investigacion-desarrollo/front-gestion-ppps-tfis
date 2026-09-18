@@ -17,6 +17,14 @@ import {
 import ProjectApprovalTable from './components/ProjectApprovalTable';
 import './ApprovalQueue.css';
 import { showToast } from '../../../utils/toast';
+import {
+  FaFileCircleCheck,
+  FaMagnifyingGlass,
+  FaArrowRotateLeft,
+  FaHourglassHalf,
+  FaCheck,
+  FaXmark,
+} from 'react-icons/fa6';
 
 const ApprovalQueue: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -161,10 +169,7 @@ const ApprovalQueue: React.FC = () => {
           {/* Cabecera idéntica al Mockup */}
           <div className="approvals-header">
             <div className="approvals-header-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
-                <path d="M10.854 7.854a.5.5 0 0 0-.708-.708L7.5 9.793 6.354 8.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z" />
-              </svg>
+              <FaFileCircleCheck size={24} />
             </div>
             <div>
               <h1 className="approvals-header-title">Solicitudes</h1>
@@ -212,9 +217,7 @@ const ApprovalQueue: React.FC = () => {
             {/* Input de Búsqueda con lupa */}
             <div className="approvals-search-box">
               <span className="approvals-search-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                </svg>
+                <FaMagnifyingGlass size={15} />
               </span>
               <input
                 type="text"
@@ -255,15 +258,13 @@ const ApprovalQueue: React.FC = () => {
               <option value="antiguos">Ordenar por: más antiguos</option>
             </select>
 
-            {/* Botón Limpiar Filtros con icono de embudo */}
+            {/* Botón Limpiar Filtros */}
             <button
               type="button"
-              className="approvals-clear-btn"
+              className="approvals-clear-btn d-inline-flex align-items-center gap-1"
               onClick={handleClearFilters}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.308l2-.667V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z" />
-              </svg>
+              <FaArrowRotateLeft size={13} />
               Limpiar filtros
             </button>
           </div>
@@ -323,9 +324,7 @@ const ApprovalQueue: React.FC = () => {
                           </td>
                           <td>
                             <span className="badge-status-mockup-pending">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '2px' }}>
-                                <path d="M2 1.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13.5v1h1a.5.5 0 0 1 0 1h-11a.5.5 0 0 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3.5v-1h-1a.5.5 0 0 1-.5-.5zm2.5.5v1a3.5 3.5 0 0 0 1.989 3.158c.533.256.886.772.886 1.342v.7c0 .57-.353 1.086-.886 1.342A3.5 3.5 0 0 0 4.5 13.5v1h7v-1a3.5 3.5 0 0 0-1.989-3.158C8.978 10.086 8.625 9.57 8.625 9v-.7c0-.57.353-1.086.886-1.342A3.5 3.5 0 0 0 11.5 3.5v-1h-7z" />
-                              </svg>
+                              <FaHourglassHalf size={12} style={{ marginRight: '4px' }} />
                               Pendiente
                             </span>
                           </td>
@@ -336,9 +335,7 @@ const ApprovalQueue: React.FC = () => {
                                 className="btn-mockup-approve"
                                 onClick={() => onApproveUser(u.id)}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
-                                  <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
-                                </svg>
+                                <FaCheck size={13} />
                                 Aprobar
                               </button>
                               <button
@@ -346,9 +343,7 @@ const ApprovalQueue: React.FC = () => {
                                 className="btn-mockup-reject"
                                 onClick={() => onRejectUser(u.id)}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                                  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
-                                </svg>
+                                <FaXmark size={12} />
                                 Rechazar
                               </button>
                             </div>

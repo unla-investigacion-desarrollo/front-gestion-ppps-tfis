@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaChevronRight } from 'react-icons/fa6';
 
 const MetricCard = ({ title, value, trendText, trendDirection, icon, colorTheme, onClick }) => {
   const getTrendClass = () => {
@@ -29,9 +30,7 @@ const MetricCard = ({ title, value, trendText, trendDirection, icon, colorTheme,
           </div>
         </div>
         <span className="metric-arrow-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--unla-muted)" className="bi bi-chevron-right" viewBox="0 0 16 16">
-            <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-          </svg>
+          <FaChevronRight size={14} color="var(--unla-muted)" />
         </span>
       </div>
     </div>

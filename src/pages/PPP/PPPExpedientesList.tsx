@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaFileLines, FaBullhorn, FaMagnifyingGlass } from 'react-icons/fa6';
 import {
   fetchPPPExpedientes,
   selectPPPExpedientes,
@@ -93,10 +94,7 @@ export const PPPExpedientesList: React.FC = () => {
         <div className="ppp-header-card">
           <div className="ppp-header-info">
             <div className="ppp-header-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
-                <path d="M4.5 9a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z" />
-              </svg>
+              <FaFileLines size={28} />
             </div>
             <div>
               <h1 className="ppp-title">Bandeja General de Expedientes PPP</h1>
@@ -106,11 +104,8 @@ export const PPPExpedientesList: React.FC = () => {
             </div>
           </div>
           <div className="ppp-header-actions">
-            <Link to="/ppp/convocatorias" className="btn-unla-outline">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                <path d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-              </svg>
+            <Link to="/ppp/convocatorias" className="btn-unla-outline d-inline-flex align-items-center gap-2">
+              <FaBullhorn size={16} />
               Ver convocatorias
             </Link>
           </div>
@@ -120,9 +115,7 @@ export const PPPExpedientesList: React.FC = () => {
         <div className="ppp-filter-card">
           <div className="ppp-search-box">
             <span className="ppp-search-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-              </svg>
+              <FaMagnifyingGlass size={16} />
             </span>
             <input
               type="text"
