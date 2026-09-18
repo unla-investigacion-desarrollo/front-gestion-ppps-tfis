@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../../../../assets/logo.png';
+import logo from '../../../../assets/Campus-Virtual-UNLa.png';
 
 export type TeacherRoleProfile = 'evaluador' | 'tutor';
 export type EvaluatorView = 'inicio' | 'ppp';
@@ -158,7 +158,10 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                     <button
                       type="button"
                       className="teacher-sidebar-subitem"
-                      onClick={() => navigate('/docente/proyectos')}
+                      onClick={() => {
+                        localStorage.setItem('teacherViewProfile', 'evaluador');
+                        navigate('/docente/proyectos');
+                      }}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path fillRule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9zM1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 9.5 2h-8z" />
@@ -277,6 +280,22 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19z" />
               </svg>
               <span>Mis proyectos</span>
+            </button>
+
+            {/* Convocatoria proyectos TFI */}
+            <button
+              type="button"
+              className={`teacher-sidebar-item ${activeView === 'convocatoria-tfi' ? 'active' : ''}`}
+              onClick={() => {
+                localStorage.setItem('teacherViewProfile', 'tutor');
+                navigate('/docente/proyectos');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+                <path d="M4 4h8v2H4V4zm0 3h8v2H4V7zm0 3h5v2H4v-2z" />
+              </svg>
+              <span>Convocatoria proyectos TFI</span>
             </button>
 
             {/* Solicitudes */}

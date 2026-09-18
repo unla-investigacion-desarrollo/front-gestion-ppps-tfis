@@ -16,7 +16,7 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
 
   return (
     <div>
-      {/* Breadcrumb */}
+      {/* Breadcrumb  ESTE ES LA VISTA DEL TUTOR PRINCIPÍAL INICIO*/}
       <div className="teacher-breadcrumb">
         <span>← Inicio</span>
       </div>

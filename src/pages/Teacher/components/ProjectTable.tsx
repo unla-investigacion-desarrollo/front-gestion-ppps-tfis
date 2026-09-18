@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
@@ -6,6 +6,7 @@ import { Project } from '../../../../redux/slices/projectsSlice';
 interface ProjectTableProps {
   projects: Project[];
   users: any[];
+  isTutor?: boolean;
   onRemoveStudent: (projectId: string, studentId: string) => void;
   onRemoveCoTeacher: (projectId: string, teacherId: string) => void;
   onAssignClick: (project: Project) => void;
@@ -14,6 +15,9 @@ interface ProjectTableProps {
   onEditClick: (project: Project) => void;
   onDeleteClick: (project: Project) => void;
   onViewProjectClick?: (project: Project) => void;
+  onRequestJoinClick?: (project: Project) => void;
+  pendingProjectIds?: Set<string>;
+  activeProjectIds?: Set<string>;
 }
 
 /**
@@ -24,6 +28,7 @@ interface ProjectTableProps {
 const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
   users,
+  isTutor = false,
   onRemoveStudent,
   onRemoveCoTeacher,
   onAssignClick,
@@ -32,8 +37,27 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   onEditClick,
   onDeleteClick,
   onViewProjectClick,
+  onRequestJoinClick,
+  pendingProjectIds,
+  activeProjectIds,
 }) => {
   const navigate = useNavigate();
+
+  // Determinar si efectivamente es tutor (vía prop o localStorage como respaldo)
+  const effectiveIsTutor = useMemo(() => {
+    if (isTutor) return true;
+    try {
+      if (localStorage.getItem('teacherViewProfile') === 'tutor') return true;
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      if (u.isTutor === true || u.isTutor === 'true') return true;
+      const rawRoles = Array.isArray(u.roles) ? u.roles : u.rol ? [u.rol] : [];
+      const normalizedRoles = rawRoles.map((r: any) => String(r).toUpperCase().trim());
+      if (normalizedRoles.includes('TUTOR')) return true;
+      const emailLower = (u.email || '').toLowerCase();
+      if (emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez')) return true;
+    } catch {}
+    return false;
+  }, [isTutor]);
 
   // Estado local para identificar el dropdown abierto actualmente en las filas de la tabla
   const [activeDropdownProjectId, setActiveDropdownProjectId] = useState<string | null>(null);
@@ -170,14 +194,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                           <span className="text-truncate" style={{ maxWidth: '140px' }} title={getMemberName(studentId)}>
                             {getMemberName(studentId)}
                           </span>
-                          <button
-                            type="button"
-                            className="btn-remove-member"
-                            title="Quitar alumno"
-                            onClick={() => onRemoveStudent(project.id, studentId)}
-                          >
-                            ×
-                          </button>
+                          {!effectiveIsTutor && (
+                            <button
+                              type="button"
+                              className="btn-remove-member"
+                              title="Quitar alumno"
+                              onClick={() => onRemoveStudent(project.id, studentId)}
+                            >
+                              ×
+                            </button>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -195,23 +221,25 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                           <span className="text-truncate" style={{ maxWidth: '140px' }} title={getMemberName(teacherId)}>
                             {getMemberName(teacherId)}
                           </span>
-                          <button
-                            type="button"
-                            className="btn-remove-member"
-                            title="Quitar co-docente"
-                            onClick={() => onRemoveCoTeacher(project.id, teacherId)}
-                          >
-                            ×
-                          </button>
+                          {!effectiveIsTutor && (
+                            <button
+                              type="button"
+                              className="btn-remove-member"
+                              title="Quitar co-docente"
+                              onClick={() => onRemoveCoTeacher(project.id, teacherId)}
+                            >
+                              ×
+                            </button>
+                          )}
                         </li>
                       ))}
                     </ul>
                   )}
                 </td>
 
-                {/* Columna: Acciones (Menú Dropdown ⋮) */}
+                {/* Columna: Acciones (Menú Dropdown ⋮ / Lápiz) */}
                 <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div className="d-inline-flex align-items-center gap-2">
+                  <div className="d-inline-flex align-items-center justify-content-center">
                     <div className="actions-dropdown-wrapper">
                       <button
                         type="button"
@@ -242,80 +270,98 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               Ver proyecto
                             </button>
 
-                            {/* Divisor */}
-                            <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                            {/* Acción: Solicitar unirse */}
+                            {onRequestJoinClick && (
+                              <>
+                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item fw-semibold text-primary"
+                                  disabled={pendingProjectIds?.has(String(project.id)) || activeProjectIds?.has(String(project.id))}
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onRequestJoinClick(project);
+                                  }}
+                                >
+                                  {activeProjectIds?.has(String(project.id))
+                                    ? '✓ Ya sos miembro'
+                                    : pendingProjectIds?.has(String(project.id))
+                                    ? '⏳ Solicitud pendiente'
+                                    : '+ Solicitar unirse'}
+                                </button>
+                              </>
+                            )}
 
-                            {/* Acción: Asignar Alumno */}
-                            <button
-                              type="button"
-                              className="custom-dropdown-item"
-                              disabled={project.students.length >= 5}
-                              onClick={() => {
-                                setActiveDropdownProjectId(null);
-                                onAssignClick(project);
-                              }}
-                            >
-                              Asignar Alumno
-                            </button>
+                            {/* Opciones exclusivas para Evaluador y Admin (no visibles para Tutor) */}
+                            {!effectiveIsTutor && (
+                              <>
+                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
 
-                            {/* Acción: Ver Actividad */}
+                                {/* Acción: Asignar Alumno */}
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  disabled={project.students.length >= 5}
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onAssignClick(project);
+                                  }}
+                                >
+                                  Asignar Alumno
+                                </button>
 
-                            <button
-                              type="button"
-                              className="custom-dropdown-item"
-                              onClick={() => {
-                                setActiveDropdownProjectId(null);
-                                onActivityClick(project);
-                              }}
-                            >
-                              Ver Actividad
-                            </button>
+                                {/* Acción: Ver Actividad */}
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onActivityClick(project);
+                                  }}
+                                >
+                                  Ver Actividad
+                                </button>
 
+                                {/* Acción: Agregar Co-docente */}
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onAddCoTeacherClick(project);
+                                  }}
+                                >
+                                  Agregar Docente
+                                </button>
 
-                            {/* Acción: Agregar Co-docente */}
+                                {/* Acción: Editar Proyecto */}
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onEditClick(project);
+                                  }}
+                                >
+                                  Editar Proyecto
+                                </button>
 
-                            <button
-                              type="button"
-                              className="custom-dropdown-item"
-                              onClick={() => {
-                                setActiveDropdownProjectId(null);
-                                onAddCoTeacherClick(project);
-                              }}
-                            >
-                              Agregar Docente
-                            </button>
+                                {/* Divisor */}
+                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
 
-
-                            {/* Acción: Editar Proyecto */}
-
-                            <button
-                              type="button"
-                              className="custom-dropdown-item"
-                              onClick={() => {
-                                setActiveDropdownProjectId(null);
-                                onEditClick(project);
-                              }}
-                            >
-                              Editar Proyecto
-                            </button>
-
-
-                            {/* Divisor */}
-                            <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-
-                            {/* Acción: Eliminar (mover a papelera) */}
-
-                            <button
-                              type="button"
-                              className="custom-dropdown-item text-danger"
-                              onClick={() => {
-                                setActiveDropdownProjectId(null);
-                                onDeleteClick(project);
-                              }}
-                            >
-                              Eliminar Proyecto
-                            </button>
-
+                                {/* Acción: Eliminar (mover a papelera) */}
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item text-danger"
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onDeleteClick(project);
+                                  }}
+                                >
+                                  Eliminar Proyecto
+                                </button>
+                              </>
+                            )}
                           </ul>
                         </>
                       )}

@@ -35,6 +35,7 @@ import {
 import 'bootstrap/dist/css/bootstrap.min.css';
 import bgImage from '../../assets/fondo-rojo.jpg';
 import './TeacherProjectsList.css';
+import { projectService } from '../../services/projectService';
 
 // Constante para la clave de almacenamiento local de actividad
 const ACTIVITY_STORAGE_KEY = 'projectActivity';
@@ -53,6 +54,30 @@ const TeacherProjectsList: React.FC = () => {
   const projectTypes = useSelector(selectProjectTypes);
   const users = useSelector(selectUsers);
 
+  // Determinar si el usuario actual tiene rol de Tutor
+  const isTutor = useMemo(() => {
+    let localUser: any = null;
+    try {
+      localUser = JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {}
+
+    const rawRoles = [
+      ...(Array.isArray(currentUser?.roles) ? currentUser.roles : currentUser?.rol ? [currentUser.rol] : []),
+      ...(Array.isArray(localUser?.roles) ? localUser.roles : localUser?.rol ? [localUser.rol] : []),
+    ];
+    const normalizedRoles = rawRoles.map((role: any) => String(role).toUpperCase().trim());
+
+    if (currentUser?.isTutor === true || currentUser?.isTutor === 'true') return true;
+    if (localUser?.isTutor === true || localUser?.isTutor === 'true') return true;
+    if (normalizedRoles.includes('TUTOR')) return true;
+    if (localStorage.getItem('teacherViewProfile') === 'tutor') return true;
+
+    const email = (currentUser?.email || localUser?.email || '').toLowerCase();
+    if (email.includes('tutor') || email.includes('jose') || email.includes('gomez')) return true;
+
+    return false;
+  }, [currentUser]);
+
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
   const [filters, setFilters] = useState<ProjectFiltersState>({ q: '', categoria: 'ALL', alumnos: 'ALL' });
   const [page, setPage] = useState(1);
@@ -64,12 +89,72 @@ const TeacherProjectsList: React.FC = () => {
   const [activeAddCoTeacherProject, setActiveAddCoTeacherProject] = useState<Project | null>(null);
   const [activeEditProject, setActiveEditProject] = useState<Project | null>(null);
 
+  // --- SOLICITUDES Y PROYECTOS ACTIVOS DEL USUARIO ---
+  const [myRequests, setMyRequests] = useState<any[]>([]);
+  const [myActiveProjects, setMyActiveProjects] = useState<any[]>([]);
+
   // --- CARGA INICIAL DESDE LA BASE DE DATOS ---
   useEffect(() => {
     dispatch(fetchProjects());
     dispatch(fetchProjectTypes());
     dispatch(fetchUsers());
+
+    const token = localStorage.getItem('token') || '';
+    if (token) {
+      projectService
+        .getMyRequests(token)
+        .then((data) => setMyRequests(Array.isArray(data) ? data : []))
+        .catch(() => {});
+
+      projectService
+        .getMyActiveProjects(token)
+        .then((data) => setMyActiveProjects(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
   }, [dispatch]);
+
+  const pendingProjectIds = useMemo(() => {
+    return new Set(myRequests.map((req) => String(req.project?.id || req.id)));
+  }, [myRequests]);
+
+  const activeProjectIds = useMemo(() => {
+    return new Set(myActiveProjects.map((ap) => String(ap.project?.id || ap.id)));
+  }, [myActiveProjects]);
+
+  const handleRequestJoin = async (project: Project) => {
+    const token = localStorage.getItem('token') || '';
+    if (!token) {
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: { message: 'Sesión no válida o expirada', type: 'error' },
+        })
+      );
+      return;
+    }
+
+    try {
+      await projectService.requestJoinAsProfessor(project.id, token);
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: `¡Solicitud enviada para "${project.titulo}"! Pendiente de aprobación.`,
+            type: 'success',
+          },
+        })
+      );
+      const updated = await projectService.getMyRequests(token);
+      setMyRequests(Array.isArray(updated) ? updated : []);
+    } catch (err: any) {
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: err?.message || 'Error al enviar solicitud al proyecto',
+            type: 'error',
+          },
+        })
+      );
+    }
+  };
 
   // Restablecer la página a 1 cuando cambian los criterios de búsqueda o filtrado
   useEffect(() => {
@@ -360,13 +445,19 @@ const TeacherProjectsList: React.FC = () => {
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
             <h1 className="m-0 projects-title">Proyectos</h1>
-            <p className="m-0 text-muted projects-subtitle">Gestioná y colaborá en los proyectos.</p>
+            <p className="m-0 text-muted projects-subtitle">
+              {isTutor
+                ? 'Convocatoria de proyectos disponibles para solicitar unirse como profesor tutor.'
+                : 'Gestioná y colaborá en los proyectos.'}
+            </p>
           </div>
-          <div className="d-flex gap-2">
-            <Link className="btn-new-project" to="/docente/proyectos/nuevo">
-              <span>+</span> Nuevo Proyecto
-            </Link>
-          </div>
+          {!isTutor && (
+            <div className="d-flex gap-2">
+              <Link className="btn-new-project" to="/docente/proyectos/nuevo">
+                <span>+</span> Nuevo Proyecto
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Sección de Filtros de Búsqueda */}
@@ -381,6 +472,7 @@ const TeacherProjectsList: React.FC = () => {
         <ProjectTable
           projects={paginatedProjects}
           users={users}
+          isTutor={isTutor}
           onRemoveStudent={handleRemoveStudent}
           onRemoveCoTeacher={handleRemoveCoTeacher}
           onAssignClick={(project) => setActiveAssignProject(project)}
@@ -388,6 +480,9 @@ const TeacherProjectsList: React.FC = () => {
           onActivityClick={(project) => setActiveActivityProject(project)}
           onEditClick={(project) => setActiveEditProject(project)}
           onDeleteClick={(project) => handleDeleteProject(project.id)}
+          onRequestJoinClick={handleRequestJoin}
+          pendingProjectIds={pendingProjectIds}
+          activeProjectIds={activeProjectIds}
         />
 
         {/* Espaciador flexible para empujar la paginación al fondo */}
