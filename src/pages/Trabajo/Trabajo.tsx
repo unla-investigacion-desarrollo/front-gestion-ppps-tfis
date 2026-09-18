@@ -11,6 +11,24 @@ import {
   StudentWorkStatus,
 } from '../../services/studentWorkService';
 import { showToast } from '../../utils/toast';
+import {
+  FaClock,
+  FaCircleExclamation,
+  FaCheck,
+  FaXmark,
+  FaMinus,
+  FaArrowLeft,
+  FaFileLines,
+  FaPlus,
+  FaCircleInfo,
+  FaArrowUpRightFromSquare,
+  FaFolderOpen,
+  FaStar,
+  FaGraduationCap,
+  FaPencil,
+  FaPaperPlane,
+  FaChalkboardUser,
+} from 'react-icons/fa6';
 import './Trabajo.css';
 
 /**
@@ -271,48 +289,36 @@ const Trabajo: React.FC = () => {
     switch (status) {
       case 'pending_review':
         return (
-          <span className="badge-status badge-pending_review">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
-              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
-            </svg>
+          <span className="badge-status badge-pending_review d-inline-flex align-items-center gap-1">
+            <FaClock size={14} />
             Pendiente de revisión
           </span>
         );
       case 'observed':
         return (
-          <span className="badge-status badge-observed">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M7.005 3.1a1 1 0 1 1 1.99 0l-.388 6.35a.61.61 0 0 1-1.214 0L7.005 3.1zM8 12a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-            </svg>
+          <span className="badge-status badge-observed d-inline-flex align-items-center gap-1">
+            <FaCircleExclamation size={14} />
             Con observaciones
           </span>
         );
       case 'approved':
         return (
-          <span className="badge-status badge-approved">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z" />
-            </svg>
+          <span className="badge-status badge-approved d-inline-flex align-items-center gap-1">
+            <FaCheck size={14} />
             Aprobada
           </span>
         );
       case 'disapproved':
         return (
-          <span className="badge-status badge-disapproved">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-            </svg>
+          <span className="badge-status badge-disapproved d-inline-flex align-items-center gap-1">
+            <FaXmark size={14} />
             Desaprobada
           </span>
         );
       case 'absent':
         return (
-          <span className="badge-status badge-absent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-              <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" />
-            </svg>
+          <span className="badge-status badge-absent d-inline-flex align-items-center gap-1">
+            <FaMinus size={14} />
             Ausente
           </span>
         );
@@ -351,10 +357,8 @@ const Trabajo: React.FC = () => {
       <div className="trabajo-wrapper">
         {/* Barra superior con navegación */}
         <div className="trabajo-top-bar">
-          <Link to="/docente/proyectos" className="trabajo-back-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
-            </svg>
+          <Link to="/docente/proyectos" className="trabajo-back-btn d-inline-flex align-items-center gap-1.5">
+            <FaArrowLeft size={16} />
             Volver a Proyectos
           </Link>
           <div className="d-flex align-items-center gap-2">
@@ -448,9 +452,7 @@ const Trabajo: React.FC = () => {
             /* Estado vacío: Sin entrega registrada */
             <div className="trabajo-empty-state">
               <div className="trabajo-empty-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
-                </svg>
+                <FaFileLines size={32} />
               </div>
               <h3 className="trabajo-empty-title">Aún no hay entrega registrada para este proyecto</h3>
               <p className="trabajo-empty-desc">
@@ -462,12 +464,10 @@ const Trabajo: React.FC = () => {
               {(isStudent || isAdmin) && (
                 <button
                   type="button"
-                  className="btn-trabajo-primary"
+                  className="btn-trabajo-primary d-inline-flex align-items-center gap-1.5"
                   onClick={() => handleOpenLinksModal(false)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-                  </svg>
+                  <FaPlus size={16} />
                   Registrar Entrega de Proyecto
                 </button>
               )}
@@ -495,9 +495,7 @@ const Trabajo: React.FC = () => {
               {/* Banner de Tutoría Solicitada */}
               {work.tutoringRequested && (
                 <div className="trabajo-tutoring-banner">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
-                  </svg>
+                  <FaCircleInfo size={22} />
                   <div>
                     <strong>Tutoría Solicitada:</strong> El equipo del proyecto solicitó una sesión de tutoría docente para revisar avances o despejar inquietudes.
                   </div>
@@ -536,10 +534,7 @@ const Trabajo: React.FC = () => {
                 <div className="trabajo-link-box">
                   <div className="trabajo-link-box-header">
                     <div className="trabajo-link-icon docs">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
-                        <path d="M4.5 9a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5z" />
-                      </svg>
+                      <FaFileLines size={20} />
                     </div>
                     <div>
                       <h4 className="trabajo-link-title">Documento de Entrega (Google Docs)</h4>
@@ -551,12 +546,9 @@ const Trabajo: React.FC = () => {
                       href={work.documentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="trabajo-link-action-btn flex-grow-1"
+                      className="trabajo-link-action-btn flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1.5"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path fillRule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z" />
-                        <path fillRule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z" />
-                      </svg>
+                      <FaArrowUpRightFromSquare size={14} />
                       Abrir en Google Docs
                     </a>
                   </div>
@@ -566,11 +558,7 @@ const Trabajo: React.FC = () => {
                 <div className="trabajo-link-box">
                   <div className="trabajo-link-box-header">
                     <div className="trabajo-link-icon drive">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M4.5 11 2 6.5 7.5 6.5 10 11z" />
-                        <path d="M13.5 11 11 6.5 16 6.5 13.5 11z" />
-                        <path d="M8.5 2 6 6.5 11 6.5 8.5 2z" />
-                      </svg>
+                      <FaFolderOpen size={20} />
                     </div>
                     <div>
                       <h4 className="trabajo-link-title">Carpeta de Archivos (Google Drive)</h4>
@@ -582,12 +570,9 @@ const Trabajo: React.FC = () => {
                       href={work.driveFolderUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="trabajo-link-action-btn"
+                      className="trabajo-link-action-btn d-inline-flex align-items-center justify-content-center gap-1.5"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path fillRule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z" />
-                        <path fillRule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z" />
-                      </svg>
+                      <FaArrowUpRightFromSquare size={14} />
                       Abrir Carpeta en Drive
                     </a>
                   ) : (
@@ -659,20 +644,18 @@ const Trabajo: React.FC = () => {
                     {/* Calificar Entrega (Solo evaluador / admin) */}
                     <button
                       type="button"
-                      className="btn-trabajo-primary"
+                      className="btn-trabajo-primary d-inline-flex align-items-center gap-1.5"
                       onClick={handleOpenQualifyModal}
                       disabled={actionLoading}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
-                      </svg>
+                      <FaStar size={16} />
                       Calificar Entrega
                     </button>
 
                     {/* Marcar como Observada */}
                     <button
                       type="button"
-                      className="btn-trabajo-warning"
+                      className="btn-trabajo-warning d-inline-flex align-items-center gap-1.5"
                       onClick={() =>
                         setConfirmActionModal({
                           open: true,
@@ -685,16 +668,14 @@ const Trabajo: React.FC = () => {
                       }
                       disabled={actionLoading}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M7.005 3.1a1 1 0 1 1 1.99 0l-.388 6.35a.61.61 0 0 1-1.214 0L7.005 3.1zM8 12a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-                      </svg>
+                      <FaCircleExclamation size={16} />
                       Marcar con Observaciones
                     </button>
 
                     {/* Registrar Tutoría (Tutor / admin) */}
                     <button
                       type="button"
-                      className="btn-trabajo-info"
+                      className="btn-trabajo-info d-inline-flex align-items-center gap-1.5"
                       onClick={() =>
                         setConfirmActionModal({
                           open: true,
@@ -707,9 +688,7 @@ const Trabajo: React.FC = () => {
                       }
                       disabled={actionLoading}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917l-7.5-3.5z" />
-                      </svg>
+                      <FaGraduationCap size={16} />
                       Registrar Tutoría
                     </button>
                   </>
@@ -721,20 +700,18 @@ const Trabajo: React.FC = () => {
                     {/* Modificar Enlaces */}
                     <button
                       type="button"
-                      className="btn-trabajo-secondary"
+                      className="btn-trabajo-secondary d-inline-flex align-items-center gap-1.5"
                       onClick={() => handleOpenLinksModal(true)}
                       disabled={actionLoading}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
-                      </svg>
+                      <FaPencil size={16} />
                       Modificar Enlaces
                     </button>
 
                     {/* Notificar Avances (vuelve a pending_review) */}
                     <button
                       type="button"
-                      className="btn-trabajo-primary"
+                      className="btn-trabajo-primary d-inline-flex align-items-center gap-1.5"
                       onClick={() =>
                         setConfirmActionModal({
                           open: true,
@@ -747,9 +724,7 @@ const Trabajo: React.FC = () => {
                       }
                       disabled={actionLoading}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11z" />
-                      </svg>
+                      <FaPaperPlane size={16} />
                       Notificar Avances
                     </button>
 
@@ -757,7 +732,7 @@ const Trabajo: React.FC = () => {
                     {!work.tutoringRequested && (
                       <button
                         type="button"
-                        className="btn-trabajo-info"
+                        className="btn-trabajo-info d-inline-flex align-items-center gap-1.5"
                         onClick={() =>
                           setConfirmActionModal({
                             open: true,
@@ -770,9 +745,7 @@ const Trabajo: React.FC = () => {
                         }
                         disabled={actionLoading}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M8 1a5 5 0 0 0-5 5v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a6 6 0 1 1 12 0v6a2.5 2.5 0 0 1-2.5 2.5H9.366a1 1 0 0 1-.866.5h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 .866.5H11.5A1.5 1.5 0 0 0 13 12V6a5 5 0 0 0-5-5z" />
-                        </svg>
+                        <FaChalkboardUser size={16} />
                         Solicitar Tutoría
                       </button>
                     )}

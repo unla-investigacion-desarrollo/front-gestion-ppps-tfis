@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { FaMagnifyingGlass, FaFilter, FaChevronDown, FaArrowRotateLeft } from 'react-icons/fa6';
 import { selectProjectTypes, ProjectType } from '../../../../redux/slices/projectsSlice';
 
 // Interfaz que define la estructura del estado de los filtros de proyectos
@@ -57,9 +58,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
         <div className="col-md-9 col-sm-8">
           <div className="search-input-wrapper">
             <span className="search-icon-wrapper">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#9ca3af" viewBox="0 0 24 24">
-                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-              </svg>
+              <FaMagnifyingGlass size={15} color="#9ca3af" />
             </span>
             <input
               type="text"
@@ -78,13 +77,16 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
             className={`btn filter-btn-toggle w-100 ${isPanelOpen ? 'active' : ''}`}
             onClick={() => setIsPanelOpen(!isPanelOpen)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.868V12.5a.5.5 0 0 1-.276.447l-2 1A.5.5 0 0 1 7 13.5v-4.632L2.628 3.834A.5.5 0 0 1 2.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v4.162l1-.5V8.5a.5.5 0 0 1 .128-.334L12.5 3.308V2h-10z"/>
-            </svg>
+            <FaFilter size={14} />
             Filtrar
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" style={{ marginLeft: 'auto', transform: isPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-              <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-            </svg>
+            <FaChevronDown
+              size={11}
+              style={{
+                marginLeft: 'auto',
+                transform: isPanelOpen ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.2s',
+              }}
+            />
           </button>
         </div>
       </div>
@@ -132,7 +134,8 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                 className="btn btn-outline-secondary btn-clear-filters w-100 d-inline-flex align-items-center justify-content-center gap-2"
                 onClick={onClearFilters}
               >
-                Limpiar filtros
+                <FaArrowRotateLeft size={13} />
+                <span>Limpiar filtros</span>
               </button>
             </div>
           </div>

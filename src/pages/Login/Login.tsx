@@ -1,7 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUser, setMockAuth, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
+import { FaEye, FaEyeSlash, FaTriangleExclamation } from 'react-icons/fa6';
+import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
 import './Login.css';
 import logo from '../../assets/logo.png';
 
@@ -22,53 +23,6 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
 
-  const handleQuickLoginTeacher = (isTutor: boolean, customEmail?: string) => {
-    const emailToUse = customEmail || (isTutor ? 'jose.gomez@unla.edu.ar' : 'erika.valdez@unla.edu.ar');
-    const emailLower = emailToUse.toLowerCase().trim();
-
-    // Buscar si existe un usuario registrado en localStorage con este correo
-    let matchedUser: any = null;
-    try {
-      const raw = localStorage.getItem('users');
-      const usersList = raw ? JSON.parse(raw) : [];
-      matchedUser = usersList.find((u: any) => u.email?.toLowerCase().trim() === emailLower);
-    } catch {}
-
-    const determinedIsTutor = Boolean(
-      matchedUser?.isTutor !== undefined ? matchedUser.isTutor :
-      isTutor || emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez')
-    );
-
-    const emailParts = emailToUse.split('@')[0].split('.');
-    const defaultNombre = emailParts[0] ? (emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1)) : (determinedIsTutor ? 'José' : 'Erika');
-    const defaultApellido = emailParts[1] ? (emailParts[1].charAt(0).toUpperCase() + emailParts[1].slice(1)) : (determinedIsTutor ? 'Gómez' : 'Valdez');
-
-    const nombre = matchedUser?.nombre || matchedUser?.firstName || defaultNombre;
-    const apellido = matchedUser?.apellido || matchedUser?.lastName || defaultApellido;
-    const fullName = [nombre, apellido].filter(Boolean).join(' ') || `${nombre} ${apellido}`.trim();
-
-    const mockTeacher = {
-      id: matchedUser?.id || (determinedIsTutor ? 'tutor-1' : 'eval-1'),
-      email: emailToUse,
-      nombre,
-      apellido,
-      firstName: nombre,
-      lastName: apellido,
-      name: fullName,
-      roles: ['DOCENTE'],
-      rol: 'DOCENTE',
-      isTutor: determinedIsTutor,
-    };
-
-    dispatch(setMockAuth({
-      user: mockTeacher,
-      token: 'mock-teacher-token-' + Date.now(),
-    }));
-    localStorage.setItem('user', JSON.stringify(mockTeacher));
-    localStorage.setItem('teacherViewProfile', determinedIsTutor ? 'tutor' : 'evaluador');
-    navigate('/dashboard');
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -77,21 +31,6 @@ function LoginForm() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Error en login:', err);
-      // Fallback para pruebas sin backend activo
-      const emailLower = (credentials.email || '').toLowerCase().trim();
-      const isDocente =
-        emailLower.includes('docente') ||
-        emailLower.includes('profesor') ||
-        emailLower.includes('tutor') ||
-        emailLower.includes('erika') ||
-        emailLower.includes('jose') ||
-        emailLower.includes('valdez') ||
-        emailLower.includes('gomez');
-
-      if (isDocente) {
-        const isTutor = emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez');
-        handleQuickLoginTeacher(isTutor, credentials.email);
-      }
     }
   };
 
@@ -172,22 +111,15 @@ function LoginForm() {
                   title={showPassword ? 'Ocultar' : 'Mostrar'}
                 >
                   {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <FaEyeSlash size={18} />
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                    <FaEye size={18} />
                   )}
                 </button>
               </div>
               {capsLockOn && (
                 <div className="caps-lock-warning">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px', flexShrink: 0 }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+                  <FaTriangleExclamation size={14} style={{ marginRight: '4px', flexShrink: 0 }} />
                   <span>Mayúsculas activadas (Caps Lock)</span>
                 </div>
               )}
@@ -215,29 +147,6 @@ function LoginForm() {
             </div>
           </div>
 
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px dashed #cbd5e1', textAlign: 'center' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
-              ACCESO RÁPIDO DEMO PROFESOR
-            </span>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-danger"
-                style={{ fontSize: '12px', borderRadius: '6px' }}
-                onClick={() => handleQuickLoginTeacher(false)}
-              >
-                Profesor Evaluador
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary"
-                style={{ fontSize: '12px', borderRadius: '6px' }}
-                onClick={() => handleQuickLoginTeacher(true)}
-              >
-                Profesor Tutor
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

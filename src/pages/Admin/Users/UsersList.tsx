@@ -21,6 +21,16 @@ import '../../../styles/unla.css';
 import bgImage from '../../../assets/fondo-rojo.jpg';
 import './UsersList.css';
 import { showToast } from '../../../utils/toast';
+import {
+  FaCircleInfo,
+  FaEnvelope,
+  FaUserPlus,
+  FaUser,
+  FaCircleCheck,
+  FaClock,
+  FaUserXmark,
+  FaTriangleExclamation,
+} from 'react-icons/fa6';
 
 // Refactored Subcomponents
 import UserFilters from './components/UserFilters';
@@ -536,10 +546,7 @@ const UsersList: React.FC = () => {
               ) : (
                 <div className="card shadow-sm h-100 d-flex align-items-center justify-content-center border-0 bg-transparent">
                   <div className="text-center p-4 text-muted">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" className="bi bi-info-circle mb-3" viewBox="0 0 16 16">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                      <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-                    </svg>
+                    <FaCircleInfo size={64} className="mb-3" />
                     <p className="mb-0">Los usuarios administradores no poseen información adicional específica.</p>
                   </div>
                 </div>
@@ -584,9 +591,7 @@ const UsersList: React.FC = () => {
                   }}
                   style={{ fontSize: '14px' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-envelope" viewBox="0 0 16 16">
-                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
-                  </svg>
+                  <FaEnvelope size={16} />
                   Invitar docente (correo)
                 </button>
               </li>
@@ -600,10 +605,7 @@ const UsersList: React.FC = () => {
                   }}
                   style={{ fontSize: '14px' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-plus" viewBox="0 0 16 16">
-                    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-                    <path fillRule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
-                  </svg>
+                  <FaUserPlus size={16} />
                   Crear usuario
                 </button>
               </li>
@@ -617,9 +619,7 @@ const UsersList: React.FC = () => {
           <div className="col-md-3">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-total">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+                <FaUser size={20} />
               </div>
               <div>
                 <div className="stat-label">Total docentes</div>
@@ -632,9 +632,7 @@ const UsersList: React.FC = () => {
           <div className="col-md-3">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-active">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
+                <FaCircleCheck size={20} />
               </div>
               <div>
                 <div className="stat-label">Activos</div>
@@ -647,9 +645,7 @@ const UsersList: React.FC = () => {
           <div className="col-md-3">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-pending">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                </svg>
+                <FaClock size={20} />
               </div>
               <div>
                 <div className="stat-label">Pendientes</div>
@@ -662,9 +658,7 @@ const UsersList: React.FC = () => {
           <div className="col-md-3">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-inactive">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm10-5h-8v2h8V9z" />
-                </svg>
+                <FaUserXmark size={20} />
               </div>
               <div>
                 <div className="stat-label">Inactivos</div>
@@ -983,10 +977,7 @@ const UsersList: React.FC = () => {
                   />
                 </div>
                 <div className="modal-body custom-modal-body text-center py-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--unla-primary)" className="bi bi-exclamation-triangle mb-3" viewBox="0 0 16 16">
-                    <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
-                    <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
-                  </svg>
+                  <FaTriangleExclamation size={48} color="var(--unla-primary)" className="mb-3" />
                   <p className="mb-0" style={{ fontSize: '18px', fontWeight: 500 }}>
                     ¿Está seguro de que desea eliminar al usuario <strong>{userToDelete.email}</strong>?
                   </p>

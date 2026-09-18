@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/Campus-Virtual-UNLa.png';
 import '../styles/unla.css';
@@ -186,9 +187,7 @@ const AuthenticatedLayout = ({ children }) => {
                   {user.email.charAt(0).toUpperCase()}
                 </div>
                 <span>{user.email}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
-                  <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
-                </svg>
+                <FaChevronDown size={12} />
               </button>
               <ul className={`profile-dropdown-menu ${dropdownOpen ? 'open' : ''}`}>
                 <li>

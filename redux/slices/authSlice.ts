@@ -280,15 +280,6 @@ const authSlice = createSlice({
         }
       }
     },
-    setMockAuth: (state, action) => {
-      state.isAuthenticated = true;
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.loading = 'succeeded';
-      state.error = null;
-      localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -343,7 +334,7 @@ const authSlice = createSlice({
 });
 
 // Exportar acciones y reducer
-export const { logout, clearError, setMustChangePassword, setMockAuth } = authSlice.actions;
+export const { logout, clearError, setMustChangePassword } = authSlice.actions;
 export default authSlice.reducer;
 
 // Selectores

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
+import { FaIdCard, FaSquarePlus } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchPPPExpedientes,
@@ -56,9 +57,7 @@ export const PPPStudentMyTramite: React.FC = () => {
         <div className="ppp-header-card">
           <div className="ppp-header-info">
             <div className="ppp-header-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4 1 1 1 1H4Zm4-5.95a2.5 2.5 0 1 0-.001-5.001A2.5 2.5 0 0 0 8 10.05Zm4.5-1.55a.5.5 0 0 0 0 1H15a.5.5 0 0 0 0-1h-2.5Zm0-2.5a.5.5 0 0 0 0 1H15a.5.5 0 0 0 0-1h-2.5Zm0-2.5a.5.5 0 0 0 0 1H15a.5.5 0 0 0 0-1h-2.5Z" />
-              </svg>
+              <FaIdCard size={28} />
             </div>
             <div>
               <h1 className="ppp-title">Mis Trámites de Prácticas Profesionales (PPP)</h1>
@@ -80,10 +79,7 @@ export const PPPStudentMyTramite: React.FC = () => {
         {myExpedientes.length === 0 ? (
           <div className="bg-white rounded-3 border p-5 text-center shadow-sm">
             <div className="mb-3 text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="#cbd5e1" viewBox="0 0 16 16">
-                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
-                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-              </svg>
+              <FaSquarePlus size={56} color="#cbd5e1" />
             </div>
             <h5 className="fw-bold text-dark mb-2">Aún no tenés ningún trámite de PPP iniciado</h5>
             <p className="text-muted small mx-auto mb-4" style={{ maxWidth: '480px' }}>

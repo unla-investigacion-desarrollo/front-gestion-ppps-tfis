@@ -18,6 +18,16 @@ import {
 } from '../../../redux/slices/pppSlice';
 import { PPPProposal, PPPApplicant } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
+import {
+  FaIdCard,
+  FaPlus,
+  FaFolder,
+  FaFolderOpen,
+  FaMagnifyingGlass,
+  FaFileLines,
+  FaLock,
+  FaUsers,
+} from 'react-icons/fa6';
 import './PPP.css';
 
 export const PPPProposalsCatalog: React.FC = () => {
@@ -252,10 +262,7 @@ export const PPPProposalsCatalog: React.FC = () => {
         <div className="ppp-header-card">
           <div className="ppp-header-info">
             <div className="ppp-header-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4 1 1 1 1H4Zm4-5.95a2.5 2.5 0 1 0-.001-5.001A2.5 2.5 0 0 0 8 10.05Zm4.5-1.55a.5.5 0 0 0 0 1H15a.5.5 0 0 0 0-1h-2.5Zm0-2.5a.5.5 0 0 0 0 1H15a.5.5 0 0 0 0-1h-2.5Zm0-2.5a.5.5 0 0 0 0 1H15a.5.5 0 0 0 0-1h-2.5Z" />
-                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2Zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1Z" />
-              </svg>
+              <FaIdCard size={28} />
             </div>
             <div>
               <h1 className="ppp-title">Catálogo de Convocatorias PPP</h1>
@@ -271,35 +278,29 @@ export const PPPProposalsCatalog: React.FC = () => {
             {isStudent ? (
               <button
                 type="button"
-                className="btn-unla-primary"
+                className="btn-unla-primary d-inline-flex align-items-center gap-1"
                 onClick={handleCreateExternal}
                 disabled={actionLoading}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-                </svg>
+                <FaPlus size={14} />
                 Iniciar trámite externo
               </button>
             ) : (
               <>
                 <button
                   type="button"
-                  className="btn-unla-outline"
+                  className="btn-unla-outline d-inline-flex align-items-center gap-1"
                   onClick={() => setShowDriveModal(true)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5z" />
-                  </svg>
+                  <FaFolder size={14} />
                   Drive institucional
                 </button>
                 <button
                   type="button"
-                  className="btn-unla-primary"
+                  className="btn-unla-primary d-inline-flex align-items-center gap-1"
                   onClick={() => setShowCreateModal(true)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-                  </svg>
+                  <FaPlus size={14} />
                   Crear propuesta
                 </button>
               </>
@@ -311,9 +312,7 @@ export const PPPProposalsCatalog: React.FC = () => {
         <div className="ppp-filter-card">
           <div className="ppp-search-box">
             <span className="ppp-search-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-              </svg>
+              <FaMagnifyingGlass size={16} />
             </span>
             <input
               type="text"
@@ -344,10 +343,7 @@ export const PPPProposalsCatalog: React.FC = () => {
         {filteredProposals.length === 0 ? (
           <div className="text-center py-5 bg-white rounded-3 border p-4">
             <div className="text-muted mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#cbd5e1" viewBox="0 0 16 16">
-                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
-                <path d="M4 4.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5z" />
-              </svg>
+              <FaFileLines size={48} color="#cbd5e1" />
             </div>
             <h5 className="fw-semibold text-secondary">No se encontraron convocatorias de PPP</h5>
             <p className="text-muted small">
@@ -376,30 +372,24 @@ export const PPPProposalsCatalog: React.FC = () => {
 
                   <p className="ppp-proposal-desc">{proposal.description}</p>
 
-                  {/* Enlace a la carpeta de la propuesta si existe */}
-                  {proposal.driveFolderUrl && (
-                    <a
-                      href={proposal.driveFolderUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ppp-proposal-drive-link"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .997l.003.088h4.69v-.792z" />
-                      </svg>
-                      Recursos de la propuesta (Drive) ↗
-                    </a>
-                  )}
+                    {proposal.driveFolderUrl && (
+                      <a
+                        href={proposal.driveFolderUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ppp-proposal-drive-link d-inline-flex align-items-center gap-1"
+                      >
+                        <FaFolderOpen size={14} />
+                        Recursos de la propuesta (Drive) ↗
+                      </a>
+                    )}
 
-                  {/* Notas internas: estrictamente reservadas para Docente / Admin */}
-                  {!isStudent && proposal.internalNotes && (
-                    <div className="ppp-internal-notes-box">
-                      <div className="ppp-internal-notes-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-                        </svg>
-                        Notas internas de la cátedra:
-                      </div>
+                    {!isStudent && proposal.internalNotes && (
+                      <div className="ppp-internal-notes-box">
+                        <div className="ppp-internal-notes-title d-inline-flex align-items-center gap-1">
+                          <FaLock size={13} />
+                          Notas internas de la cátedra:
+                        </div>
                       <div>{proposal.internalNotes}</div>
                     </div>
                   )}
@@ -432,15 +422,13 @@ export const PPPProposalsCatalog: React.FC = () => {
 
                         <button
                           type="button"
-                          className="btn btn-sm btn-unla-outline"
+                          className="btn btn-sm btn-unla-outline d-inline-flex align-items-center gap-1"
                           onClick={() => {
                             setSelectedProposalApplicants(proposal);
                             setShowApplicantsModal(true);
                           }}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h-8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.047 1.09-2.904.243-.294.556-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
-                          </svg>
+                          <FaUsers size={14} />
                           Postulantes ({applicantsCount})
                         </button>
                       </>

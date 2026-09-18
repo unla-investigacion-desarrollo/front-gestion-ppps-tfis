@@ -5,6 +5,14 @@ import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { createProject, fetchProjectTypes, selectProjectTypes, ProjectType } from '../../../redux/slices/projectsSlice';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../../utils/toast';
+import {
+  FaArrowLeft,
+  FaCircleExclamation,
+  FaFileLines,
+  FaTag,
+  FaTableCellsLarge,
+  FaAlignLeft,
+} from 'react-icons/fa6';
 
 const TeacherProjectCreate: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -88,15 +96,13 @@ const TeacherProjectCreate: React.FC = () => {
           <div className="project-create-form-side">
             <a
               href="#"
-              className="project-create-back-link"
+              className="project-create-back-link d-inline-flex align-items-center gap-2"
               onClick={(e) => {
                 e.preventDefault();
                 navigate('/docente/proyectos');
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
-              </svg>
+              <FaArrowLeft size={16} />
               Volver a proyectos
             </a>
 
@@ -117,11 +123,8 @@ const TeacherProjectCreate: React.FC = () => {
                   onChange={(e) => setForm({ ...form, titulo: e.target.value })}
                 />
                 {errors.titulo && (
-                  <span className="error-hint">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                      <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                    </svg>
+                  <span className="error-hint d-inline-flex align-items-center gap-1">
+                    <FaCircleExclamation size={14} />
                     {errors.titulo}
                   </span>
                 )}
@@ -149,11 +152,8 @@ const TeacherProjectCreate: React.FC = () => {
                   ))}
                 </select>
                 {errors.categoria && (
-                  <span className="error-hint">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                      <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                    </svg>
+                  <span className="error-hint d-inline-flex align-items-center gap-1">
+                    <FaCircleExclamation size={14} />
                     {errors.categoria}
                   </span>
                 )}
@@ -173,11 +173,8 @@ const TeacherProjectCreate: React.FC = () => {
                 />
                 <div className="character-counter">{form.descripcion.length} / 2000</div>
                 {errors.descripcion && (
-                  <span className="error-hint">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                      <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                    </svg>
+                  <span className="error-hint d-inline-flex align-items-center gap-1">
+                    <FaCircleExclamation size={14} />
                     {errors.descripcion}
                   </span>
                 )}
@@ -208,10 +205,7 @@ const TeacherProjectCreate: React.FC = () => {
           <div className="project-create-info-side">
             <div className="info-header">
               <div className="info-icon-wrapper">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M12 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM4 1a1 1 0 0 0-1 1v1h10V2a1 1 0 0 0-1-1H4zm9 3v10H3V4h10z" />
-                  <path d="M5 10.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z" />
-                </svg>
+                <FaFileLines size={24} />
               </div>
               <h2 className="info-title">Creá un nuevo proyecto</h2>
               <p className="info-subtitle">
@@ -222,10 +216,7 @@ const TeacherProjectCreate: React.FC = () => {
             <div className="info-list">
               <div className="info-item">
                 <div className="info-item-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4z" />
-                    <path d="M6 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
-                  </svg>
+                  <FaTag size={16} />
                 </div>
                 <div className="info-item-content">
                   <span className="info-item-title">Título</span>
@@ -235,9 +226,7 @@ const TeacherProjectCreate: React.FC = () => {
 
               <div className="info-item">
                 <div className="info-item-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1.5 9A1.5 1.5 0 0 1 3 7.5h3A1.5 1.5 0 0 1 7 9v3A1.5 1.5 0 0 1 5.5 13.5h-3A1.5 1.5 0 0 1 1 12V9zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5H3zm6.5.5A1.5 1.5 0 0 1 10.5 7.5h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 12V9zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5h-3z" />
-                  </svg>
+                  <FaTableCellsLarge size={16} />
                 </div>
                 <div className="info-item-content">
                   <span className="info-item-title">Categoría</span>
@@ -247,10 +236,7 @@ const TeacherProjectCreate: React.FC = () => {
 
               <div className="info-item">
                 <div className="info-item-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z" />
-                    <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8zm0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z" />
-                  </svg>
+                  <FaAlignLeft size={16} />
                 </div>
                 <div className="info-item-content">
                   <span className="info-item-title">Descripción</span>

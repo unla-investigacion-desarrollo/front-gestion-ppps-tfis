@@ -23,6 +23,17 @@ import {
   getStudentEmail,
 } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
+import {
+  FaFileLines,
+  FaFileArrowDown,
+  FaFolderOpen,
+  FaEye,
+  FaPaperPlane,
+  FaCircleCheck,
+  FaCircleExclamation,
+  FaCircleXmark,
+  FaCheck,
+} from 'react-icons/fa6';
 import './PPP.css';
 
 export const PPPTramiteDetail: React.FC = () => {
@@ -228,9 +239,7 @@ export const PPPTramiteDetail: React.FC = () => {
         <div className="ppp-header-card">
           <div className="ppp-header-info">
             <div className="ppp-header-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
-              </svg>
+              <FaFileLines size={28} />
             </div>
             <div>
               <div className="d-flex align-items-center gap-2 mb-1">
@@ -324,10 +333,7 @@ export const PPPTramiteDetail: React.FC = () => {
         <div className="ppp-drive-download-banner">
           <div className="ppp-drive-download-info">
             <div className="ppp-drive-download-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
-              </svg>
+              <FaFileArrowDown size={24} />
             </div>
             <div>
               <h6 className="fw-bold text-dark m-0">Modelos y Convenios Oficiales de PPP</h6>
@@ -341,11 +347,9 @@ export const PPPTramiteDetail: React.FC = () => {
             href={generalDriveUrl || expediente.generalDriveUrl || 'https://drive.google.com'}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-unla-primary text-decoration-none"
+            className="btn-unla-primary text-decoration-none d-inline-flex align-items-center gap-1.5"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .997l.003.088h4.69v-.792z" />
-            </svg>
+            <FaFolderOpen size={16} />
             Abrir carpeta de convenios (Drive) ↗
           </a>
         </div>
@@ -432,11 +436,8 @@ export const PPPTramiteDetail: React.FC = () => {
 
         {/* Panel de Acciones según Rol */}
         <div className="ppp-actions-panel">
-          <div className="ppp-actions-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
-              <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-            </svg>
+          <div className="ppp-actions-title d-flex align-items-center gap-2">
+            <FaEye size={18} />
             Acciones del Trámite
           </div>
 
@@ -445,13 +446,11 @@ export const PPPTramiteDetail: React.FC = () => {
             <div className="ppp-actions-group">
               <button
                 type="button"
-                className="btn-unla-primary"
+                className="btn-unla-primary d-inline-flex align-items-center gap-1.5"
                 disabled={!canNotifyDocumentation || actionLoading}
                 onClick={handleNotifySent}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.8 14.5a.5.5 0 0 1-.928.016l-3.23-6.46-6.46-3.23a.5.5 0 0 1 .016-.928L14.054.036a.5.5 0 0 1 .54.11z" />
-                </svg>
+                <FaPaperPlane size={14} />
                 Notificar entrega de documentación
               </button>
 
@@ -482,9 +481,7 @@ export const PPPTramiteDetail: React.FC = () => {
                 disabled={expediente.status === 'approved' || actionLoading}
                 onClick={handleApprove}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                </svg>
+                <FaCircleCheck size={16} />
                 Aprobar práctica
               </button>
 
@@ -495,10 +492,7 @@ export const PPPTramiteDetail: React.FC = () => {
                 disabled={expediente.status === 'observed' || actionLoading}
                 onClick={handleObserve}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                  <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                </svg>
+                <FaCircleExclamation size={16} />
                 Marcar con observaciones
               </button>
 
@@ -509,9 +503,7 @@ export const PPPTramiteDetail: React.FC = () => {
                 disabled={expediente.status === 'disapproved' || actionLoading}
                 onClick={handleDisapprove}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z" />
-                </svg>
+                <FaCircleXmark size={16} />
                 Desaprobar práctica
               </button>
 
@@ -523,9 +515,7 @@ export const PPPTramiteDetail: React.FC = () => {
                 onClick={handleSiuLoad}
                 title={expediente.status !== 'approved' ? 'Requiere aprobación previa' : 'Registrar en SIU'}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z" />
-                </svg>
+                <FaCheck size={16} />
                 {expediente.isSiuLoaded ? 'Carga asentada en SIU' : 'Registrar carga en SIU Guaraní'}
               </button>
             </div>
