@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaCalendarDays, FaPencil } from 'react-icons/fa6';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
 // Propiedades recibidas por el componente ProjectTable
@@ -175,9 +176,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
                   {project.createdAt && (
                     <div className="project-date-text">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
-                      </svg>
+                      <FaCalendarDays size={12} className="text-muted" />
                       Creado el {formatCreationDate(project.createdAt)}
                     </div>
                   )}
@@ -247,9 +246,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         onClick={() => setActiveDropdownProjectId(activeDropdownProjectId === project.id ? null : project.id)}
                         title="Acciones"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                        </svg>
+                        <FaPencil size={14} />
                       </button>
 
                       {activeDropdownProjectId === project.id && (

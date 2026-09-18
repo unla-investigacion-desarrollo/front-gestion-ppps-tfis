@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaMagnifyingGlass, FaArrowRotateLeft } from 'react-icons/fa6';
 
 export interface TutorProjectFiltersProps {
   searchQuery: string;
@@ -11,7 +12,7 @@ export interface TutorProjectFiltersProps {
 
 /**
  * Componente reutilizable y responsive de barra de filtros para proyectos de tutor.
- * Emplea el sistema de grid de Bootstrap (row/col) y los estilos compartidos de gestión de proyectos.
+ * Emplea el sistema de grid de Bootstrap (row/col), FontAwesome vía react-icons y estilos UNLa.
  */
 export const TutorProjectFilters: React.FC<TutorProjectFiltersProps> = ({
   searchQuery,
@@ -28,15 +29,7 @@ export const TutorProjectFilters: React.FC<TutorProjectFiltersProps> = ({
         <div className="col-12 col-md-6 col-lg-7">
           <div className="search-input-wrapper">
             <span className="search-icon-wrapper">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="#9ca3af"
-                viewBox="0 0 24 24"
-              >
-                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-              </svg>
+              <FaMagnifyingGlass size={15} color="#9ca3af" />
             </span>
             <input
               type="text"
@@ -70,15 +63,7 @@ export const TutorProjectFilters: React.FC<TutorProjectFiltersProps> = ({
             onClick={onClearFilters}
             title="Limpiar filtros de búsqueda"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              fill="currentColor"
-              viewBox="0 0 16 16"
-            >
-              <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z" />
-            </svg>
+            <FaArrowRotateLeft size={13} />
             <span>Limpiar</span>
           </button>
         </div>

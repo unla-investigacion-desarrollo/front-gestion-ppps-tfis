@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaFolderOpen, FaCalendarDays, FaEllipsisVertical } from 'react-icons/fa6';
 import { projectService } from '../../../../services/projectService';
 import Pagination from '../../../../components/Pagination';
 import TutorProjectFilters from './TutorProjectFilters';
@@ -191,11 +192,12 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
       <div className="mb-2">
         <button
           type="button"
-          className="teacher-breadcrumb border-0 bg-transparent p-0 d-inline-flex align-items-center gap-1 text-muted"
+          className="teacher-breadcrumb border-0 bg-transparent p-0 d-inline-flex align-items-center gap-2 text-muted"
           onClick={onBackToInicio}
           style={{ cursor: 'pointer', fontSize: '13.5px' }}
         >
-          <span>← Inicio</span>
+          <FaArrowLeft size={11} />
+          <span>Inicio</span>
         </button>
       </div>
 
@@ -258,16 +260,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
               <tr>
                 <td colSpan={5} className="text-center py-5 text-muted">
                   <div className="py-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="40"
-                      height="40"
-                      fill="#cbd5e1"
-                      viewBox="0 0 16 16"
-                      className="mb-2"
-                    >
-                      <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
-                    </svg>
+                    <FaFolderOpen size={36} color="#cbd5e1" className="mb-2" />
                     <div className="fw-medium text-secondary">No se encontraron proyectos a cargo.</div>
                     {(searchQuery || filterEstado !== 'todos') && (
                       <button
@@ -320,16 +313,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   <td className="text-secondary small">
                     {row.ultimaTutoria !== '-' ? (
                       <div className="d-flex align-items-center gap-1">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="12"
-                          height="12"
-                          fill="currentColor"
-                          viewBox="0 0 16 16"
-                          className="text-muted"
-                        >
-                          <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
-                        </svg>
+                        <FaCalendarDays size={12} className="text-muted" />
                         <span>{row.ultimaTutoria}</span>
                       </div>
                     ) : (
@@ -365,7 +349,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
                       <button
                         type="button"
-                        className="teacher-btn-more-actions"
+                        className="teacher-btn-more-actions d-inline-flex align-items-center justify-content-center"
                         title="Opciones"
                         onClick={() => {
                           window.dispatchEvent(
@@ -378,7 +362,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                           );
                         }}
                       >
-                        ⋮
+                        <FaEllipsisVertical size={13} />
                       </button>
                     </div>
                   </td>
