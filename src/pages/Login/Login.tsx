@@ -1,10 +1,14 @@
-import { useDispatch, useSelector } from 'react-redux';
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaTriangleExclamation } from 'react-icons/fa6';
-import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
-import './Login.css';
-import logo from '../../assets/logo.png';
+import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { FaEye, FaEyeSlash, FaTriangleExclamation } from "react-icons/fa6";
+import {
+  loginUser,
+  selectAuthError,
+  selectAuthLoading,
+} from "../../../redux/slices/authSlice";
+import "./Login.css";
+import logo from "../../assets/logo.png";
 
 interface LoginCredentials {
   email: string;
@@ -17,33 +21,33 @@ function LoginForm() {
   const error = useSelector(selectAuthError) as string | null;
   const loading = useSelector(selectAuthLoading);
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     try {
       await dispatch(loginUser(credentials) as any).unwrap();
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
-      console.error('Error en login:', err);
+      console.error("Error en login:", err);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handlePasswordKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const isCaps = e.getModifierState && e.getModifierState('CapsLock');
+    const isCaps = e.getModifierState && e.getModifierState("CapsLock");
     setCapsLockOn(!!isCaps);
   };
 
@@ -54,7 +58,9 @@ function LoginForm() {
         <div className="login-visual-overlay" />
         <div className="login-visual-content">
           <img src={logo} alt="Logo UNLa" className="login-visual-logo" />
-          <h2 className="login-visual-subtitle">Plataforma de Gestión de PPS y TFI</h2>
+          <h2 className="login-visual-subtitle">
+            Plataforma de Gestión de PPS y TFI
+          </h2>
         </div>
       </div>
 
@@ -65,15 +71,19 @@ function LoginForm() {
           <div className="login-mobile-logo-container">
             <img src={logo} alt="Logo UNLa" className="login-mobile-logo" />
           </div>
-          
+
           <h1 className="login-title">Iniciar sesión</h1>
-          <p className="login-subtitle-helper">Ingresá tus credenciales para acceder a la plataforma</p>
-          
+          <p className="login-subtitle-helper">
+            Ingresá tus credenciales para acceder a la plataforma
+          </p>
+
           {error && <div className="error-message">{error}</div>}
-          
+
           <form onSubmit={handleSubmit} className="unla-form">
             <div className="form-group">
-              <label className="form-label" htmlFor="email-input">Correo electrónico</label>
+              <label className="form-label" htmlFor="email-input">
+                Correo electrónico
+              </label>
               <input
                 id="email-input"
                 type="email"
@@ -85,13 +95,15 @@ function LoginForm() {
                 required
               />
             </div>
-            
+
             <div className="form-group">
-              <label className="form-label" htmlFor="password-input">Contraseña</label>
-              <div style={{ position: 'relative' }}>
+              <label className="form-label" htmlFor="password-input">
+                Contraseña
+              </label>
+              <div style={{ position: "relative" }}>
                 <input
                   id="password-input"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="••••••••"
                   className="login-input"
@@ -101,14 +113,16 @@ function LoginForm() {
                   onKeyDown={handlePasswordKey}
                   required
                   aria-label="Contraseña"
-                  style={{ paddingRight: '45px' }}
+                  style={{ paddingRight: "45px" }}
                 />
                 <button
                   type="button"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  onClick={() => setShowPassword(s => !s)}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                  onClick={() => setShowPassword((s) => !s)}
                   className="password-toggle-btn"
-                  title={showPassword ? 'Ocultar' : 'Mostrar'}
+                  title={showPassword ? "Ocultar" : "Mostrar"}
                 >
                   {showPassword ? (
                     <FaEyeSlash size={18} />
@@ -119,34 +133,42 @@ function LoginForm() {
               </div>
               {capsLockOn && (
                 <div className="caps-lock-warning">
-                  <FaTriangleExclamation size={14} style={{ marginRight: '4px', flexShrink: 0 }} />
+                  <FaTriangleExclamation
+                    size={14}
+                    style={{ marginRight: "4px", flexShrink: 0 }}
+                  />
                   <span>Mayúsculas activadas (Caps Lock)</span>
                 </div>
               )}
             </div>
-            
-            <button 
-              type="submit" 
-              className="login-button" 
-              disabled={loading === 'pending'}
+
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading === "pending"}
             >
-              {loading === 'pending' ? (
+              {loading === "pending" ? (
                 <span className="spinner-loading">Iniciando sesión...</span>
-              ) : 'Ingresar'} 
+              ) : (
+                "Ingresar"
+              )}
             </button>
           </form>
-          
+
           <div className="login-links-container">
             <div className="login-link-item">
-              ¿Sos estudiante y todavía no tenés cuenta?{' '}
-              <Link to="/register" className="login-link">Registrate aquí</Link>
+              ¿Sos estudiante y todavía no tenés cuenta?{" "}
+              <Link to="/register" className="login-link">
+                Registrate aquí
+              </Link>
             </div>
             <div className="login-link-item">
-              ¿Necesitás ayuda para recuperar tu contraseña?{' '}
-              <Link to="/help" className="login-link">Ver ayuda</Link>
+              ¿Olvidaste tu contraseña?{" "}
+              <Link to="/forgot-password" className="login-link">
+                Recuperala aquí
+              </Link>
             </div>
           </div>
-
         </div>
       </div>
     </div>

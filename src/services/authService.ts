@@ -1,11 +1,14 @@
-const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL || "/api/sg-ppp-tfi/v1").replace(
+  /\/$/,
+  "",
+);
 
 export const authService = {
   login: async (credentials: { email: string; password: string }) => {
     return fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(credentials),
     });
@@ -22,9 +25,9 @@ export const authService = {
     completedCoursesWithoutFinal?: number;
   }) => {
     return fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         firstName: payload.nombre,
@@ -32,10 +35,45 @@ export const authService = {
         dni: payload.dni,
         email: payload.email,
         password: payload.password,
-        yearOfAdmission: payload.yearOfAdmission !== undefined ? Number(payload.yearOfAdmission) : undefined,
-        completedCoursesWithFinal: payload.completedCoursesWithFinal !== undefined ? Number(payload.completedCoursesWithFinal) : 0,
-        completedCoursesWithoutFinal: payload.completedCoursesWithoutFinal !== undefined ? Number(payload.completedCoursesWithoutFinal) : 0,
+        yearOfAdmission:
+          payload.yearOfAdmission !== undefined
+            ? Number(payload.yearOfAdmission)
+            : undefined,
+        completedCoursesWithFinal:
+          payload.completedCoursesWithFinal !== undefined
+            ? Number(payload.completedCoursesWithFinal)
+            : 0,
+        completedCoursesWithoutFinal:
+          payload.completedCoursesWithoutFinal !== undefined
+            ? Number(payload.completedCoursesWithoutFinal)
+            : 0,
       }),
+    });
+  },
+
+  forgotPassword: async (email: string) => {
+    return await fetch(`${API_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword: async ({
+    token,
+    newPassword,
+  }: {
+    token: string;
+    newPassword: string;
+  }) => {
+    return await fetch(`${API_URL}/auth/reset-password/${token}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newPassword }),
     });
   },
 };
