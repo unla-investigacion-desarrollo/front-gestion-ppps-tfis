@@ -1,13 +1,14 @@
 const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
 
 export const authService = {
-  login: async (credentials: { email: string; password: string }) => {
+  login: async (credentials: { email: string; password: string }, signal?: AbortSignal) => {
     return fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(credentials),
+      signal,
     });
   },
 
@@ -20,12 +21,13 @@ export const authService = {
     yearOfAdmission?: number;
     completedCoursesWithFinal?: number;
     completedCoursesWithoutFinal?: number;
-  }) => {
+  }, signal?: AbortSignal) => {
     return fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      signal,
       body: JSON.stringify({
         firstName: payload.nombre,
         lastName: payload.apellido,

@@ -56,13 +56,14 @@ export const projectService = {
    * Admin y Docente Evaluador reciben proyectos con relaciones completas.
    * Docente Tutor y Alumno reciben información básica.
    */
-  getProjects: async (token: string) => {
+  getProjects: async (token: string, signal?: AbortSignal) => {
     const res = await fetch(`${API_URL}/project`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
+      signal,
     });
 
     const text = await res.text();
@@ -84,13 +85,14 @@ export const projectService = {
   /**
    * Obtiene los tipos de proyectos existentes en el sistema.
    */
-  getProjectTypes: async (token: string): Promise<ProjectTypeDTO[]> => {
+  getProjectTypes: async (token: string, signal?: AbortSignal): Promise<ProjectTypeDTO[]> => {
     const res = await fetch(`${API_URL}/project/types`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
+      signal,
     });
 
     const text = await res.text();
@@ -451,13 +453,14 @@ export const projectService = {
    * Obtiene las solicitudes pendientes a proyectos (estudiantes y profesores).
    * Requiere rol ADMIN o PROFESSOR (evaluador).
    */
-  getPendingRequests: async (token: string): Promise<PendingRequestsResponse> => {
+  getPendingRequests: async (token: string, signal?: AbortSignal): Promise<PendingRequestsResponse> => {
     const res = await fetch(`${API_URL}/project/pending-requests`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
+      signal,
     });
 
     const text = await res.text();

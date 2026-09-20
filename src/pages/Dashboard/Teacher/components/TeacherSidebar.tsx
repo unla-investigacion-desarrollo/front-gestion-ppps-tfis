@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../../../assets/Campus-Virtual-UNLa.png';
 
 // Iconos de FontAwesome vía react-icons
@@ -35,6 +35,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
   onSelectView,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Secciones desplegables en menú Evaluador
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
@@ -69,7 +70,12 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
         <button
           type="button"
           className={`teacher-sidebar-item ${activeView === 'inicio' ? 'active' : ''}`}
-          onClick={() => onSelectView('inicio')}
+          onClick={() => {
+            onSelectView('inicio');
+            if (location.pathname !== '/dashboard') {
+              navigate('/dashboard');
+            }
+          }}
         >
           <FaHouse size={16} />
           <span>Inicio</span>
@@ -151,10 +157,13 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className="teacher-sidebar-subitem"
+                      className={`teacher-sidebar-subitem ${activeView === 'convocatoria-tfi' || activeView === 'proyectos' ? 'active' : ''}`}
                       onClick={() => {
                         localStorage.setItem('teacherViewProfile', 'evaluador');
-                        navigate('/docente/proyectos');
+                        onSelectView('convocatoria-tfi');
+                        if (location.pathname !== '/docente/proyectos') {
+                          navigate('/docente/proyectos');
+                        }
                       }}
                     >
                       <FaFolder size={14} />
@@ -248,7 +257,12 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             <button
               type="button"
               className={`teacher-sidebar-item ${activeView === 'proyectos' ? 'active' : ''}`}
-              onClick={() => onSelectView('proyectos')}
+              onClick={() => {
+                onSelectView('proyectos');
+                if (location.pathname !== '/dashboard') {
+                  navigate('/dashboard', { state: { initialView: 'proyectos' } });
+                }
+              }}
             >
               <FaFolder size={16} />
               <span>Mis proyectos</span>
@@ -260,7 +274,10 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
               className={`teacher-sidebar-item ${activeView === 'convocatoria-tfi' ? 'active' : ''}`}
               onClick={() => {
                 localStorage.setItem('teacherViewProfile', 'tutor');
-                navigate('/docente/proyectos');
+                onSelectView('convocatoria-tfi');
+                if (location.pathname !== '/docente/proyectos') {
+                  navigate('/docente/proyectos');
+                }
               }}
             >
               <FaBullhorn size={16} />
@@ -281,7 +298,12 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             <button
               type="button"
               className="teacher-sidebar-item"
-              onClick={() => onSelectView('inicio')}
+              onClick={() => {
+                onSelectView('inicio');
+                if (location.pathname !== '/dashboard') {
+                  navigate('/dashboard');
+                }
+              }}
             >
               <FaChalkboardUser size={16} />
               <span>Tutorías pendientes</span>

@@ -20,6 +20,19 @@
   flex-direction: column;
 }
 
+/* Adaptación para cuando se renderiza dentro del dashboard del docente con sidebar */
+.teacher-main-scrollable .projects-page-container {
+  background-color: transparent;
+  min-height: auto;
+  padding: 0;
+}
+
+.teacher-main-scrollable .projects-card-main {
+  min-height: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--unla-border-light, #e2e8f0);
+}
+
 /* Títulos y Subtítulos */
 .projects-title {
   font-weight: 700;

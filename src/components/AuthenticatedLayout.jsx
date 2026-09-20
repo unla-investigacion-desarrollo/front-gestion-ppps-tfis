@@ -139,7 +139,10 @@ const AuthenticatedLayout = ({ children }) => {
     }
   }, [toast, user]);
 
-  const isTeacherDashboard = location.pathname === '/dashboard' && isTeacher && !isAdmin;
+  const isTeacherDashboard =
+    (location.pathname === '/dashboard' || location.pathname === '/docente/proyectos') &&
+    isTeacher &&
+    !isAdmin;
 
   return (
     <>

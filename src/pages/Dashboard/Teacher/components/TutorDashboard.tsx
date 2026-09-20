@@ -24,12 +24,6 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
 
   return (
     <div>
-      {/* Breadcrumb - Vista del Tutor Principal Inicio */}
-      <div className="teacher-breadcrumb d-inline-flex align-items-center gap-2 mb-2">
-        <FaArrowLeft size={11} />
-        <span>Inicio</span>
-      </div>
-
       {/* Saludo */}
       <h1 className="teacher-page-title">
         Hola, {userName} 👋
