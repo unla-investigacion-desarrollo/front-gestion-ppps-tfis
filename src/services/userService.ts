@@ -187,4 +187,41 @@ export const userService = {
       return { message: text };
     }
   },
+
+  changePassword: async (
+    userId: number | string,
+    token: string,
+    payload: { currentPassword: string; newPassword: string }
+  ) => {
+    const res = await fetch(`${API_URL}/users/${userId}/change-password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword: payload.currentPassword,
+        newPassword: payload.newPassword,
+      }),
+    });
+
+    const text = await res.text();
+    let data: any = null;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+
+    if (!res.ok) {
+      const errorMsg =
+        data?.message ||
+        (res.status === 400 ? 'La contraseña actual es incorrecta o los datos son inválidos' : '') ||
+        text ||
+        `Error ${res.status}: Falló el cambio de contraseña`;
+      throw new Error(errorMsg);
+    }
+
+    return data;
+  },
 };

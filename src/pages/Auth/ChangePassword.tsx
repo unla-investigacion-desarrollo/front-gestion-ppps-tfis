@@ -15,6 +15,7 @@ const ChangePassword = () => {
   const [show, setShow] = useState({ current: false, next: false, confirm: false });
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Password live checks
   const pw = form.newPassword || '';
@@ -24,7 +25,6 @@ const ChangePassword = () => {
   const hasNumber = /\d/.test(pw);
   const hasSpecial = /[^A-Za-z0-9]/.test(pw);
   const checksPassed = [hasLen, hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
-  const strength = checksPassed <= 2 ? 'weak' : checksPassed === 3 ? 'medium' : 'strong';
   const confirmMatches = !!form.confirmPassword && form.newPassword === form.confirmPassword;
 
   if (!user) return null;
@@ -33,30 +33,60 @@ const ChangePassword = () => {
     e.preventDefault();
     setError(null);
     setOk(null);
+
+    if (!form.currentPassword || form.currentPassword.length < 6) {
+      setError('La contraseña actual debe tener al menos 6 caracteres');
+      return;
+    }
     if (!form.newPassword || form.newPassword.length < 6) {
       setError('La nueva contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (form.currentPassword === form.newPassword) {
+      setError('La nueva contraseña no puede ser igual a la contraseña actual');
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
+
+    const userId = user?.id || (() => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        return stored.id;
+      } catch {
+        return '';
+      }
+    })();
+
+    setIsSubmitting(true);
     try {
-      const res = await dispatch<any>(changePassword({ id: user.id, currentPassword: form.currentPassword, newPassword: form.newPassword }));
+      const res = await dispatch<any>(
+        changePassword({
+          id: userId,
+          currentPassword: form.currentPassword,
+          newPassword: form.newPassword,
+        })
+      );
+
       if (res && res.error) {
-        setError(res.payload || 'Error al cambiar la contraseña');
+        setError(res.payload || res.error.message || 'Error al cambiar la contraseña');
+        setIsSubmitting(false);
         return;
       }
+
       dispatch(setMustChangePassword(false));
       setOk('Contraseña actualizada correctamente.');
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       try {
-        const key = user ? `toast:${user.id}` : 'toast:anon';
+        const key = userId ? `toast:${userId}` : 'toast:anon';
         sessionStorage.setItem(key, 'Contraseña actualizada correctamente');
-      } catch { }
-      setTimeout(() => navigate('/dashboard'), 1200);
+      } catch {}
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (e: any) {
       setError(e?.message || 'Error al cambiar la contraseña');
+      setIsSubmitting(false);
     }
   };
 
@@ -189,7 +219,9 @@ const ChangePassword = () => {
           </div>
 
           <div className="change-password-buttons">
-            <button className="btn-save-pw" type="submit">Guardar</button>
+            <button className="btn-save-pw" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Guardando...' : 'Guardar'}
+            </button>
             <button
               type="button"
               className="btn-cancel-pw"

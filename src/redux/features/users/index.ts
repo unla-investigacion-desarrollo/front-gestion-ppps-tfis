@@ -126,7 +126,9 @@ export const usersSlice = createSlice({
       })
       .addCase(changePassword.fulfilled, (state, action) => {
         const idx = state.list.findIndex((u) => u.id === action.payload.id);
-        if (idx !== -1) state.list[idx] = action.payload;
+        if (idx !== -1) {
+          state.list[idx] = { ...state.list[idx], mustChangePassword: false };
+        }
       });
   },
 });

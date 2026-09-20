@@ -117,20 +117,62 @@ export const activateInvitedTeacher = createAsyncThunk<
 });
 
 export const changePassword = createAsyncThunk<
-  User,
+  { id: string; message?: string },
   { id: string; currentPassword: string; newPassword: string },
   { rejectValue: string }
 >('users/changePassword', async ({ id, currentPassword, newPassword }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 200));
-  const users = loadUsers();
-  const idx = users.findIndex((u) => u.id === id);
-  if (idx === -1) return rejectWithValue('Usuario no encontrado');
-  const u = users[idx];
-  if ((u.password || '') !== currentPassword) return rejectWithValue('Contraseña actual incorrecta');
-  if (!newPassword || newPassword.length < 6) return rejectWithValue('La nueva contraseña debe tener al menos 6 caracteres');
-  users[idx] = { ...u, password: newPassword, mustChangePassword: false, updatedAt: new Date().toISOString() };
-  saveUsers(users);
-  return users[idx];
+  try {
+    if (!currentPassword || currentPassword.length < 6) {
+      return rejectWithValue('La contraseña actual debe tener al menos 6 caracteres');
+    }
+    if (!newPassword || newPassword.length < 6) {
+      return rejectWithValue('La nueva contraseña debe tener al menos 6 caracteres');
+    }
+    if (currentPassword === newPassword) {
+      return rejectWithValue('La nueva contraseña no puede ser igual a la actual');
+    }
+
+    const token = localStorage.getItem('token') || '';
+    if (!token) {
+      return rejectWithValue('Sesión no válida o expirada. Por favor, vuelva a iniciar sesión.');
+    }
+
+    let targetId = id;
+    if (!targetId || targetId === 'undefined') {
+      try {
+        const raw = localStorage.getItem('user');
+        if (raw) {
+          const u = JSON.parse(raw);
+          targetId = u.id;
+        }
+      } catch {}
+    }
+
+    const response = await userService.changePassword(targetId, token, {
+      currentPassword,
+      newPassword,
+    });
+
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        u.mustChangePassword = false;
+        localStorage.setItem('user', JSON.stringify(u));
+      }
+    } catch {}
+
+    const users = loadUsers();
+    const idx = users.findIndex((u) => u.id === targetId);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], mustChangePassword: false, updatedAt: new Date().toISOString() };
+      saveUsers(users);
+    }
+
+    return { id: String(targetId), message: response?.message || 'Contraseña actualizada correctamente' };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al cambiar la contraseña');
+  }
 });
 
 export const toggleUserActivation = createAsyncThunk<
