@@ -18,6 +18,38 @@ export interface UpdateProjectDTO {
   projectTypeId?: number;
 }
 
+export interface PendingProjectItem {
+  id: number;
+  title: string;
+  type: string;
+}
+
+export interface PendingApplicant {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  specialization?: string;
+  yearOfAdmission?: number;
+}
+
+export interface PendingProfessorRequest {
+  requestId: number;
+  project: PendingProjectItem;
+  applicant: PendingApplicant;
+}
+
+export interface PendingStudentRequest {
+  requestId: number;
+  project: PendingProjectItem;
+  applicant: PendingApplicant;
+}
+
+export interface PendingRequestsResponse {
+  pendingProfessors: PendingProfessorRequest[];
+  pendingStudents: PendingStudentRequest[];
+}
+
 export const projectService = {
   /**
    * Obtiene todos los proyectos accesibles para el usuario autenticado.
@@ -412,6 +444,39 @@ export const projectService = {
       return JSON.parse(text);
     } catch {
       return [];
+    }
+  },
+
+  /**
+   * Obtiene las solicitudes pendientes a proyectos (estudiantes y profesores).
+   * Requiere rol ADMIN o PROFESSOR (evaluador).
+   */
+  getPendingRequests: async (token: string): Promise<PendingRequestsResponse> => {
+    const res = await fetch(`${API_URL}/project/pending-requests`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      throw new Error(parsedError?.message || text || `Error ${res.status}: Falló la obtención de solicitudes pendientes`);
+    }
+
+    try {
+      const data = JSON.parse(text);
+      return {
+        pendingProfessors: Array.isArray(data?.pendingProfessors) ? data.pendingProfessors : [],
+        pendingStudents: Array.isArray(data?.pendingStudents) ? data.pendingStudents : [],
+      };
+    } catch {
+      return { pendingProfessors: [], pendingStudents: [] };
     }
   },
 };

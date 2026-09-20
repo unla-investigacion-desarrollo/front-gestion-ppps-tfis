@@ -2,10 +2,14 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchProjects,
+  fetchPendingProjectRequests,
   selectPendingProjectRequests,
+  selectPendingProjectRequestsStatus,
   selectProjects,
   approveStudentProjectRequest,
   rejectStudentProjectRequest,
+  approveProfessorProjectRequest,
+  rejectProfessorProjectRequest,
 } from '../../../../redux/slices/projectsSlice';
 import {
   fetchUsers,
@@ -37,12 +41,14 @@ const ApprovalQueue: React.FC = () => {
   const pageSize = 5;
 
   const rawPendingProjectRequests = useSelector(selectPendingProjectRequests);
+  const pendingRequestsStatus = useSelector(selectPendingProjectRequestsStatus);
   const rawPendingUsers = useSelector(selectPendingUsers);
   const allUsers = useSelector(selectUsers);
   const allProjects = useSelector(selectProjects);
 
   useEffect(() => {
     dispatch(fetchProjects());
+    dispatch(fetchPendingProjectRequests());
     dispatch(fetchUsers());
   }, [dispatch]);
 
@@ -56,14 +62,25 @@ const ApprovalQueue: React.FC = () => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       list = list.filter((r) => {
-        const student = allUsers.find((u) => String(u.id) === String(r.studentUserId));
+        const student = allUsers.find((u) => String(u.id) === String(r.studentUserId || r.applicantId));
         const studentName = [student?.nombre, student?.apellido].filter(Boolean).join(' ').toLowerCase();
         const studentEmail = (student?.email || '').toLowerCase();
+        const applicantName = (r.applicantName || '').toLowerCase();
+        const applicantEmail = (r.applicantEmail || '').toLowerCase();
         const projectTitle = (r.projectTitle || '').toLowerCase();
+        const projectType = (r.projectType || '').toLowerCase();
+        const specialization = (r.specialization || '').toLowerCase();
+        const year = r.yearOfAdmission ? String(r.yearOfAdmission) : '';
+
         return (
+          applicantName.includes(q) ||
+          applicantEmail.includes(q) ||
           studentName.includes(q) ||
           studentEmail.includes(q) ||
           projectTitle.includes(q) ||
+          projectType.includes(q) ||
+          specialization.includes(q) ||
+          year.includes(q) ||
           (student?.legajo && String(student.legajo).includes(q))
         );
       });
@@ -119,23 +136,51 @@ const ApprovalQueue: React.FC = () => {
     return filteredUsers.slice(start, start + pageSize);
   }, [filteredUsers, currentPage, pageSize]);
 
-  // Manejador para aprobar solicitud de proyecto
-  const handleApproveProjectRequest = async (projectId: string, studentUserId: string) => {
-    const result = await dispatch(approveStudentProjectRequest({ projectId, studentUserId }));
-    if (!(result as any).error) {
-      showToast('¡Solicitud aprobada con éxito! El estudiante fue asignado al proyecto.', 'success');
+  // Manejador para aprobar solicitud de proyecto (estudiante o docente)
+  const handleApproveProjectRequest = async (
+    projectId: string,
+    applicantId: string,
+    role: 'student' | 'professor' = 'student'
+  ) => {
+    let result: any;
+    if (role === 'professor') {
+      result = await dispatch(approveProfessorProjectRequest({ projectId, professorUserId: applicantId }));
+      if (!result.error) {
+        showToast('¡Solicitud de docente aprobada con éxito!', 'success');
+      } else {
+        showToast(result.payload || 'Error al aprobar la solicitud del docente', 'error');
+      }
     } else {
-      showToast((result as any).payload || 'Error al aprobar la solicitud del estudiante', 'error');
+      result = await dispatch(approveStudentProjectRequest({ projectId, studentUserId: applicantId }));
+      if (!result.error) {
+        showToast('¡Solicitud aprobada con éxito! El estudiante fue asignado al proyecto.', 'success');
+      } else {
+        showToast(result.payload || 'Error al aprobar la solicitud del estudiante', 'error');
+      }
     }
   };
 
-  // Manejador para rechazar solicitud de proyecto
-  const handleRejectProjectRequest = async (projectId: string, studentUserId: string) => {
-    const result = await dispatch(rejectStudentProjectRequest({ projectId, studentUserId }));
-    if (!(result as any).error) {
-      showToast('Solicitud rechazada y removida.', 'info');
+  // Manejador para rechazar solicitud de proyecto (estudiante o docente)
+  const handleRejectProjectRequest = async (
+    projectId: string,
+    applicantId: string,
+    role: 'student' | 'professor' = 'student'
+  ) => {
+    let result: any;
+    if (role === 'professor') {
+      result = await dispatch(rejectProfessorProjectRequest({ projectId, professorUserId: applicantId }));
+      if (!result.error) {
+        showToast('Solicitud del docente rechazada.', 'info');
+      } else {
+        showToast(result.payload || 'Error al rechazar la solicitud del docente', 'error');
+      }
     } else {
-      showToast((result as any).payload || 'Error al rechazar la solicitud', 'error');
+      result = await dispatch(rejectStudentProjectRequest({ projectId, studentUserId: applicantId }));
+      if (!result.error) {
+        showToast('Solicitud rechazada y removida.', 'info');
+      } else {
+        showToast(result.payload || 'Error al rechazar la solicitud', 'error');
+      }
     }
   };
 
@@ -277,6 +322,7 @@ const ApprovalQueue: React.FC = () => {
               projects={allProjects}
               onApprove={handleApproveProjectRequest}
               onReject={handleRejectProjectRequest}
+              loading={pendingRequestsStatus === 'loading'}
             />
           )}
 

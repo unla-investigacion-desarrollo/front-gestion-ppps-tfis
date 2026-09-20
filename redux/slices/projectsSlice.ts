@@ -1,5 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { projectService, ProjectTypeDTO } from '../../src/services/projectService';
+import {
+  projectService,
+  ProjectTypeDTO,
+  PendingRequestsResponse,
+  PendingProfessorRequest,
+  PendingStudentRequest,
+  PendingProjectItem,
+  PendingApplicant,
+} from '../../src/services/projectService';
 
 export interface ProjectType {
   id: number;
@@ -45,6 +53,9 @@ export interface Project {
 interface ProjectsState {
   list: Project[];
   projectTypes: ProjectType[];
+  pendingRequests: PendingRequestsResponse;
+  pendingRequestsStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+  pendingRequestsError: string | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 }
@@ -52,6 +63,12 @@ interface ProjectsState {
 const initialState: ProjectsState = {
   list: [],
   projectTypes: [],
+  pendingRequests: {
+    pendingProfessors: [],
+    pendingStudents: [],
+  },
+  pendingRequestsStatus: 'idle',
+  pendingRequestsError: null,
   status: 'idle',
   error: null,
 };
@@ -110,6 +127,21 @@ export const fetchProjects = createAsyncThunk<Project[], void, { rejectValue: st
     }
   }
 );
+
+export const fetchPendingProjectRequests = createAsyncThunk<
+  PendingRequestsResponse,
+  void,
+  { rejectValue: string }
+>('projects/fetchPendingRequests', async (_, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    const data = await projectService.getPendingRequests(token);
+    return data;
+  } catch (error: any) {
+    console.error('Error fetching pending project requests:', error);
+    return rejectWithValue(error.message || 'Error al obtener solicitudes pendientes de la base de datos');
+  }
+});
 
 export const fetchProjectTypes = createAsyncThunk<ProjectType[], void, { rejectValue: string }>(
   'projects/fetchTypes',
@@ -282,6 +314,18 @@ const projectsSlice = createSlice({
         state.status = 'failed';
         state.error = (action.payload as string) || action.error.message || 'Error al cargar proyectos';
       })
+      .addCase(fetchPendingProjectRequests.pending, (state) => {
+        state.pendingRequestsStatus = 'loading';
+        state.pendingRequestsError = null;
+      })
+      .addCase(fetchPendingProjectRequests.fulfilled, (state, action: PayloadAction<PendingRequestsResponse>) => {
+        state.pendingRequestsStatus = 'succeeded';
+        state.pendingRequests = action.payload;
+      })
+      .addCase(fetchPendingProjectRequests.rejected, (state, action) => {
+        state.pendingRequestsStatus = 'failed';
+        state.pendingRequestsError = (action.payload as string) || action.error.message || 'Error al cargar solicitudes pendientes';
+      })
       .addCase(fetchProjectTypes.fulfilled, (state, action: PayloadAction<ProjectType[]>) => {
         state.projectTypes = action.payload;
       })
@@ -361,6 +405,7 @@ export const approveStudentProjectRequest = createAsyncThunk<
   try {
     const token = localStorage.getItem('token') || '';
     await projectService.approveStudentRequest(projectId, studentUserId, token);
+    dispatch(fetchPendingProjectRequests());
     dispatch(fetchProjects());
     return { projectId, studentUserId };
   } catch (error: any) {
@@ -376,10 +421,44 @@ export const rejectStudentProjectRequest = createAsyncThunk<
   try {
     const token = localStorage.getItem('token') || '';
     await projectService.rejectStudentRequest(projectId, studentUserId, token);
+    dispatch(fetchPendingProjectRequests());
     dispatch(fetchProjects());
     return { projectId, studentUserId };
   } catch (error: any) {
     return rejectWithValue(error.message || 'Error al rechazar la solicitud del estudiante');
+  }
+});
+
+// Thunks específicos para aprobación y rechazo de solicitudes de docentes en proyectos
+export const approveProfessorProjectRequest = createAsyncThunk<
+  { projectId: string; professorUserId: string },
+  { projectId: string; professorUserId: string },
+  { rejectValue: string }
+>('projects/approveProfessorRequest', async ({ projectId, professorUserId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.approveProfessorRequest(projectId, professorUserId, token);
+    dispatch(fetchPendingProjectRequests());
+    dispatch(fetchProjects());
+    return { projectId, professorUserId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al aprobar la solicitud del docente');
+  }
+});
+
+export const rejectProfessorProjectRequest = createAsyncThunk<
+  { projectId: string; professorUserId: string },
+  { projectId: string; professorUserId: string },
+  { rejectValue: string }
+>('projects/rejectProfessorRequest', async ({ projectId, professorUserId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.rejectProfessorRequest(projectId, professorUserId, token);
+    dispatch(fetchPendingProjectRequests());
+    dispatch(fetchProjects());
+    return { projectId, professorUserId };
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al rechazar la solicitud del docente');
   }
 });
 
@@ -389,35 +468,115 @@ export const selectProjectTypes = (state: any) => (state.projects.projectTypes |
 export const selectProjectsStatus = (state: any) => state.projects.status as 'idle' | 'loading' | 'succeeded' | 'failed';
 export const selectProjectsError = (state: any) => state.projects.error as string | null;
 
-export interface PendingProjectStudentRequest {
+export const selectPendingProjectRequestsState = (state: any) =>
+  state.projects.pendingRequests as PendingRequestsResponse;
+export const selectPendingProjectRequestsStatus = (state: any) =>
+  state.projects.pendingRequestsStatus as 'idle' | 'loading' | 'succeeded' | 'failed';
+export const selectPendingProjectRequestsError = (state: any) =>
+  state.projects.pendingRequestsError as string | null;
+
+export interface UnifiedPendingRequest {
   id: number;
+  requestId: number;
   projectId: string;
   projectTitle: string;
   projectType: string;
-  studentUserId: string;
+  applicantId: string;
+  studentUserId: string; // retrocompatibilidad
+  applicantName: string;
+  applicantEmail: string;
+  applicantRole: 'student' | 'professor';
+  applicantRoleLabel: string;
+  specialization?: string;
+  yearOfAdmission?: number;
   active: boolean;
+  createdAt?: string;
+  rawApplicant?: PendingApplicant | any;
+  rawProject?: PendingProjectItem | any;
 }
 
-export const selectPendingProjectRequests = (state: any): PendingProjectStudentRequest[] => {
-  const projects = state.projects.list as Project[];
-  if (!Array.isArray(projects)) return [];
-  const results: PendingProjectStudentRequest[] = [];
-  for (const p of projects) {
-    if (Array.isArray(p.activeStudents)) {
-      for (const as of p.activeStudents) {
-        if (as.active === false) {
-          results.push({
-            id: as.id,
-            projectId: String(p.id),
-            projectTitle: p.titulo,
-            projectType: p.categoria || p.projectType?.name || 'General',
-            studentUserId: String(as.student?.id_user || as.student?.id || as.id),
-            active: false,
-          });
+export type PendingProjectStudentRequest = UnifiedPendingRequest;
+
+export const selectPendingProjectRequests = (state: any): UnifiedPendingRequest[] => {
+  const pending = state.projects?.pendingRequests;
+  const results: UnifiedPendingRequest[] = [];
+
+  if (pending) {
+    if (Array.isArray(pending.pendingStudents)) {
+      for (const req of pending.pendingStudents) {
+        const fullName = [req.applicant?.firstName, req.applicant?.lastName].filter(Boolean).join(' ') || 'Estudiante';
+        results.push({
+          id: req.requestId,
+          requestId: req.requestId,
+          projectId: String(req.project?.id || ''),
+          projectTitle: req.project?.title || 'Sin título',
+          projectType: req.project?.type || 'General',
+          applicantId: String(req.applicant?.id || ''),
+          studentUserId: String(req.applicant?.id || ''),
+          applicantName: fullName,
+          applicantEmail: req.applicant?.email || '',
+          applicantRole: 'student',
+          applicantRoleLabel: 'Estudiante',
+          yearOfAdmission: req.applicant?.yearOfAdmission,
+          active: false,
+          rawApplicant: req.applicant,
+          rawProject: req.project,
+        });
+      }
+    }
+
+    if (Array.isArray(pending.pendingProfessors)) {
+      for (const req of pending.pendingProfessors) {
+        const fullName = [req.applicant?.firstName, req.applicant?.lastName].filter(Boolean).join(' ') || 'Docente';
+        results.push({
+          id: req.requestId,
+          requestId: req.requestId,
+          projectId: String(req.project?.id || ''),
+          projectTitle: req.project?.title || 'Sin título',
+          projectType: req.project?.type || 'General',
+          applicantId: String(req.applicant?.id || ''),
+          studentUserId: String(req.applicant?.id || ''),
+          applicantName: fullName,
+          applicantEmail: req.applicant?.email || '',
+          applicantRole: 'professor',
+          applicantRoleLabel: 'Docente',
+          specialization: req.applicant?.specialization,
+          active: false,
+          rawApplicant: req.applicant,
+          rawProject: req.project,
+        });
+      }
+    }
+  }
+
+  // Fallback si no hay respuestas cargadas en pendingRequests pero sí proyectos en lista
+  if (results.length === 0 && Array.isArray(state.projects?.list)) {
+    for (const p of state.projects.list) {
+      if (Array.isArray(p.activeStudents)) {
+        for (const as of p.activeStudents) {
+          if (as.active === false) {
+            results.push({
+              id: as.id,
+              requestId: as.id,
+              projectId: String(p.id),
+              projectTitle: p.titulo,
+              projectType: p.categoria || p.projectType?.name || 'General',
+              applicantId: String(as.student?.id_user || as.student?.id || as.id),
+              studentUserId: String(as.student?.id_user || as.student?.id || as.id),
+              applicantName: as.student?.user ? `${as.student.user.firstName || ''} ${as.student.user.lastName || ''}`.trim() : '',
+              applicantEmail: as.student?.user?.email || '',
+              applicantRole: 'student',
+              applicantRoleLabel: 'Estudiante',
+              active: false,
+              rawApplicant: as.student,
+              rawProject: p,
+            });
+          }
         }
       }
     }
   }
+
   return results;
 };
 
