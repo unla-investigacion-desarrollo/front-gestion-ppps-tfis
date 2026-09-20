@@ -28,11 +28,6 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <div className="teacher-breadcrumb d-inline-flex align-items-center gap-2 mb-2">
-        <FaArrowLeft size={11} />
-        <span>Inicio</span>
-      </div>
 
       {/* Saludo Principal */}
       <h1 className="teacher-page-title">

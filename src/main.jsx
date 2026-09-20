@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { store } from '../redux/states/store';
+import { store } from './redux/store';
 import App from './routes/App.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';

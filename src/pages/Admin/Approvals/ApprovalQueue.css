@@ -499,6 +499,31 @@
   margin-top: 2px;
 }
 
+/* Badges de rol para el postulante */
+.approvals-role-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  margin-left: 6px;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.approvals-role-badge.student {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.approvals-role-badge.teacher {
+  background-color: #faf5ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
 /* Paginación en el pie */
 .approvals-pagination-footer {
   display: flex;

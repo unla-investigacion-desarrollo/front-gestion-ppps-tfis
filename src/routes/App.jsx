@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.css'
 import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard';
+import TeacherDashboard from '../pages/Dashboard/Teacher/TeacherDashboard';
 import CargaPropuesta from '../pages/CargaPropuesta';
 import PrivateRoute from '../auth/PrivateRoute';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
@@ -26,6 +28,28 @@ import PPPProposalsCatalog from '../pages/PPP/PPPProposalsCatalog';
 import PPPExpedientesList from '../pages/PPP/PPPExpedientesList';
 import PPPTramiteDetail from '../pages/PPP/PPPTramiteDetail';
 import PPPStudentMyTramite from '../pages/PPP/PPPStudentMyTramite';
+
+const TeacherProjectsRoute = () => {
+  const user = useSelector((state) => state.auth.user);
+  let localUser = null;
+  try {
+    localUser = JSON.parse(localStorage.getItem('user') || '{}');
+  } catch {}
+
+  const rawRoles = [
+    ...(Array.isArray(user?.roles) ? user.roles : user?.rol ? [user.rol] : []),
+    ...(Array.isArray(localUser?.roles) ? localUser.roles : localUser?.rol ? [localUser.rol] : []),
+  ];
+  const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
+  const isAdmin = normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
+  const isTeacher = !isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'PROFESOR', 'TUTOR', 'EVALUADOR'].includes(r));
+
+  if (isTeacher) {
+    return <TeacherDashboard initialView="convocatoria-tfi" />;
+  }
+
+  return <TeacherProjectsList />;
+};
 
 const App = () => {
 
@@ -128,7 +152,7 @@ const App = () => {
           <Route path="/docente/proyectos" element={
             <PrivateRoute>
               <AuthenticatedLayout>
-                <TeacherProjectsList />
+                <TeacherProjectsRoute />
               </AuthenticatedLayout>
             </PrivateRoute>
           } />

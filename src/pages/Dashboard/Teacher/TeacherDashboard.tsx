@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaBell, FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../../../hooks/useAuth';
 import { TeacherSidebar, TeacherRoleProfile } from './components/TeacherSidebar';
@@ -9,18 +9,22 @@ import { TutorDashboard } from './components/TutorDashboard';
 import { TutorProjectsTable } from './components/TutorProjectsTable';
 import { RegisterTutoringModal } from './components/RegisterTutoringModal';
 import { ActivityDetailModal } from './components/ActivityDetailModal';
+import TeacherProjectsList from '../../Teacher/TeacherProjectsList';
 import './TeacherDashboard.css';
 
 interface TeacherDashboardProps {
   user?: any;
   teacherType?: 'evaluador' | 'tutor';
+  initialView?: string;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   user: propUser,
   teacherType,
+  initialView,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +71,34 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   }, [teacherType, currentUser]);
 
   // Vista activa dentro del perfil
-  const [activeView, setActiveView] = useState<string>('inicio');
+  const [activeView, setActiveView] = useState<string>(() => {
+    return initialView || location.state?.initialView || 'inicio';
+  });
+
+  useEffect(() => {
+    if (initialView) {
+      setActiveView(initialView);
+    } else if (location.state?.initialView) {
+      setActiveView(location.state.initialView);
+    }
+  }, [initialView, location.state]);
+
+  const handleSelectView = (view: string) => {
+    setActiveView(view);
+    if (view === 'convocatoria-tfi') {
+      if (location.pathname !== '/docente/proyectos') {
+        navigate('/docente/proyectos');
+      }
+    } else if (view === 'inicio') {
+      if (location.pathname !== '/dashboard') {
+        navigate('/dashboard');
+      }
+    } else if (view === 'proyectos') {
+      if (location.pathname !== '/dashboard') {
+        navigate('/dashboard', { state: { initialView: 'proyectos' } });
+      }
+    }
+  };
 
   // Estado del menú desplegable de usuario
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -185,7 +216,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       <TeacherSidebar
         roleProfile={roleProfile}
         activeView={activeView}
-        onSelectView={(view) => setActiveView(view)}
+        onSelectView={handleSelectView}
       />
 
       {/* Área Principal con Header y Contenido */}
@@ -279,15 +310,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               {activeView === 'inicio' && (
                 <EvaluatorDashboard
                   userName={teacherFirstName}
-                  onGoToPPP={() => setActiveView('ppp')}
+                  onGoToPPP={() => handleSelectView('ppp')}
                   onViewActivity={(act) => setSelectedActivity(act)}
                 />
               )}
 
               {activeView === 'ppp' && (
                 <EvaluatorPPPTable
-                  onBackToInicio={() => setActiveView('inicio')}
+                  onBackToInicio={() => handleSelectView('inicio')}
                 />
+              )}
+
+              {(activeView === 'convocatoria-tfi' || activeView === 'proyectos') && (
+                <TeacherProjectsList />
               )}
             </>
           )}
@@ -300,16 +335,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               {activeView === 'inicio' && (
                 <TutorDashboard
                   userName={teacherFirstName}
-                  onGoToProjects={() => setActiveView('proyectos')}
+                  onGoToProjects={() => handleSelectView('proyectos')}
                   onViewActivity={(act) => setSelectedActivity(act)}
                 />
               )}
 
               {activeView === 'proyectos' && (
                 <TutorProjectsTable
-                  onBackToInicio={() => setActiveView('inicio')}
+                  onBackToInicio={() => handleSelectView('inicio')}
                   onOpenRegisterTutoring={(project) => setTutoringModalProject(project)}
                 />
+              )}
+
+              {activeView === 'convocatoria-tfi' && (
+                <TeacherProjectsList />
               )}
             </>
           )}

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaHourglassHalf, FaCheck, FaXmark, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
-import { PendingProjectStudentRequest } from '../../../../../redux/slices/projectsSlice';
+import { UnifiedPendingRequest } from '../../../../../redux/slices/projectsSlice';
 import { User } from '../../../../../redux/slices/usersSlice';
 
 interface ProjectApprovalTableProps {
-  requests: PendingProjectStudentRequest[];
+  requests: UnifiedPendingRequest[];
   users: User[];
   projects?: any[];
-  onApprove: (projectId: string, studentUserId: string) => Promise<void>;
-  onReject: (projectId: string, studentUserId: string) => Promise<void>;
+  onApprove: (projectId: string, applicantId: string, role?: 'student' | 'professor') => Promise<void>;
+  onReject: (projectId: string, applicantId: string, role?: 'student' | 'professor') => Promise<void>;
   loading?: boolean;
 }
 
@@ -22,7 +22,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
 }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [openDropdownKey, setOpenDropdownKey] = useState<string | null>(null);
-  const [viewingRequest, setViewingRequest] = useState<PendingProjectStudentRequest | null>(null);
+  const [viewingRequest, setViewingRequest] = useState<UnifiedPendingRequest | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Cerrar dropdown al hacer clic afuera
@@ -44,25 +44,44 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
     return `${first}${second}` || first || 'U';
   };
 
-  // Obtener datos detallados del estudiante exclusivamente desde la base de datos (usersSlice)
-  const getStudentDetails = (studentUserId: string, req?: any) => {
-    const found = users.find((u) => String(u.id) === String(studentUserId));
-    const fullName = found
+  // Obtener datos detallados del postulante
+  const getApplicantDetails = (req: UnifiedPendingRequest) => {
+    const hasDirectName = Boolean(req.applicantName && req.applicantName !== 'Estudiante' && req.applicantName !== 'Docente');
+    const found = users.find((u) => String(u.id) === String(req.applicantId || req.studentUserId));
+
+    const fullName = hasDirectName
+      ? req.applicantName
+      : found
       ? [found.nombre, found.apellido].filter(Boolean).join(' ') || found.email
-      : req?.studentName || `Estudiante #${studentUserId}`;
-    const email = found?.email || req?.studentEmail || '—';
-    const legajo = found?.legajo || found?.dni || req?.studentLegajo || '—';
-    const initials = found
-      ? getInitials(found.nombre || '', found.apellido || '')
-      : req?.studentName
-      ? getInitials(req.studentName.split(' ')[0], req.studentName.split(' ')[1])
-      : 'E';
+      : req.applicantName || `Usuario #${req.applicantId || req.studentUserId}`;
+
+    const email = req.applicantEmail || found?.email || '—';
+
+    let detail = '';
+    if (req.applicantRole === 'professor') {
+      detail = req.specialization ? `Especialidad: ${req.specialization}` : 'Docente postulado';
+    } else {
+      const legajoOrDni = found?.legajo || found?.dni;
+      if (req.yearOfAdmission) {
+        detail = `Ingreso: ${req.yearOfAdmission}${legajoOrDni ? ` | Legajo/DNI: ${legajoOrDni}` : ''}`;
+      } else if (legajoOrDni) {
+        detail = `Legajo/DNI: ${legajoOrDni}`;
+      } else {
+        detail = 'Estudiante postulado';
+      }
+    }
+
+    const firstWord = req.rawApplicant?.firstName || found?.nombre || fullName.split(' ')[0] || '';
+    const secondWord = req.rawApplicant?.lastName || found?.apellido || fullName.split(' ')[1] || '';
+    const initials = getInitials(firstWord, secondWord);
 
     return {
       fullName,
       email,
-      legajo,
+      detail,
       initials,
+      role: req.applicantRole || 'student',
+      roleLabel: req.applicantRoleLabel || (req.applicantRole === 'professor' ? 'Docente' : 'Estudiante'),
       rawUser: found,
     };
   };
@@ -87,22 +106,23 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
     return 'badge-category-default';
   };
 
-  const handleApproveClick = async (projectId: string, studentUserId: string) => {
-    setProcessingId(studentUserId);
+  const handleApproveClick = async (projectId: string, applicantId: string, role: 'student' | 'professor' = 'student') => {
+    setProcessingId(applicantId);
     setOpenDropdownKey(null);
     try {
-      await onApprove(projectId, studentUserId);
+      await onApprove(projectId, applicantId, role);
     } finally {
       setProcessingId(null);
     }
   };
 
-  const handleRejectClick = async (projectId: string, studentUserId: string) => {
+  const handleRejectClick = async (projectId: string, applicantId: string, role: 'student' | 'professor' = 'student') => {
     setOpenDropdownKey(null);
-    if (window.confirm('¿Estás seguro de que deseas rechazar la postulación de este estudiante?')) {
-      setProcessingId(studentUserId);
+    const targetText = role === 'professor' ? 'este docente' : 'este estudiante';
+    if (window.confirm(`¿Estás seguro de que deseas rechazar la postulación de ${targetText}?`)) {
+      setProcessingId(applicantId);
       try {
-        await onReject(projectId, studentUserId);
+        await onReject(projectId, applicantId, role);
       } finally {
         setProcessingId(null);
       }
@@ -127,7 +147,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
   }
 
   // Datos para el modal de expediente
-  const selectedStudent = viewingRequest ? getStudentDetails(viewingRequest.studentUserId, viewingRequest) : null;
+  const selectedApplicant = viewingRequest ? getApplicantDetails(viewingRequest) : null;
   const selectedProject = viewingRequest ? getProjectDetails(viewingRequest.projectId) : null;
 
   return (
@@ -136,23 +156,24 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
         <table className="approvals-table">
           <thead>
             <tr>
-              <th style={{ width: '28%' }}>Estudiante</th>
+              <th style={{ width: '30%' }}>Postulante</th>
               <th style={{ width: '27%' }}>Proyecto solicitado</th>
-              <th style={{ width: '15%' }}>Estado</th>
+              <th style={{ width: '13%' }}>Estado</th>
               <th style={{ width: '16%' }}>Fecha de solicitud</th>
               <th style={{ width: '14%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {requests.map((req, idx) => {
-              const rowKey = `${req.projectId}-${req.studentUserId}-${idx}`;
-              const { fullName, email, legajo, initials } = getStudentDetails(req.studentUserId, req);
-              const isBusy = processingId === req.studentUserId;
+              const applicantId = req.applicantId || req.studentUserId;
+              const rowKey = `${req.projectId}-${applicantId}-${idx}`;
+              const applicant = getApplicantDetails(req);
+              const isBusy = processingId === applicantId;
               const isDropdownOpen = openDropdownKey === rowKey;
               const categoryBadge = getCategoryBadgeClass(req.projectType);
 
-              const requestDate = (req as any).createdAt
-                ? new Date((req as any).createdAt).toLocaleDateString('es-AR', {
+              const requestDate = req.createdAt
+                ? new Date(req.createdAt).toLocaleDateString('es-AR', {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric',
@@ -163,16 +184,21 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
 
               return (
                 <tr key={rowKey}>
-                  {/* Columna Estudiante */}
+                  {/* Columna Postulante */}
                   <td>
                     <div className="approvals-user-cell">
                       <div className="approvals-user-avatar">
-                        {initials}
+                        {applicant.initials}
                       </div>
                       <div>
-                        <div className="approvals-user-name">{fullName}</div>
-                        <div className="approvals-user-email">{email}</div>
-                        <div className="approvals-user-sub">Legajo/DNI: {legajo}</div>
+                        <div className="d-flex align-items-center flex-wrap">
+                          <span className="approvals-user-name">{applicant.fullName}</span>
+                          <span className={`approvals-role-badge ${applicant.role === 'professor' ? 'teacher' : 'student'}`}>
+                            {applicant.roleLabel}
+                          </span>
+                        </div>
+                        <div className="approvals-user-email">{applicant.email}</div>
+                        <div className="approvals-user-sub">{applicant.detail}</div>
                       </div>
                     </div>
                   </td>
@@ -198,14 +224,14 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                     <span className="approvals-date-text">{requestDate}</span>
                   </td>
 
-                  {/* Columna Acciones (Solo Aprobar, Rechazar y Menú 3 Puntos; Ver expediente va adentro de los 3 puntos) */}
+                  {/* Columna Acciones */}
                   <td>
                     <div className="approvals-actions-container justify-content-end" style={{ paddingRight: '8px' }}>
                       <button
                         type="button"
                         className="btn-mockup-approve"
                         disabled={isBusy}
-                        onClick={() => handleApproveClick(req.projectId, req.studentUserId)}
+                        onClick={() => handleApproveClick(req.projectId, applicantId, req.applicantRole)}
                       >
                         {isBusy ? (
                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
@@ -221,7 +247,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                         type="button"
                         className="btn-mockup-reject"
                         disabled={isBusy}
-                        onClick={() => handleRejectClick(req.projectId, req.studentUserId)}
+                        onClick={() => handleRejectClick(req.projectId, applicantId, req.applicantRole)}
                       >
                         <FaXmark size={12} />
                         Rechazar
@@ -240,7 +266,6 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
 
                         {isDropdownOpen && (
                           <div className="approvals-dropdown-menu">
-                            {/* Ver expediente (oculto en el menú de 3 puntos como solicitó el usuario) */}
                             <button
                               type="button"
                               className="approvals-dropdown-item"
@@ -254,10 +279,9 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                               </div>
                               <div className="approvals-dropdown-text">
                                 <span className="approvals-dropdown-title">Ver expediente</span>
-                                <span className="approvals-dropdown-desc">Ver detalles del proyecto y alumno</span>
+                                <span className="approvals-dropdown-desc">Ver detalles del proyecto y postulante</span>
                               </div>
                             </button>
-                            {/* NOTA: Se omitió la opción 'Descargar como PDF' por instrucción explícita del usuario */}
                           </div>
                         )}
                       </div>
@@ -285,17 +309,22 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
             </div>
 
             <div className="modal-expediente-body">
-              {/* Sección Alumno */}
+              {/* Sección Postulante */}
               <div>
-                <div className="modal-expediente-section-title">Datos del Estudiante</div>
+                <div className="modal-expediente-section-title">Datos del Postulante</div>
                 <div className="approvals-user-cell p-3 bg-light rounded">
                   <div className="approvals-user-avatar" style={{ width: 44, height: 44, fontSize: '1rem' }}>
-                    {selectedStudent?.initials}
+                    {selectedApplicant?.initials}
                   </div>
                   <div>
-                    <div className="approvals-user-name" style={{ fontSize: '1rem' }}>{selectedStudent?.fullName}</div>
-                    <div className="approvals-user-email">{selectedStudent?.email}</div>
-                    <div className="approvals-user-sub">Legajo/DNI: {selectedStudent?.legajo}</div>
+                    <div className="d-flex align-items-center flex-wrap gap-1">
+                      <span className="approvals-user-name" style={{ fontSize: '1rem' }}>{selectedApplicant?.fullName}</span>
+                      <span className={`approvals-role-badge ${selectedApplicant?.role === 'professor' ? 'teacher' : 'student'}`}>
+                        {selectedApplicant?.roleLabel}
+                      </span>
+                    </div>
+                    <div className="approvals-user-email">{selectedApplicant?.email}</div>
+                    <div className="approvals-user-sub">{selectedApplicant?.detail}</div>
                   </div>
                 </div>
               </div>
@@ -313,7 +342,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                     </span>
                   </div>
                   <p className="text-muted small mb-0" style={{ lineHeight: 1.5 }}>
-                    {selectedProject?.descripcion || selectedProject?.description || 'Proyecto cargado en el sistema institucional de Trabajos Finales de Integración (TFI).'}
+                    {selectedProject?.descripcion || selectedProject?.description || 'Proyecto registrado en el sistema institucional de Trabajos Finales de Integración (TFI).'}
                   </p>
                 </div>
               </div>
@@ -333,7 +362,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                 onClick={() => {
                   const req = viewingRequest;
                   setViewingRequest(null);
-                  handleApproveClick(req.projectId, req.studentUserId);
+                  handleApproveClick(req.projectId, req.applicantId || req.studentUserId, req.applicantRole);
                 }}
               >
                 ✓ Aprobar Solicitud
