@@ -44,7 +44,7 @@ const ResetPassword: React.FC = () => {
           <input id="new-password" className="login-input" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required />
           <label className="form-label" htmlFor="confirm-password">Confirmar contraseña</label>
           <input id="confirm-password" className="login-input" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required />
-          <button className="password-recovery-button" type="submit" disabled={isSubmitting || !token}>
+          <button className="password-recovery-button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Guardando...' : 'Actualizar contraseña'}
           </button>
         </form>
