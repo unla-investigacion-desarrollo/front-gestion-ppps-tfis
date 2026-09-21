@@ -56,7 +56,7 @@ function LoginForm() {
             Bienvenido<br />
             a Gestión
           </h2>
-          <p className="login-visual-subtitle">Plataforma PPS y TFI</p>
+          <p className="login-visual-subtitle">Plataforma PPP y TFI</p>
         </div>
       </div>
 
