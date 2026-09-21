@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaTriangleExclamation } from 'react-icons/fa6';
 import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
@@ -22,6 +22,17 @@ function LoginForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
+  const [recoveryToast, setRecoveryToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const message = sessionStorage.getItem('authToast');
+    if (!message) return;
+
+    sessionStorage.removeItem('authToast');
+    setRecoveryToast(message);
+    const timer = window.setTimeout(() => setRecoveryToast(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,6 +60,12 @@ function LoginForm() {
 
   return (
     <div className="login-split-container">
+      {recoveryToast && (
+        <div className="login-recovery-toast" role="status" aria-live="polite">
+          <strong>Solicitud procesada</strong>
+          <span>{recoveryToast}</span>
+        </div>
+      )}
       {/* Panel izquierdo con la imagen y el branding */}
       <div className="login-visual-panel">
         <div className="login-visual-overlay" />
@@ -123,6 +140,9 @@ function LoginForm() {
                   <span>Mayúsculas activadas (Caps Lock)</span>
                 </div>
               )}
+              <Link to="/forgot-password" className="login-recovery-link">
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
             
             <button 
@@ -140,10 +160,6 @@ function LoginForm() {
             <div className="login-link-item">
               ¿Sos estudiante y todavía no tenés cuenta?{' '}
               <Link to="/register" className="login-link">Registrate aquí</Link>
-            </div>
-            <div className="login-link-item">
-              ¿Necesitás ayuda para recuperar tu contraseña?{' '}
-              <Link to="/help" className="login-link">Ver ayuda</Link>
             </div>
           </div>
 

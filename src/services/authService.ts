@@ -22,7 +22,7 @@ export const authService = {
     completedCoursesWithFinal?: number;
     completedCoursesWithoutFinal?: number;
   }, signal?: AbortSignal) => {
-    return fetch(`${API_URL}/auth/register`, {
+    return fetch(`${API_URL}/auth/register-student`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -38,6 +38,26 @@ export const authService = {
         completedCoursesWithFinal: payload.completedCoursesWithFinal !== undefined ? Number(payload.completedCoursesWithFinal) : 0,
         completedCoursesWithoutFinal: payload.completedCoursesWithoutFinal !== undefined ? Number(payload.completedCoursesWithoutFinal) : 0,
       }),
+    });
+  },
+
+  forgotPassword: async (email: string) => {
+    return fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    return fetch(`${API_URL}/auth/reset-password/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newPassword }),
     });
   },
 };

@@ -39,8 +39,8 @@ const Help = () => {
 
         <h2 className="unla-section-title">¿Necesitás ayuda?</h2>
         <p>
-          Contactá al administrador para que <strong>apruebe</strong> tu cuenta o <strong>reseteé</strong> tu contraseña. Si ya estás listo para
-          iniciar sesión, volvé al <Link to="/login">Inicio de sesión</Link>.
+          Si no recordás tu contraseña, podés <Link to="/forgot-password">solicitar un enlace de recuperación</Link>. El enlace vence a los 15 minutos.
+          Si ya estás listo para iniciar sesión, volvé al <Link to="/login">Inicio de sesión</Link>.
         </p>
       </div>
     </div>

@@ -15,6 +15,8 @@ import UsersList from '../pages/Admin/Users/UsersList';
 import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
 import Help from '../pages/Help/Help';
 import ChangePassword from '../pages/Auth/ChangePassword';
+import ForgotPassword from '../pages/Auth/ForgotPassword';
+import ResetPassword from '../pages/Auth/ResetPassword';
 import ProposalsList from '../pages/Admin/Proposals/ProposalsList';
 import ProposalDetail from '../pages/Admin/Proposals/ProposalDetail';
 import EstadoGeneral from '../pages/Estado/EstadoGeneral';
@@ -63,6 +65,8 @@ const App = () => {
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
           <Route path='/help' element={<Help />} />
+          <Route path='/forgot-password' element={<ForgotPassword />} />
+          <Route path='/reset-password/:token' element={<ResetPassword />} />
           {/* Rutas protegidas */}
           <Route path="/dashboard" element={
             <PrivateRoute>
