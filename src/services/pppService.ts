@@ -583,6 +583,25 @@ export const pppService = {
   },
 
   /**
+   * Listado de Trámites PPP: GET /ppp
+   * Exclusivo Docente Evaluador y Administrador.
+   */
+  getPPPTramites: async (token: string): Promise<any[]> => {
+    const response = await fetch(`${API_URL}/ppp`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(response, 'Error al obtener trámites PPP');
+    const rawList = Array.isArray(data)
+      ? data
+      : data?.ppps || data?.expedientes || data?.items || data?.data || [];
+    return rawList;
+  },
+
+  /**
    * Bandeja General de Expedientes: GET /ppp
    * Exclusivo Docentes y Administradores.
    */
