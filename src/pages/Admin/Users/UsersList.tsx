@@ -27,7 +27,6 @@ import {
   FaUserPlus,
   FaUser,
   FaCircleCheck,
-  FaClock,
   FaUserXmark,
   FaTriangleExclamation,
 } from 'react-icons/fa6';
@@ -65,7 +64,7 @@ const UsersList: React.FC = () => {
     return false;
   };
 
-  const showActionsColumn = users.some((u) => canManage(u.rol));
+  const showActionsColumn = users.some((userItem) => canManage(userItem.rol));
 
   // --- ESTADO LOCAL ---
   const [filters, setFilters] = useState({ q: '', rol: 'ALL', estado: 'ALL' });
@@ -96,10 +95,9 @@ const UsersList: React.FC = () => {
 
   // --- ESTADÍSTICAS ---
   // Calculadas sobre el total de usuarios en base de datos (excluyendo la papelera de reciclaje)
-  const totalCount = users.filter((u) => u.estado !== 'papelera').length;
-  const activeCount = users.filter((u) => u.estado === 'active').length;
-  const pendingCount = users.filter((u) => u.estado === 'pending' || u.estado === 'invited').length;
-  const inactiveCount = users.filter((u) => u.estado === 'disabled' || u.estado === 'rejected').length;
+  const totalCount = users.filter((userItem) => userItem.estado !== 'papelera').length;
+  const activeCount = users.filter((userItem) => userItem.estado === 'active').length;
+  const inactiveCount = users.filter((userItem) => userItem.estado === 'disabled' || userItem.estado === 'rejected').length;
 
   // --- MANEJADORES DE ACCIONES ---
   const toggleSort = (key: string) => {
@@ -616,7 +614,7 @@ const UsersList: React.FC = () => {
         {/* Sección 1: Tarjetas de estadísticas */}
         <div className="row g-3 mb-4">
           {/* Card: Total */}
-          <div className="col-md-3">
+          <div className="col-md-4">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-total">
                 <FaUser size={20} />
@@ -629,7 +627,7 @@ const UsersList: React.FC = () => {
           </div>
 
           {/* Card: Activos */}
-          <div className="col-md-3">
+          <div className="col-md-4">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-active">
                 <FaCircleCheck size={20} />
@@ -641,21 +639,8 @@ const UsersList: React.FC = () => {
             </div>
           </div>
 
-          {/* Card: Pendientes */}
-          <div className="col-md-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper stat-icon-pending">
-                <FaClock size={20} />
-              </div>
-              <div>
-                <div className="stat-label">Pendientes</div>
-                <div className="stat-value">{pendingCount}</div>
-              </div>
-            </div>
-          </div>
-
           {/* Card: Inactivos */}
-          <div className="col-md-3">
+          <div className="col-md-4">
             <div className="stat-card">
               <div className="stat-icon-wrapper stat-icon-inactive">
                 <FaUserXmark size={20} />
