@@ -4,18 +4,17 @@ import { Link } from 'react-router-dom';
 
 // Redux Actions & Selectors
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import {
   fetchProjects,
   fetchProjectTypes,
   updateProject,
-  assignStudentToProject,
   removeStudentFromProject,
-  deleteProject,
-  addCoTeacher,
   removeCoTeacher,
   selectProjects,
   selectProjectTypes,
-  Project
+  Project,
+  normalizeBackendProject,
 } from '../../../redux/slices/projectsSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 
@@ -25,8 +24,6 @@ import ProjectFilters, { ProjectFiltersState } from './components/ProjectFilters
 import ProjectTable from './components/ProjectTable';
 import {
   ActivityModal,
-  AssignStudentModal,
-  AddCoTeacherModal,
   EditProjectModal,
   Activity
 } from './components/ProjectModals';
@@ -54,29 +51,9 @@ const TeacherProjectsList: React.FC = () => {
   const projectTypes = useSelector(selectProjectTypes);
   const users = useSelector(selectUsers);
 
-  // Determinar si el usuario actual tiene rol de Tutor
-  const isTutor = useMemo(() => {
-    let localUser: any = null;
-    try {
-      localUser = JSON.parse(localStorage.getItem('user') || '{}');
-    } catch {}
-
-    const rawRoles = [
-      ...(Array.isArray(currentUser?.roles) ? currentUser.roles : currentUser?.rol ? [currentUser.rol] : []),
-      ...(Array.isArray(localUser?.roles) ? localUser.roles : localUser?.rol ? [localUser.rol] : []),
-    ];
-    const normalizedRoles = rawRoles.map((role: any) => String(role).toUpperCase().trim());
-
-    if (currentUser?.isTutor === true || currentUser?.isTutor === 'true') return true;
-    if (localUser?.isTutor === true || localUser?.isTutor === 'true') return true;
-    if (normalizedRoles.includes('TUTOR')) return true;
-    if (localStorage.getItem('teacherViewProfile') === 'tutor') return true;
-
-    const email = (currentUser?.email || localUser?.email || '').toLowerCase();
-    if (email.includes('tutor') || email.includes('jose') || email.includes('gomez')) return true;
-
-    return false;
-  }, [currentUser]);
+  // Determinar si el usuario actual tiene rol de Tutor desde la BD
+  const { isTutor: userIsTutor } = useUserProfile();
+  const isTutor = Boolean(currentUser?.isTutor ?? userIsTutor);
 
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
   const [filters, setFilters] = useState<ProjectFiltersState>({ q: '', categoria: 'ALL', alumnos: 'ALL' });
@@ -85,8 +62,6 @@ const TeacherProjectsList: React.FC = () => {
 
   // --- ESTADO DE CONTROL DE MODALES ---
   const [activeActivityProject, setActiveActivityProject] = useState<Project | null>(null);
-  const [activeAssignProject, setActiveAssignProject] = useState<Project | null>(null);
-  const [activeAddCoTeacherProject, setActiveAddCoTeacherProject] = useState<Project | null>(null);
   const [activeEditProject, setActiveEditProject] = useState<Project | null>(null);
 
   // --- SOLICITUDES Y PROYECTOS ACTIVOS DEL USUARIO ---
@@ -183,9 +158,97 @@ const TeacherProjectsList: React.FC = () => {
     });
   }, [users]);
 
+  // Enriquecer proyectos con las relaciones completas de los proyectos activos del docente
+  const enrichedProjects = useMemo(() => {
+    const activeMap = new Map<string, any>();
+    myActiveProjects.forEach((item: any) => {
+      const proj = item.project || item;
+      const id = String(proj.id || item.id || '');
+      if (id) {
+        activeMap.set(id, {
+          ...proj,
+          activeStudents:
+            proj.activeStudents && proj.activeStudents.length > 0
+              ? proj.activeStudents
+              : item.activeStudents || [],
+          activeProfessors:
+            proj.activeProfessors && proj.activeProfessors.length > 0
+              ? proj.activeProfessors
+              : item.activeProfessors || [],
+          professor: item.professor,
+        });
+      }
+    });
+
+    const existingIds = new Set<string>();
+
+    const baseEnriched = projects.map((project) => {
+      existingIds.add(String(project.id));
+      const activeData = activeMap.get(String(project.id));
+      if (!activeData) return project;
+
+      const mergedActiveStudents =
+        activeData.activeStudents && activeData.activeStudents.length > 0
+          ? activeData.activeStudents
+          : project.activeStudents || [];
+
+      const mergedActiveProfessors =
+        activeData.activeProfessors && activeData.activeProfessors.length > 0
+          ? activeData.activeProfessors
+          : project.activeProfessors || [];
+
+      // Extraer IDs de estudiantes resueltos
+      const rawStudentsList =
+        mergedActiveStudents.length > 0 ? mergedActiveStudents : project.students || [];
+
+      const resolvedStudents = rawStudentsList
+        .filter((as: any) => as && as.active !== false)
+        .map((as: any) => {
+          const sObj = as.student?.user || as.user || as.student || as;
+          return String(sObj.id || as.student?.id_user || as.student?.id || as.id_user || as.id || '');
+        })
+        .filter(Boolean);
+
+      return {
+        ...project,
+        activeStudents: mergedActiveStudents,
+        students: resolvedStudents.length > 0 ? resolvedStudents : project.students,
+        activeProfessors: mergedActiveProfessors,
+        raw: {
+          ...(project.raw || {}),
+          ...activeData,
+        },
+      };
+    });
+
+    // Si existen proyectos activos que no vinieron en la lista general, agregarlos
+    const additional: Project[] = [];
+    myActiveProjects.forEach((item: any) => {
+      const proj = item.project || item;
+      const id = String(proj.id || item.id || '');
+      if (id && !existingIds.has(id)) {
+        existingIds.add(id);
+        const norm = normalizeBackendProject({
+          ...proj,
+          activeStudents:
+            proj.activeStudents && proj.activeStudents.length > 0
+              ? proj.activeStudents
+              : item.activeStudents || [],
+          activeProfessors:
+            proj.activeProfessors && proj.activeProfessors.length > 0
+              ? proj.activeProfessors
+              : item.activeProfessors || (item.professor ? [{ active: true, professor: item.professor }] : []),
+        });
+        additional.push(norm);
+      }
+    });
+
+    return [...baseEnriched, ...additional];
+  }, [projects, myActiveProjects]);
+
   // Filtrado y ordenamiento de proyectos (los más recientes primero)
   const filteredProjects = useMemo(() => {
-    const list = projects.filter((project) => {
+    const list = enrichedProjects.filter((project) => {
       // 1. Filtro por buscador (Título y Descripción)
       const searchQuery = filters.q.trim().toLowerCase();
       const matchesSearch =
@@ -221,7 +284,7 @@ const TeacherProjectsList: React.FC = () => {
       if (timeB !== timeA) return timeB - timeA;
       return Number(b.id || 0) - Number(a.id || 0);
     });
-  }, [projects, filters]);
+  }, [enrichedProjects, filters]);
 
   // Cálculo de total de páginas y ajuste automático de rango
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
@@ -269,32 +332,6 @@ const TeacherProjectsList: React.FC = () => {
 
   // --- MANEJADORES DE ACCIONES ---
 
-  // Asignar alumno al proyecto
-  const handleAssignStudent = async (studentId: string) => {
-    if (!activeAssignProject) return;
-    const response = await dispatch(
-      assignStudentToProject({ projectId: activeAssignProject.id, studentId })
-    );
-    if (!(response as any).error) {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('toast', { detail: { message: 'Alumno asignado correctamente', type: 'success' } })
-        );
-      } catch { }
-    } else {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('toast', {
-            detail: {
-              message: (response as any).payload || 'Error al asignar alumno',
-              type: 'error',
-            },
-          })
-        );
-      } catch { }
-    }
-  };
-
   // Quitar alumno del proyecto
   const handleRemoveStudent = async (projectId: string, studentId: string) => {
     if (window.confirm('¿Seguro que querés quitar este alumno del proyecto?')) {
@@ -320,31 +357,7 @@ const TeacherProjectsList: React.FC = () => {
     }
   };
 
-  // Agregar co-docente
-  const handleAddCoTeacher = async (teacherId: string) => {
-    if (!activeAddCoTeacherProject) return;
-    const response = await dispatch(
-      addCoTeacher({ projectId: activeAddCoTeacherProject.id, teacherId })
-    );
-    if (!(response as any).error) {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('toast', { detail: { message: 'Co-docente agregado correctamente', type: 'success' } })
-        );
-      } catch { }
-    } else {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('toast', {
-            detail: {
-              message: (response as any).payload || 'Error al agregar co-docente',
-              type: 'error',
-            },
-          })
-        );
-      } catch { }
-    }
-  };
+
 
   // Quitar co-docente
   const handleRemoveCoTeacher = async (projectId: string, teacherId: string) => {
@@ -408,30 +421,7 @@ const TeacherProjectsList: React.FC = () => {
     }
   };
 
-  // Eliminar proyecto en el backend (solo rol Admin)
-  const handleDeleteProject = async (projectId: string) => {
-    if (window.confirm('¿Seguro que querés eliminar este proyecto? Esta acción no se puede deshacer.')) {
-      const response = await dispatch(deleteProject({ projectId }));
-      if (!(response as any).error) {
-        try {
-          window.dispatchEvent(
-            new CustomEvent('toast', { detail: { message: 'Proyecto eliminado correctamente', type: 'success' } })
-          );
-        } catch { }
-      } else {
-        try {
-          window.dispatchEvent(
-            new CustomEvent('toast', {
-              detail: {
-                message: (response as any).payload || 'Solo los administradores pueden eliminar proyectos',
-                type: 'error',
-              },
-            })
-          );
-        } catch { }
-      }
-    }
-  };
+
 
   // Restablecer filtros a su estado inicial
   const handleClearAllFilters = () => {
@@ -475,11 +465,8 @@ const TeacherProjectsList: React.FC = () => {
           isTutor={isTutor}
           onRemoveStudent={handleRemoveStudent}
           onRemoveCoTeacher={handleRemoveCoTeacher}
-          onAssignClick={(project) => setActiveAssignProject(project)}
-          onAddCoTeacherClick={(project) => setActiveAddCoTeacherProject(project)}
           onActivityClick={(project) => setActiveActivityProject(project)}
           onEditClick={(project) => setActiveEditProject(project)}
-          onDeleteClick={(project) => handleDeleteProject(project.id)}
           onRequestJoinClick={handleRequestJoin}
           pendingProjectIds={pendingProjectIds}
           activeProjectIds={activeProjectIds}
@@ -516,33 +503,7 @@ const TeacherProjectsList: React.FC = () => {
         />
       )}
 
-      {/* --- MODAL PARA ASIGNAR UN ALUMNO --- */}
-      {activeAssignProject && (
-        <AssignStudentModal
-          project={activeAssignProject}
-          students={activeStudents.filter(
-            (student) => !activeAssignProject.students.includes(student.id)
-          )}
-          users={users}
-          onClose={() => setActiveAssignProject(null)}
-          onAssign={handleAssignStudent}
-          onReject={(studentId) => handleRemoveStudent(activeAssignProject.id, studentId)}
-        />
-      )}
 
-      {/* --- MODAL PARA AGREGAR UN CO-DOCENTE --- */}
-      {activeAddCoTeacherProject && (
-        <AddCoTeacherModal
-          project={activeAddCoTeacherProject}
-          teachers={allTeachers.filter(
-            (teacher) =>
-              teacher.id !== currentUser?.id &&
-              !(activeAddCoTeacherProject.coTeachers || []).includes(teacher.id)
-          )}
-          onClose={() => setActiveAddCoTeacherProject(null)}
-          onAdd={handleAddCoTeacher}
-        />
-      )}
 
       {/* --- MODAL PARA EDITAR DETALLES DEL PROYECTO --- */}
       {activeEditProject && (

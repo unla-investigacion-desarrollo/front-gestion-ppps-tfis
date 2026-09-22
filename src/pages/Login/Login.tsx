@@ -4,7 +4,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaTriangleExclamation } from 'react-icons/fa6';
 import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
 import './Login.css';
-import logo from '../../assets/logo.png';
 
 interface LoginCredentials {
   email: string;
@@ -25,7 +24,7 @@ function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     try {
       await dispatch(loginUser(credentials) as any).unwrap();
       navigate('/dashboard');
@@ -49,28 +48,26 @@ function LoginForm() {
 
   return (
     <div className="login-split-container">
-      {/* Panel izquierdo con la imagen y el branding */}
+      {/* Panel izquierdo con la imagen institucional y 'Bienvenido a Gestión' */}
       <div className="login-visual-panel">
         <div className="login-visual-overlay" />
         <div className="login-visual-content">
-          <img src={logo} alt="Logo UNLa" className="login-visual-logo" />
-          <h2 className="login-visual-subtitle">Plataforma de Gestión de PPS y TFI</h2>
+          <h2 className="login-visual-welcome">
+            Bienvenido<br />
+            a Gestión
+          </h2>
+          <p className="login-visual-subtitle">Plataforma PPP y TFI</p>
         </div>
       </div>
 
       {/* Panel derecho con el formulario */}
       <div className="login-form-panel">
         <div className="login-form-wrapper">
-          {/* Logo visible en mobile cuando se oculta el panel izquierdo */}
-          <div className="login-mobile-logo-container">
-            <img src={logo} alt="Logo UNLa" className="login-mobile-logo" />
-          </div>
-          
           <h1 className="login-title">Iniciar sesión</h1>
           <p className="login-subtitle-helper">Ingresá tus credenciales para acceder a la plataforma</p>
-          
+
           {error && <div className="error-message">{error}</div>}
-          
+
           <form onSubmit={handleSubmit} className="unla-form">
             <div className="form-group">
               <label className="form-label" htmlFor="email-input">Correo electrónico</label>
@@ -85,7 +82,7 @@ function LoginForm() {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label" htmlFor="password-input">Contraseña</label>
               <div style={{ position: 'relative' }}>
@@ -124,18 +121,18 @@ function LoginForm() {
                 </div>
               )}
             </div>
-            
-            <button 
-              type="submit" 
-              className="login-button" 
+
+            <button
+              type="submit"
+              className="login-button"
               disabled={loading === 'pending'}
             >
               {loading === 'pending' ? (
                 <span className="spinner-loading">Iniciando sesión...</span>
-              ) : 'Ingresar'} 
+              ) : 'Ingresar'}
             </button>
           </form>
-          
+
           <div className="login-links-container">
             <div className="login-link-item">
               ¿Sos estudiante y todavía no tenés cuenta?{' '}
@@ -146,7 +143,10 @@ function LoginForm() {
               <Link to="/help" className="login-link">Ver ayuda</Link>
             </div>
           </div>
+        </div>
 
+        <div className="login-footer">
+          <span className="login-footer-copy">2026 &copy; UNLa</span>
         </div>
       </div>
     </div>

@@ -1,20 +1,14 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useUserProfile } from '../hooks/useUserProfile';
 
-// Permite acceso a usuarios con rol docente o administrador.
+// Permite acceso a usuarios con rol docente (profesor/evaluador/tutor) o administrador.
 const TeacherRoute = ({ children }) => {
-  const user = useSelector((state) => state.auth.user);
-  const roles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
-  if (user?.rol) roles.push(user.rol);
-  const normalizedRoles = roles.map((r) => String(r).toUpperCase().trim());
-  const isTeacherOrAbove = normalizedRoles.some((r) => [
-    'DOCENTE',
-    'TEACHER',
-    'PROFESSOR',
-    'ADMIN',
-    'ADMINISTRADOR'
-  ].includes(r));
+  const { isProfessor, isAdmin, user, loading } = useUserProfile();
+  if (loading && !user) {
+    return null;
+  }
+  const isTeacherOrAbove = isProfessor || isAdmin;
   return isTeacherOrAbove ? children : <Navigate to="/dashboard" />;
 };
 

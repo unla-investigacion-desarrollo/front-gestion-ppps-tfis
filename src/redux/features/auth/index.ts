@@ -63,6 +63,23 @@ export const authSlice = createSlice({
         }
       }
     },
+    updateUserProfile: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          ...action.payload,
+          role: action.payload.role ? String(action.payload.role).toLowerCase() : state.user.role,
+          isTutor: action.payload.isTutor !== undefined ? Boolean(action.payload.isTutor) : state.user.isTutor,
+        };
+        const stored = localStorage.getItem('user');
+        if (stored) {
+          try {
+            const u = JSON.parse(stored);
+            localStorage.setItem('user', JSON.stringify({ ...u, ...state.user }));
+          } catch {}
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -93,7 +110,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError, setMustChangePassword } = authSlice.actions;
+export const { logout, clearError, setMustChangePassword, updateUserProfile } = authSlice.actions;
 
 // Selectores tipados
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;

@@ -112,7 +112,12 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                     <button
                       type="button"
                       className={`teacher-sidebar-subitem ${activeView === 'ppp' ? 'active' : ''}`}
-                      onClick={() => onSelectView('ppp')}
+                      onClick={() => {
+                        onSelectView('ppp');
+                        if (location.pathname !== '/dashboard') {
+                          navigate('/dashboard', { state: { initialView: 'ppp' } });
+                        }
+                      }}
                     >
                       <FaFileLines size={14} />
                       <span>PPP</span>
@@ -121,8 +126,13 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className="teacher-sidebar-subitem"
-                      onClick={() => navigate('/admin/proposals')}
+                      className={`teacher-sidebar-subitem ${activeView === 'propuestas' ? 'active' : ''}`}
+                      onClick={() => {
+                        onSelectView('propuestas');
+                        if (location.pathname !== '/admin/proposals') {
+                          navigate('/admin/proposals');
+                        }
+                      }}
                     >
                       <FaClipboardList size={14} />
                       <span>Propuestas y postulantes</span>
@@ -159,7 +169,6 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                       type="button"
                       className={`teacher-sidebar-subitem ${activeView === 'convocatoria-tfi' || activeView === 'proyectos' ? 'active' : ''}`}
                       onClick={() => {
-                        localStorage.setItem('teacherViewProfile', 'evaluador');
                         onSelectView('convocatoria-tfi');
                         if (location.pathname !== '/docente/proyectos') {
                           navigate('/docente/proyectos');
@@ -273,7 +282,6 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
               type="button"
               className={`teacher-sidebar-item ${activeView === 'convocatoria-tfi' ? 'active' : ''}`}
               onClick={() => {
-                localStorage.setItem('teacherViewProfile', 'tutor');
                 onSelectView('convocatoria-tfi');
                 if (location.pathname !== '/docente/proyectos') {
                   navigate('/docente/proyectos');

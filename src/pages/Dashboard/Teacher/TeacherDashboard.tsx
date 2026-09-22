@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaBell, FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../../../hooks/useAuth';
+import { useUserProfile } from '../../../hooks/useUserProfile';
 import { TeacherSidebar, TeacherRoleProfile } from './components/TeacherSidebar';
 import { EvaluatorDashboard } from './components/EvaluatorDashboard';
 import { EvaluatorPPPTable } from './components/EvaluatorPPPTable';
@@ -10,6 +11,8 @@ import { TutorProjectsTable } from './components/TutorProjectsTable';
 import { RegisterTutoringModal } from './components/RegisterTutoringModal';
 import { ActivityDetailModal } from './components/ActivityDetailModal';
 import TeacherProjectsList from '../../Teacher/TeacherProjectsList';
+import ProposalsList from '../../Admin/Proposals/ProposalsList';
+import { studentWorkService } from '../../../services/studentWorkService';
 import './TeacherDashboard.css';
 
 interface TeacherDashboardProps {
@@ -61,27 +64,32 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     return u;
   }, [propUser]);
 
+  const { isTutor: dbIsTutor, user: dbUser } = useUserProfile();
+
   // Perfil estricto del profesor: Evaluador O Tutor (mutuamente excluyentes)
+  // Basado en user.role === 'professor' y user.isTutor traído de la BD
   const roleProfile: TeacherRoleProfile = useMemo(() => {
     if (teacherType === 'evaluador' || teacherType === 'tutor') return teacherType;
     if (currentUser?.isTutor !== undefined) return currentUser.isTutor ? 'tutor' : 'evaluador';
-    const emailLower = (currentUser?.email || '').toLowerCase();
-    if (emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez')) return 'tutor';
-    return 'evaluador';
-  }, [teacherType, currentUser]);
+    if (dbUser?.isTutor !== undefined) return dbUser.isTutor ? 'tutor' : 'evaluador';
+    return dbIsTutor ? 'tutor' : 'evaluador';
+  }, [teacherType, currentUser?.isTutor, dbUser?.isTutor, dbIsTutor]);
 
   // Vista activa dentro del perfil
   const [activeView, setActiveView] = useState<string>(() => {
+    if (location.pathname === '/admin/proposals') return 'propuestas';
     return initialView || location.state?.initialView || 'inicio';
   });
 
   useEffect(() => {
-    if (initialView) {
+    if (location.pathname === '/admin/proposals') {
+      setActiveView('propuestas');
+    } else if (initialView) {
       setActiveView(initialView);
     } else if (location.state?.initialView) {
       setActiveView(location.state.initialView);
     }
-  }, [initialView, location.state]);
+  }, [initialView, location.pathname, location.state]);
 
   const handleSelectView = (view: string) => {
     setActiveView(view);
@@ -97,6 +105,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       if (location.pathname !== '/dashboard') {
         navigate('/dashboard', { state: { initialView: 'proyectos' } });
       }
+    } else if (view === 'propuestas') {
+      if (location.pathname !== '/admin/proposals') {
+        navigate('/admin/proposals');
+      }
+    } else if (view === 'ppp') {
+      if (location.pathname !== '/dashboard') {
+        navigate('/dashboard', { state: { initialView: 'ppp' } });
+      }
     }
   };
 
@@ -107,7 +123,11 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [tutoringModalProject, setTutoringModalProject] = useState<{
     id: string | number;
     titulo: string;
+    workId?: string | number;
+    studentName?: string;
   } | null>(null);
+  const [confirmTutoringLoading, setConfirmTutoringLoading] = useState(false);
+  const [projectsRefreshTrigger, setProjectsRefreshTrigger] = useState(0);
 
   const [selectedActivity, setSelectedActivity] = useState<{
     fecha: string;
@@ -188,21 +208,62 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     return roleProfile === 'evaluador' ? 'PE' : 'PT';
   }, [currentUser, roleProfile]);
 
-  // Manejador para registrar tutoría confirmada
-  const handleConfirmTutoring = (data: {
+  // Manejador para confirmar tutoría realizada llamando al endpoint PATCH /student-work/:id/mark-tutored
+  const handleConfirmTutoring = async (data: {
     projectId: string | number;
+    workId: string | number;
     studentName?: string;
-    notas: string;
-    fecha: string;
   }) => {
-    window.dispatchEvent(
-      new CustomEvent('toast', {
-        detail: {
-          message: `Tutoría registrada con éxito para ${data.studentName || 'el proyecto'}`,
-          type: 'success',
-        },
-      })
-    );
+    const token = localStorage.getItem('token') || '';
+    if (!token) {
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: 'No se encontró una sesión activa. Por favor, iniciá sesión nuevamente.',
+            type: 'error',
+          },
+        })
+      );
+      return;
+    }
+
+    if (!data.workId) {
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: 'No se encontró la entrega del proyecto para confirmar la tutoría.',
+            type: 'error',
+          },
+        })
+      );
+      return;
+    }
+
+    setConfirmTutoringLoading(true);
+    try {
+      await studentWorkService.markTutored(data.workId, token);
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: `Tutoría confirmada con éxito para ${data.studentName || 'el proyecto'}.`,
+            type: 'success',
+          },
+        })
+      );
+      setTutoringModalProject(null);
+      setProjectsRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: err?.message || 'Error al confirmar la tutoría realizada.',
+            type: 'error',
+          },
+        })
+      );
+    } finally {
+      setConfirmTutoringLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -321,6 +382,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 />
               )}
 
+              {activeView === 'propuestas' && (
+                <ProposalsList />
+              )}
+
               {(activeView === 'convocatoria-tfi' || activeView === 'proyectos') && (
                 <TeacherProjectsList />
               )}
@@ -344,23 +409,29 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 <TutorProjectsTable
                   onBackToInicio={() => handleSelectView('inicio')}
                   onOpenRegisterTutoring={(project) => setTutoringModalProject(project)}
+                  refreshTrigger={projectsRefreshTrigger}
                 />
               )}
 
               {activeView === 'convocatoria-tfi' && (
                 <TeacherProjectsList />
               )}
+
+              {activeView === 'propuestas' && (
+                <ProposalsList />
+              )}
             </>
           )}
         </main>
       </div>
 
-      {/* Modal Registrar Tutoría (Mockup 4) */}
+      {/* Modal Confirmar Tutoría */}
       <RegisterTutoringModal
         isOpen={!!tutoringModalProject}
         onClose={() => setTutoringModalProject(null)}
         project={tutoringModalProject}
         onConfirm={handleConfirmTutoring}
+        loading={confirmTutoringLoading}
       />
 
       {/* Modal Detalle de Actividad (Mockup 1 y 3) */}
