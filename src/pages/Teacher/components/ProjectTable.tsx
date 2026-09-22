@@ -63,7 +63,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       if (isPPP) {
         navigate(`/ppp/${project.id}`);
       } else {
-        navigate(`/proyectos/${project.id}/trabajo`);
+        navigate(`/proyectos/${project.id}/trabajo?from=proyectos`, { state: { from: 'proyectos' } });
       }
     }
   };
@@ -319,9 +319,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       project.projectType?.name?.toUpperCase() === 'PPP';
                     const targetUrl = isPPP
                       ? `/ppp/${encodeURIComponent(project.id)}`
-                      : `/proyectos/${encodeURIComponent(project.id)}/trabajo`;
+                      : `/proyectos/${encodeURIComponent(project.id)}/trabajo?from=proyectos`;
                     return (
-                      <Link to={targetUrl} className="project-title-link">
+                      <Link to={targetUrl} state={{ from: 'proyectos' }} className="project-title-link">
                         {project.titulo}
                       </Link>
                     );

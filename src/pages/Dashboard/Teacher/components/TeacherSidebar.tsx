@@ -21,7 +21,7 @@ import {
 
 export type TeacherRoleProfile = 'evaluador' | 'tutor';
 export type EvaluatorView = 'inicio' | 'ppp';
-export type TutorView = 'inicio' | 'proyectos';
+export type TutorView = 'inicio' | 'proyectos' | 'convocatoria-tfi' | 'solicitudes';
 
 interface TeacherSidebarProps {
   roleProfile: TeacherRoleProfile;
@@ -295,8 +295,13 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             {/* Solicitudes */}
             <button
               type="button"
-              className="teacher-sidebar-item"
-              onClick={() => navigate('/admin/approvals')}
+              className={`teacher-sidebar-item ${activeView === 'solicitudes' ? 'active' : ''}`}
+              onClick={() => {
+                onSelectView('solicitudes');
+                if (location.pathname !== '/admin/approvals') {
+                  navigate('/admin/approvals');
+                }
+              }}
             >
               <FaUserClock size={16} />
               <span>Solicitudes</span>

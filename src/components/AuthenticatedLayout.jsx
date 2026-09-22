@@ -145,7 +145,8 @@ const AuthenticatedLayout = ({ children }) => {
   const isTeacherDashboard =
     (location.pathname === '/dashboard' ||
       location.pathname === '/docente/proyectos' ||
-      location.pathname === '/admin/proposals') &&
+      location.pathname === '/admin/proposals' ||
+      location.pathname === '/admin/approvals') &&
     isTeacher &&
     !isAdmin;
 

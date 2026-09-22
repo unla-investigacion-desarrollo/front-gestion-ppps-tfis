@@ -12,6 +12,7 @@ import { RegisterTutoringModal } from './components/RegisterTutoringModal';
 import { ActivityDetailModal } from './components/ActivityDetailModal';
 import TeacherProjectsList from '../../Teacher/TeacherProjectsList';
 import ProposalsList from '../../Admin/Proposals/ProposalsList';
+import ApprovalQueue from '../../Admin/Approvals/ApprovalQueue';
 import { studentWorkService } from '../../../services/studentWorkService';
 import './TeacherDashboard.css';
 
@@ -78,12 +79,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   // Vista activa dentro del perfil
   const [activeView, setActiveView] = useState<string>(() => {
     if (location.pathname === '/admin/proposals') return 'propuestas';
+    if (location.pathname === '/admin/approvals') return 'solicitudes';
     return initialView || location.state?.initialView || 'inicio';
   });
 
   useEffect(() => {
     if (location.pathname === '/admin/proposals') {
       setActiveView('propuestas');
+    } else if (location.pathname === '/admin/approvals') {
+      setActiveView('solicitudes');
     } else if (initialView) {
       setActiveView(initialView);
     } else if (location.state?.initialView) {
@@ -112,6 +116,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     } else if (view === 'ppp') {
       if (location.pathname !== '/dashboard') {
         navigate('/dashboard', { state: { initialView: 'ppp' } });
+      }
+    } else if (view === 'solicitudes') {
+      if (location.pathname !== '/admin/approvals') {
+        navigate('/admin/approvals');
       }
     }
   };
@@ -389,6 +397,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               {(activeView === 'convocatoria-tfi' || activeView === 'proyectos') && (
                 <TeacherProjectsList />
               )}
+
+              {activeView === 'solicitudes' && (
+                <ApprovalQueue />
+              )}
             </>
           )}
 
@@ -402,6 +414,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   userName={teacherFirstName}
                   onGoToProjects={() => handleSelectView('proyectos')}
                   onViewActivity={(act) => setSelectedActivity(act)}
+                  onGoToApprovals={() => handleSelectView('solicitudes')}
                 />
               )}
 
@@ -419,6 +432,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
               {activeView === 'propuestas' && (
                 <ProposalsList />
+              )}
+
+              {activeView === 'solicitudes' && (
+                <ApprovalQueue />
               )}
             </>
           )}

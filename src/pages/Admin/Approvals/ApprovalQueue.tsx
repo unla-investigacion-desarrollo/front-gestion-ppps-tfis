@@ -13,10 +13,7 @@ import {
 } from '../../../../redux/slices/projectsSlice';
 import {
   fetchUsers,
-  selectPendingUsers,
   selectUsers,
-  approveUser,
-  rejectUser,
 } from '../../../../redux/slices/usersSlice';
 import ProjectApprovalTable from './components/ProjectApprovalTable';
 import './ApprovalQueue.css';
@@ -25,15 +22,11 @@ import {
   FaFileCircleCheck,
   FaMagnifyingGlass,
   FaArrowRotateLeft,
-  FaHourglassHalf,
-  FaCheck,
-  FaXmark,
 } from 'react-icons/fa6';
 
 const ApprovalQueue: React.FC = () => {
   const dispatch = useDispatch<any>();
 
-  const [activeTab, setActiveTab] = useState<'projects' | 'users'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');
   const [sortBy, setSortBy] = useState('recientes');
@@ -42,7 +35,6 @@ const ApprovalQueue: React.FC = () => {
 
   const rawPendingProjectRequests = useSelector(selectPendingProjectRequests);
   const pendingRequestsStatus = useSelector(selectPendingProjectRequestsStatus);
-  const rawPendingUsers = useSelector(selectPendingUsers);
   const allUsers = useSelector(selectUsers);
   const allProjects = useSelector(selectProjects);
 
@@ -93,26 +85,6 @@ const ApprovalQueue: React.FC = () => {
     return list;
   }, [pendingProjectRequests, searchQuery, sortBy, allUsers]);
 
-  // Filtrado de usuarios pendientes
-  const filteredUsers = useMemo(() => {
-    let list = [...rawPendingUsers];
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter((u) => {
-        const name = [u.nombre, u.apellido].filter(Boolean).join(' ').toLowerCase();
-        const email = (u.email || '').toLowerCase();
-        return name.includes(q) || email.includes(q);
-      });
-    }
-
-    if (sortBy === 'antiguos') {
-      list.reverse();
-    }
-
-    return list;
-  }, [rawPendingUsers, searchQuery, sortBy]);
-
   // Resetear filtros
   const handleClearFilters = () => {
     setSearchQuery('');
@@ -122,19 +94,13 @@ const ApprovalQueue: React.FC = () => {
   };
 
   // Paginación
-  const activeItemsCount =
-    activeTab === 'projects' ? filteredProjectRequests.length : filteredUsers.length;
+  const activeItemsCount = filteredProjectRequests.length;
   const totalPages = Math.max(1, Math.ceil(activeItemsCount / pageSize));
 
   const paginatedProjects = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredProjectRequests.slice(start, start + pageSize);
   }, [filteredProjectRequests, currentPage, pageSize]);
-
-  const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredUsers.slice(start, start + pageSize);
-  }, [filteredUsers, currentPage, pageSize]);
 
   // Manejador para aprobar solicitud de proyecto (estudiante o docente)
   const handleApproveProjectRequest = async (
@@ -184,25 +150,6 @@ const ApprovalQueue: React.FC = () => {
     }
   };
 
-  // Manejador para aprobar usuario nuevo
-  const onApproveUser = async (id: string) => {
-    const result = await dispatch(approveUser({ id }));
-    if (result && result.payload) {
-      const u = result.payload as any;
-      if (u.password) {
-        showToast(`Aprobado. Contraseña temporal: ${u.password}`, 'success');
-      } else {
-        showToast('Usuario aprobado correctamente.', 'success');
-      }
-    }
-  };
-
-  // Manejador para rechazar usuario nuevo
-  const onRejectUser = async (id: string) => {
-    await dispatch(rejectUser({ id }));
-    showToast('Usuario rechazado.', 'info');
-  };
-
   // Cálculo de texto mostrando X - Y de Z
   const startIndex = activeItemsCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, activeItemsCount);
@@ -219,41 +166,21 @@ const ApprovalQueue: React.FC = () => {
             <div>
               <h1 className="approvals-header-title">Solicitudes</h1>
               <p className="approvals-header-subtitle">
-                Revisa y gestiona las solicitudes de postulación a proyectos y registros de usuarios.
+                Revisa y gestiona las solicitudes de postulación a proyectos.
               </p>
             </div>
           </div>
 
-          {/* Pestañas de navegación idénticas al Mockup */}
+          {/* Pestañas de navegación */}
           <div className="approvals-tabs">
             <button
               type="button"
-              className={`approvals-tab-button ${activeTab === 'projects' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('projects');
-                setCurrentPage(1);
-              }}
+              className="approvals-tab-button active"
             >
               <span>Solicitudes a Proyectos</span>
-              <span className={activeTab === 'projects' ? 'approvals-tab-counter' : 'approvals-tab-counter-inactive'}>
+              <span className="approvals-tab-counter">
                 {pendingProjectRequests.length}
               </span>
-            </button>
-
-            <button
-              type="button"
-              className={`approvals-tab-button ${activeTab === 'users' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('users');
-                setCurrentPage(1);
-              }}
-            >
-              <span>Nuevos Usuarios</span>
-              {rawPendingUsers.length > 0 && (
-                <span className={activeTab === 'users' ? 'approvals-tab-counter' : 'approvals-tab-counter-inactive'}>
-                  {rawPendingUsers.length}
-                </span>
-              )}
             </button>
           </div>
 
@@ -267,11 +194,7 @@ const ApprovalQueue: React.FC = () => {
               <input
                 type="text"
                 className="approvals-search-input"
-                placeholder={
-                  activeTab === 'projects'
-                    ? 'Buscar por estudiante, proyecto o correo...'
-                    : 'Buscar por usuario o correo...'
-                }
+                placeholder="Buscar por estudiante, proyecto o correo..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -314,94 +237,15 @@ const ApprovalQueue: React.FC = () => {
             </button>
           </div>
 
-          {/* Contenido Pestaña 1: Solicitudes de Proyectos */}
-          {activeTab === 'projects' && (
-            <ProjectApprovalTable
-              requests={paginatedProjects}
-              users={allUsers}
-              projects={allProjects}
-              onApprove={handleApproveProjectRequest}
-              onReject={handleRejectProjectRequest}
-              loading={pendingRequestsStatus === 'loading'}
-            />
-          )}
-
-          {/* Contenido Pestaña 2: Nuevos Usuarios */}
-          {activeTab === 'users' && (
-            <div className="approvals-table-container">
-              {paginatedUsers.length === 0 ? (
-                <div className="alert alert-info py-4 text-center mb-0" style={{ borderRadius: '10px' }}>
-                  No hay usuarios pendientes de aprobación en el sistema.
-                </div>
-              ) : (
-                <table className="approvals-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '35%' }}>Usuario</th>
-                      <th style={{ width: '25%' }}>Rol</th>
-                      <th style={{ width: '20%' }}>Estado</th>
-                      <th style={{ width: '20%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedUsers.map((u) => {
-                      const first = (u.nombre || '').trim().charAt(0).toUpperCase();
-                      const second = (u.apellido || '').trim().charAt(0).toUpperCase();
-                      const initials = `${first}${second}` || 'U';
-                      const fullName = [u.nombre, u.apellido].filter(Boolean).join(' ') || u.email;
-
-                      return (
-                        <tr key={u.id}>
-                          <td>
-                            <div className="approvals-user-cell">
-                              <div className="approvals-user-avatar">
-                                {initials}
-                              </div>
-                              <div>
-                                <div className="approvals-user-name">{fullName}</div>
-                                <div className="approvals-user-email">{u.email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="badge bg-secondary" style={{ textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                              {u.rol}
-                            </span>
-                          </td>
-                          <td>
-                            <span className="badge-status-mockup-pending">
-                              <FaHourglassHalf size={12} style={{ marginRight: '4px' }} />
-                              Pendiente
-                            </span>
-                          </td>
-                          <td>
-                            <div className="approvals-actions-container justify-content-end" style={{ paddingRight: '8px' }}>
-                              <button
-                                type="button"
-                                className="btn-mockup-approve"
-                                onClick={() => onApproveUser(u.id)}
-                              >
-                                <FaCheck size={13} />
-                                Aprobar
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-mockup-reject"
-                                onClick={() => onRejectUser(u.id)}
-                              >
-                                <FaXmark size={12} />
-                                Rechazar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
+          {/* Contenido: Solicitudes de Proyectos */}
+          <ProjectApprovalTable
+            requests={paginatedProjects}
+            users={allUsers}
+            projects={allProjects}
+            onApprove={handleApproveProjectRequest}
+            onReject={handleRejectProjectRequest}
+            loading={pendingRequestsStatus === 'loading'}
+          />
 
           {/* Paginación idéntica al Mockup */}
           <div className="approvals-pagination-footer">

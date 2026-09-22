@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
@@ -38,7 +38,25 @@ import './Trabajo.css';
 const Trabajo: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch<any>();
+
+  // Determinar origen contextual de navegación (Mis proyectos vs Proyectos)
+  const isFromMisProyectos = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const fromParam = searchParams.get('from');
+    if (location.state?.from === 'mis-proyectos' || fromParam === 'mis-proyectos') {
+      return true;
+    }
+    if (location.state?.from === 'proyectos' || fromParam === 'proyectos') {
+      return false;
+    }
+    return false;
+  }, [location.search, location.state]);
+
+  const backDestination = isFromMisProyectos ? '/dashboard' : '/docente/proyectos';
+  const backState = isFromMisProyectos ? { initialView: 'proyectos' } : undefined;
+  const backLabel = isFromMisProyectos ? 'Ir a Mis Proyectos' : 'Ir a Proyectos';
 
   const currentUser = useSelector(selectCurrentUser) as any;
   const users = useSelector(selectUsers);
@@ -81,8 +99,8 @@ const Trabajo: React.FC = () => {
     const rawRoles = Array.isArray(currentUser?.roles)
       ? currentUser.roles
       : currentUser?.rol
-      ? [currentUser.rol]
-      : [];
+        ? [currentUser.rol]
+        : [];
     return rawRoles.map((r: any) => String(r).toUpperCase().trim());
   }, [currentUser]);
 
@@ -372,9 +390,13 @@ const Trabajo: React.FC = () => {
       <div className="trabajo-wrapper">
         {/* Barra superior con navegación */}
         <div className="trabajo-top-bar">
-          <Link to="/docente/proyectos" className="trabajo-back-btn d-inline-flex align-items-center gap-1.5">
+          <Link
+            to={backDestination}
+            state={backState}
+            className="trabajo-back-btn d-inline-flex align-items-center gap-1.5"
+          >
             <FaArrowLeft size={16} />
-            Volver a Proyectos
+            {backLabel}
           </Link>
           <div className="d-flex align-items-center gap-2">
             <span className="badge bg-light text-dark border">
@@ -583,8 +605,8 @@ const Trabajo: React.FC = () => {
                       {work.qualification === 0
                         ? 'Estado: Ausente'
                         : work.qualification >= 4
-                        ? 'Estado: Aprobado'
-                        : 'Estado: Desaprobado'}
+                          ? 'Estado: Aprobado'
+                          : 'Estado: Desaprobado'}
                     </div>
                     {work.lastReviewedAt && (
                       <span className="text-muted small">
@@ -685,9 +707,8 @@ const Trabajo: React.FC = () => {
                   <span className="trabajo-audit-label">Última revisión docente:</span>
                   <span>
                     {work.lastReviewedAt
-                      ? `${new Date(work.lastReviewedAt).toLocaleString()}${
-                          work.lastReviewedBy ? ` (${typeof work.lastReviewedBy === 'object' ? work.lastReviewedBy.email || work.lastReviewedBy.name : work.lastReviewedBy})` : ''
-                        }`
+                      ? `${new Date(work.lastReviewedAt).toLocaleString()}${work.lastReviewedBy ? ` (${typeof work.lastReviewedBy === 'object' ? work.lastReviewedBy.email || work.lastReviewedBy.name : work.lastReviewedBy})` : ''
+                      }`
                       : 'Sin revisiones registradas'}
                   </span>
                 </div>
@@ -695,9 +716,8 @@ const Trabajo: React.FC = () => {
                   <span className="trabajo-audit-label">Última tutoría registrada:</span>
                   <span>
                     {work.lastTutoredAt
-                      ? `${new Date(work.lastTutoredAt).toLocaleString()}${
-                          work.lastTutoredBy ? ` (${typeof work.lastTutoredBy === 'object' ? work.lastTutoredBy.email || work.lastTutoredBy.name : work.lastTutoredBy})` : ''
-                        }`
+                      ? `${new Date(work.lastTutoredAt).toLocaleString()}${work.lastTutoredBy ? ` (${typeof work.lastTutoredBy === 'object' ? work.lastTutoredBy.email || work.lastTutoredBy.name : work.lastTutoredBy})` : ''
+                      }`
                       : 'Sin tutorías registradas'}
                   </span>
                 </div>

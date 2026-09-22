@@ -50,6 +50,16 @@ const TeacherProposalsRoute = () => {
   return <ProposalsList />;
 };
 
+const TeacherApprovalsRoute = () => {
+  const { user, isProfessor, teacherType } = useUserProfile();
+
+  if (isProfessor) {
+    return <TeacherDashboard user={user} teacherType={teacherType} initialView="solicitudes" />;
+  }
+
+  return <ApprovalQueue />;
+};
+
 const App = () => {
 
 
@@ -112,7 +122,7 @@ const App = () => {
             <PrivateRoute>
               <TeacherRoute>
                 <AuthenticatedLayout>
-                  <ApprovalQueue />
+                  <TeacherApprovalsRoute />
                 </AuthenticatedLayout>
               </TeacherRoute>
             </PrivateRoute>

@@ -322,7 +322,8 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   {/* Columna Proyecto: Título con link y descripción secundaria */}
                   <td>
                     <Link
-                      to={`/proyectos/${row.id}/trabajo`}
+                      to={`/proyectos/${row.id}/trabajo?from=mis-proyectos`}
+                      state={{ from: 'mis-proyectos' }}
                       className="project-title-link"
                       title={row.proyecto}
                     >
@@ -411,7 +412,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                         <button
                           type="button"
                           className="btn btn-sm teacher-btn-view-outline"
-                          onClick={() => navigate(`/proyectos/${row.id}/trabajo`)}
+                          onClick={() => navigate(`/proyectos/${row.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
                         >
                           Ver proyecto
                         </button>

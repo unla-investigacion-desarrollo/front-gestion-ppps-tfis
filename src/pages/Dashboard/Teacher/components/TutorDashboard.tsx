@@ -13,12 +13,14 @@ interface TutorDashboardProps {
   userName: string;
   onGoToProjects: () => void;
   onViewActivity: (act: { fecha: string; tipo: string; detalle: string; estudiante?: string }) => void;
+  onGoToApprovals?: () => void;
 }
 
 export const TutorDashboard: React.FC<TutorDashboardProps> = ({
   userName,
   onGoToProjects,
   onViewActivity,
+  onGoToApprovals,
 }) => {
   const navigate = useNavigate();
 
@@ -67,7 +69,7 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
             <button
               type="button"
               className="teacher-card-action-link bg-transparent border-0 p-0 text-start"
-              onClick={() => navigate('/admin/approvals')}
+              onClick={onGoToApprovals || (() => navigate('/admin/approvals'))}
             >
               Ver solicitudes →
             </button>
