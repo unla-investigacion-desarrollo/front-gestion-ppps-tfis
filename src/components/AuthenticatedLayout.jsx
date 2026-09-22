@@ -164,8 +164,10 @@ const AuthenticatedLayout = ({ children }) => {
             {(isAdmin || isTeacher) && (
               <>
                 <NavLink to="/admin/proposals">Propuestas TFI</NavLink>
-                <NavLink to="/docente/proyectos">Proyectos</NavLink>
-                <NavLink to="/docente/entregas">Entregas TFI</NavLink>
+                <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
+                {isTeacher && !isAdmin && (
+                  <NavLink to="/docente/entregas">Entregas TFI</NavLink>
+                )}
                 <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
                 <NavLink to="/ppp/expedientes">Expedientes PPP</NavLink>
                 <NavLink to="/admin/approvals">Solicitudes</NavLink>
