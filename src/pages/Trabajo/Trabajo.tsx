@@ -28,6 +28,12 @@ import {
   FaPencil,
   FaPaperPlane,
   FaChalkboardUser,
+  FaChevronRight,
+  FaCalendarDays,
+  FaUser,
+  FaBell,
+  FaExpand,
+  FaDownload,
 } from 'react-icons/fa6';
 import './Trabajo.css';
 
@@ -70,6 +76,10 @@ const Trabajo: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
+  // Estados de navegación visual y controles de documento (Mockup)
+  const [activeTab, setActiveTab] = useState<'documento' | 'informacion' | 'historial'>('documento');
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
+
   // Estados de modales
   const [showQualifyModal, setShowQualifyModal] = useState<boolean>(false);
   const [qualificationInput, setQualificationInput] = useState<string>('');
@@ -101,16 +111,16 @@ const Trabajo: React.FC = () => {
       : currentUser?.rol
         ? [currentUser.rol]
         : [];
-    return rawRoles.map((r: any) => String(r).toUpperCase().trim());
+    return rawRoles.map((roleItem: any) => String(roleItem).toUpperCase().trim());
   }, [currentUser]);
 
   const isAdmin = useMemo(() => roles.includes('ADMIN') || roles.includes('ADMINISTRADOR'), [roles]);
   const isTeacher = useMemo(
-    () => roles.some((r: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(r)),
+    () => roles.some((roleName: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)),
     [roles]
   );
   const isStudent = useMemo(
-    () => roles.some((r: string) => ['ESTUDIANTE', 'STUDENT', 'ALUMNO'].includes(r)),
+    () => roles.some((roleName: string) => ['ESTUDIANTE', 'STUDENT', 'ALUMNO'].includes(roleName)),
     [roles]
   );
 
@@ -129,25 +139,25 @@ const Trabajo: React.FC = () => {
     (userIdOrObj: any) => {
       if (!userIdOrObj) return 'Desconocido';
       if (typeof userIdOrObj === 'object') {
-        const u =
+        const targetUserObj =
           userIdOrObj.student?.user ||
           userIdOrObj.professor?.user ||
           userIdOrObj.user ||
           userIdOrObj.student ||
           userIdOrObj.professor ||
           userIdOrObj;
-        const name = [u.firstName || u.nombre, u.lastName || u.apellido].filter(Boolean).join(' ').trim();
-        if (name) return name;
-        if (u.name) return u.name;
-        if (u.email) return u.email;
-        userIdOrObj = u.id || u.id_user || userIdOrObj.id || userIdOrObj.id_user;
+        const fullName = [targetUserObj.firstName || targetUserObj.nombre, targetUserObj.lastName || targetUserObj.apellido].filter(Boolean).join(' ').trim();
+        if (fullName) return fullName;
+        if (targetUserObj.name) return targetUserObj.name;
+        if (targetUserObj.email) return targetUserObj.email;
+        userIdOrObj = targetUserObj.id || targetUserObj.id_user || userIdOrObj.id || userIdOrObj.id_user;
       }
-      const idStr = String(userIdOrObj);
-      const userFound = users.find((u) => String(u.id) === idStr || String(u.id_user) === idStr);
+      const idString = String(userIdOrObj);
+      const userFound = users.find((userCandidate) => String(userCandidate.id) === idString || String(userCandidate.id_user) === idString);
       if (userFound) {
-        return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${idStr}`;
+        return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${idString}`;
       }
-      return `Usuario #${idStr}`;
+      return `Usuario #${idString}`;
     },
     [users]
   );
@@ -158,12 +168,12 @@ const Trabajo: React.FC = () => {
     setLoading(true);
     try {
       // 1. Obtener Proyecto
-      let currentProj = reduxProjects.find((p) => String(p.id) === String(projectId));
+      let currentProj = reduxProjects.find((projectCandidate) => String(projectCandidate.id) === String(projectId));
       if (!currentProj) {
         try {
           currentProj = await projectService.getProjectById(projectId, token);
-        } catch (err: any) {
-          console.warn('No se pudo cargar proyecto por ID directo:', err);
+        } catch (fetchError: any) {
+          console.warn('No se pudo cargar proyecto por ID directo:', fetchError);
         }
       }
       setProject(currentProj || null);
@@ -171,9 +181,9 @@ const Trabajo: React.FC = () => {
       // 2. Obtener StudentWork
       const workData = await studentWorkService.getWorkByProject(projectId, token);
       setWork(workData);
-    } catch (err: any) {
-      console.error('Error al cargar datos del trabajo:', err);
-      showToast(err.message || 'Error al cargar los datos del proyecto y su entrega', 'error');
+    } catch (loadError: any) {
+      console.error('Error al cargar datos del trabajo:', loadError);
+      showToast(loadError.message || 'Error al cargar los datos del proyecto y su entrega', 'error');
     } finally {
       setLoading(false);
     }
@@ -211,8 +221,8 @@ const Trabajo: React.FC = () => {
   };
 
   // Guardar entrega inicial o actualización de enlaces
-  const handleSaveLinks = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveLinks = async (formSubmitEvent: React.FormEvent) => {
+    formSubmitEvent.preventDefault();
     if (!validateUrls(docUrlInput, driveUrlInput)) return;
     if (!projectId || !token) return;
 
@@ -244,8 +254,8 @@ const Trabajo: React.FC = () => {
         showToast('Entrega registrada exitosamente', 'success');
       }
       setShowLinksModal(false);
-    } catch (err: any) {
-      showToast(err.message || 'Error al guardar la entrega', 'error');
+    } catch (saveError: any) {
+      showToast(saveError.message || 'Error al guardar la entrega', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -257,24 +267,24 @@ const Trabajo: React.FC = () => {
     setShowQualifyModal(true);
   };
 
-  const handleSaveQualification = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveQualification = async (formSubmitEvent: React.FormEvent) => {
+    formSubmitEvent.preventDefault();
     if (!work?.id || !token) return;
 
-    const num = parseInt(qualificationInput, 10);
-    if (isNaN(num) || num < 0 || num > 10) {
+    const parsedScore = parseInt(qualificationInput, 10);
+    if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 10) {
       showToast('La calificación debe ser un número entero entre 0 y 10.', 'error');
       return;
     }
 
     setActionLoading(true);
     try {
-      const updated = await studentWorkService.qualify(work.id, num, token);
+      const updated = await studentWorkService.qualify(work.id, parsedScore, token);
       setWork(updated);
-      showToast(`Calificación ${num} registrada correctamente`, 'success');
+      showToast(`Calificación ${parsedScore} registrada correctamente`, 'success');
       setShowQualifyModal(false);
-    } catch (err: any) {
-      showToast(err.message || 'Error al calificar la entrega', 'error');
+    } catch (qualifyError: any) {
+      showToast(qualifyError.message || 'Error al calificar la entrega', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -309,9 +319,9 @@ const Trabajo: React.FC = () => {
           showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
       }
-      setConfirmActionModal((prev) => ({ ...prev, open: false }));
-    } catch (err: any) {
-      showToast(err.message || 'Error al ejecutar la acción', 'error');
+      setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
+    } catch (actionError: any) {
+      showToast(actionError.message || 'Error al ejecutar la acción', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -377,11 +387,11 @@ const Trabajo: React.FC = () => {
 
   // Helper para interpretar la calificación ingresada en el modal
   const qualificationHelper = useMemo(() => {
-    const val = parseInt(qualificationInput, 10);
-    if (isNaN(val)) return null;
-    if (val === 0) return { label: 'Ausente', color: '#6b7280', status: 'absent' };
-    if (val >= 1 && val <= 3) return { label: 'Desaprobada (1 a 3)', color: '#dc2626', status: 'disapproved' };
-    if (val >= 4 && val <= 10) return { label: 'Aprobada (4 a 10)', color: '#16a34a', status: 'approved' };
+    const parsedScoreValue = parseInt(qualificationInput, 10);
+    if (isNaN(parsedScoreValue)) return null;
+    if (parsedScoreValue === 0) return { label: 'Ausente', color: '#6b7280', status: 'absent' };
+    if (parsedScoreValue >= 1 && parsedScoreValue <= 3) return { label: 'Desaprobada (1 a 3)', color: '#dc2626', status: 'disapproved' };
+    if (parsedScoreValue >= 4 && parsedScoreValue <= 10) return { label: 'Aprobada (4 a 10)', color: '#16a34a', status: 'approved' };
     return { label: 'Fuera de rango (0 a 10)', color: '#e11d48', status: 'invalid' };
   }, [qualificationInput]);
 
@@ -424,7 +434,7 @@ const Trabajo: React.FC = () => {
         )}
 
         {/* Tarjeta 1: Información del Proyecto */}
-        <div className="trabajo-card">
+        <div id="project-info-card" className="trabajo-card">
           <div className="trabajo-project-header">
             <div className="trabajo-project-badge-row">
               <span className="badge bg-secondary">
@@ -448,7 +458,7 @@ const Trabajo: React.FC = () => {
               <h4>Alumnos Asignados</h4>
               {(() => {
                 const assignedStudents = (project?.activeStudents && project.activeStudents.length > 0)
-                  ? project.activeStudents.filter((as: any) => as && as.active !== false)
+                  ? project.activeStudents.filter((studentItem: any) => studentItem && studentItem.active !== false)
                   : project?.students || [];
 
                 if (assignedStudents.length === 0) {
@@ -457,9 +467,9 @@ const Trabajo: React.FC = () => {
 
                 return (
                   <div className="trabajo-member-tags">
-                    {assignedStudents.map((sid: any, idx: number) => (
-                      <span key={idx} className="trabajo-member-pill">
-                        👤 {resolveUserName(sid)}
+                    {assignedStudents.map((studentItem: any, studentIndex: number) => (
+                      <span key={studentIndex} className="trabajo-member-pill">
+                        👤 {resolveUserName(studentItem)}
                       </span>
                     ))}
                   </div>
@@ -471,41 +481,41 @@ const Trabajo: React.FC = () => {
               <h4>Docentes Asignados</h4>
               {(() => {
                 const teachers: any[] = [];
-                const seen = new Set<string>();
+                const seenTeacherIds = new Set<string>();
 
                 if (Array.isArray(project?.activeProfessors) && project.activeProfessors.length > 0) {
-                  project.activeProfessors.forEach((ap: any) => {
-                    if (ap && ap.active !== false) {
-                      const id = String(ap.professor?.user?.id || ap.professor?.id_user || ap.id || '');
-                      if (id && !seen.has(id)) {
-                        seen.add(id);
-                        teachers.push(ap);
-                      } else if (!id) {
-                        teachers.push(ap);
+                  project.activeProfessors.forEach((activeProfItem: any) => {
+                    if (activeProfItem && activeProfItem.active !== false) {
+                      const idString = String(activeProfItem.professor?.user?.id || activeProfItem.professor?.id_user || activeProfItem.id || '');
+                      if (idString && !seenTeacherIds.has(idString)) {
+                        seenTeacherIds.add(idString);
+                        teachers.push(activeProfItem);
+                      } else if (!idString) {
+                        teachers.push(activeProfItem);
                       }
                     }
                   });
                 }
 
                 if (Array.isArray(project?.coTeachers) && project.coTeachers.length > 0) {
-                  project.coTeachers.forEach((t: any) => {
-                    const id = typeof t === 'object' ? String(t.id || t.id_user || '') : String(t);
-                    if (id && !seen.has(id)) {
-                      seen.add(id);
-                      teachers.push(t);
-                    } else if (!id) {
-                      teachers.push(t);
+                  project.coTeachers.forEach((teacherItem: any) => {
+                    const idString = typeof teacherItem === 'object' ? String(teacherItem.id || teacherItem.id_user || '') : String(teacherItem);
+                    if (idString && !seenTeacherIds.has(idString)) {
+                      seenTeacherIds.add(idString);
+                      teachers.push(teacherItem);
+                    } else if (!idString) {
+                      teachers.push(teacherItem);
                     }
                   });
                 }
 
                 const mainTeacher = (project as any)?.teacher || (project as any)?.tutor || project?.teacherId;
                 if (mainTeacher) {
-                  const id = typeof mainTeacher === 'object' ? String(mainTeacher.id || mainTeacher.id_user || '') : String(mainTeacher);
-                  if (id && !seen.has(id)) {
-                    seen.add(id);
+                  const idString = typeof mainTeacher === 'object' ? String(mainTeacher.id || mainTeacher.id_user || '') : String(mainTeacher);
+                  if (idString && !seenTeacherIds.has(idString)) {
+                    seenTeacherIds.add(idString);
                     teachers.push(mainTeacher);
-                  } else if (!id && teachers.length === 0) {
+                  } else if (!idString && teachers.length === 0) {
                     teachers.push(mainTeacher);
                   }
                 }
@@ -516,9 +526,9 @@ const Trabajo: React.FC = () => {
 
                 return (
                   <div className="trabajo-member-tags">
-                    {teachers.map((tid: any, idx: number) => (
-                      <span key={idx} className="trabajo-member-pill">
-                        🎓 {resolveUserName(tid)}
+                    {teachers.map((teacherItem: any, teacherIndex: number) => (
+                      <span key={teacherIndex} className="trabajo-member-pill">
+                        🎓 {resolveUserName(teacherItem)}
                       </span>
                     ))}
                   </div>
@@ -617,232 +627,514 @@ const Trabajo: React.FC = () => {
                 </div>
               )}
 
-              {/* Grid de Enlaces a Google Docs y Google Drive */}
-              <div className="trabajo-links-grid">
-                {/* Enlace Google Docs */}
-                <div className="trabajo-link-box">
-                  <div className="trabajo-link-box-header">
-                    <div className="trabajo-link-icon docs">
-                      <FaFileLines size={20} />
-                    </div>
-                    <div>
-                      <h4 className="trabajo-link-title">Documento de Entrega (Google Docs)</h4>
-                      <span className="trabajo-link-sub">Enlace obligatorio a la documentación oficial</span>
-                    </div>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <a
-                      href={work.documentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="trabajo-link-action-btn flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1.5"
-                    >
-                      <FaArrowUpRightFromSquare size={14} />
-                      Abrir en Google Docs
-                    </a>
-                  </div>
+              {/* Barra de Pestañas Superior y Enlace Rápido a Google Docs (Mockup) */}
+              <div className="trabajo-delivery-tabs-bar">
+                <div className="trabajo-nav-tabs">
+                  <button
+                    type="button"
+                    className={`trabajo-tab-btn ${activeTab === 'documento' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('documento')}
+                  >
+                    <FaFileLines size={14} />
+                    Documento
+                  </button>
+                  <button
+                    type="button"
+                    className={`trabajo-tab-btn ${activeTab === 'informacion' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('informacion')}
+                  >
+                    <FaCircleInfo size={14} />
+                    Información
+                  </button>
+                  <button
+                    type="button"
+                    className={`trabajo-tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('historial')}
+                  >
+                    <FaClock size={14} />
+                    Historial de versiones
+                  </button>
                 </div>
-
-                {/* Enlace Google Drive */}
-                <div className="trabajo-link-box">
-                  <div className="trabajo-link-box-header">
-                    <div className="trabajo-link-icon drive">
-                      <FaFolderOpen size={20} />
-                    </div>
-                    <div>
-                      <h4 className="trabajo-link-title">Carpeta de Archivos (Google Drive)</h4>
-                      <span className="trabajo-link-sub">Carpeta de anexos y recursos adicionales</span>
-                    </div>
-                  </div>
-                  {work.driveFolderUrl ? (
-                    <a
-                      href={work.driveFolderUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="trabajo-link-action-btn d-inline-flex align-items-center justify-content-center gap-1.5"
-                    >
-                      <FaArrowUpRightFromSquare size={14} />
-                      Abrir Carpeta en Drive
-                    </a>
-                  ) : (
-                    <span className="text-muted small py-2">No se adjuntó carpeta de Google Drive</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Previsualización incrustada de Google Docs si está disponible */}
-              {getGoogleDocsEmbedUrl(work.documentUrl) && (
-                <div className="trabajo-preview-container">
-                  <div className="trabajo-preview-header">
-                    <h4>Vista previa de Google Docs</h4>
-                    <a
-                      href={work.documentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-sm btn-outline-secondary"
-                    >
-                      Pantalla completa ↗
-                    </a>
-                  </div>
-                  <iframe
-                    src={getGoogleDocsEmbedUrl(work.documentUrl)!}
-                    title="Vista previa del documento de entrega"
-                    className="trabajo-iframe"
-                    allow="autoplay"
-                  />
-                </div>
-              )}
-
-              {/* Auditoría y Fechas */}
-              <div className="trabajo-audit-section mt-4">
-                <div className="trabajo-audit-item">
-                  <span className="trabajo-audit-label">Fecha de entrega:</span>
-                  <span>{work.createdAt ? new Date(work.createdAt).toLocaleString() : 'No registrada'}</span>
-                </div>
-                <div className="trabajo-audit-item">
-                  <span className="trabajo-audit-label">Última actualización:</span>
-                  <span>{work.updatedAt ? new Date(work.updatedAt).toLocaleString() : 'No registrada'}</span>
-                </div>
-                <div className="trabajo-audit-item">
-                  <span className="trabajo-audit-label">Última revisión docente:</span>
-                  <span>
-                    {work.lastReviewedAt
-                      ? `${new Date(work.lastReviewedAt).toLocaleString()}${work.lastReviewedBy ? ` (${typeof work.lastReviewedBy === 'object' ? work.lastReviewedBy.email || work.lastReviewedBy.name : work.lastReviewedBy})` : ''
-                      }`
-                      : 'Sin revisiones registradas'}
-                  </span>
-                </div>
-                <div className="trabajo-audit-item">
-                  <span className="trabajo-audit-label">Última tutoría registrada:</span>
-                  <span>
-                    {work.lastTutoredAt
-                      ? `${new Date(work.lastTutoredAt).toLocaleString()}${work.lastTutoredBy ? ` (${typeof work.lastTutoredBy === 'object' ? work.lastTutoredBy.email || work.lastTutoredBy.name : work.lastTutoredBy})` : ''
-                      }`
-                      : 'Sin tutorías registradas'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Barra de Acciones según Roles */}
-              <div className="trabajo-actions-toolbar">
-                {/* ACCIONES PARA PROFESOR / ADMIN */}
-                {(isTeacher || isAdmin) && (
-                  <>
-                    {/* Calificar Entrega (Solo evaluador / admin) */}
-                    <button
-                      type="button"
-                      className="btn-trabajo-primary d-inline-flex align-items-center gap-1.5"
-                      onClick={handleOpenQualifyModal}
-                      disabled={actionLoading}
-                    >
-                      <FaStar size={16} />
-                      Calificar Entrega
-                    </button>
-
-                    {/* Marcar como Observada */}
-                    <button
-                      type="button"
-                      className="btn-trabajo-warning d-inline-flex align-items-center gap-1.5"
-                      onClick={() =>
-                        setConfirmActionModal({
-                          open: true,
-                          title: 'Marcar Entrega con Observaciones',
-                          message:
-                            '¿Deseas marcar esta entrega con observaciones? El estado cambiará a "Con observaciones" para que los estudiantes corrijan y notifiquen sus avances.',
-                          confirmText: 'Confirmar Observaciones',
-                          actionType: 'mark_observed',
-                        })
-                      }
-                      disabled={actionLoading}
-                    >
-                      <FaCircleExclamation size={16} />
-                      Marcar con Observaciones
-                    </button>
-
-                    {/* Confirmar Tutoría (Tutor / admin) */}
-                    <button
-                      type="button"
-                      className="btn-trabajo-info d-inline-flex align-items-center gap-1.5"
-                      onClick={() =>
-                        setConfirmActionModal({
-                          open: true,
-                          title: 'Confirmar Tutoría',
-                          message:
-                            '¿Confirmás que se llevó a cabo una sesión de tutoría con el equipo de este proyecto? Se registrará tu atención con la fecha actual y se quitará la solicitud de tutoría pendiente.',
-                          confirmText: 'Confirmar tutoría',
-                          actionType: 'mark_tutored',
-                        })
-                      }
-                      disabled={actionLoading || !work.tutoringRequested}
-                      title={
-                        !work.tutoringRequested
-                          ? 'No hay una solicitud de tutoría pendiente de los estudiantes'
-                          : 'Confirmar atención de la tutoría solicitada'
-                      }
-                    >
-                      <FaGraduationCap size={16} />
-                      Confirmar tutoría
-                    </button>
-                  </>
+                {work.documentUrl && (
+                  <a
+                    href={work.documentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="trabajo-open-docs-btn"
+                  >
+                    Abrir en Google Docs ↗
+                  </a>
                 )}
+              </div>
 
-                {/* ACCIONES PARA ESTUDIANTE / ADMIN */}
-                {(isStudent || isAdmin) && (
-                  <>
-                    {/* Modificar Enlaces */}
-                    <button
-                      type="button"
-                      className="btn-trabajo-secondary d-inline-flex align-items-center gap-1.5"
-                      onClick={() => handleOpenLinksModal(true)}
-                      disabled={actionLoading}
-                    >
-                      <FaPencil size={16} />
-                      Modificar Enlaces
-                    </button>
+              {/* Layout en 2 Columnas: Principal (Visor + Auditoría) y Lateral (Acciones) */}
+              <div className="trabajo-delivery-grid">
+                {/* Columna Principal */}
+                <div className="trabajo-main-column">
+                  {activeTab === 'informacion' ? (
+                    /* Pestaña Información: Enlaces y detalles de archivos */
+                    <div className="trabajo-links-grid mb-0">
+                      <div className="trabajo-link-box">
+                        <div className="trabajo-link-box-header">
+                          <div className="trabajo-link-icon docs">
+                            <FaFileLines size={20} />
+                          </div>
+                          <div>
+                            <h4 className="trabajo-link-title">Documento de Entrega (Google Docs)</h4>
+                            <span className="trabajo-link-sub">Enlace obligatorio a la documentación oficial</span>
+                          </div>
+                        </div>
+                        <a
+                          href={work.documentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="trabajo-link-action-btn flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1.5"
+                        >
+                          <FaArrowUpRightFromSquare size={14} />
+                          Abrir en Google Docs
+                        </a>
+                      </div>
 
-                    {/* Notificar Avances (vuelve a pending_review) */}
-                    <button
-                      type="button"
-                      className="btn-trabajo-primary d-inline-flex align-items-center gap-1.5"
-                      onClick={() =>
-                        setConfirmActionModal({
-                          open: true,
-                          title: 'Notificar Avances al Docente',
-                          message:
-                            '¿Confirmas que actualizaste el documento con las correcciones requeridas? El estado volverá a "Pendiente de revisión" para que el docente pueda evaluarlo.',
-                          confirmText: 'Notificar Avances',
-                          actionType: 'notify_advances',
-                        })
-                      }
-                      disabled={actionLoading}
-                    >
-                      <FaPaperPlane size={16} />
-                      Notificar Avances
-                    </button>
+                      <div className="trabajo-link-box">
+                        <div className="trabajo-link-box-header">
+                          <div className="trabajo-link-icon drive">
+                            <FaFolderOpen size={20} />
+                          </div>
+                          <div>
+                            <h4 className="trabajo-link-title">Carpeta de Archivos (Google Drive)</h4>
+                            <span className="trabajo-link-sub">Carpeta de anexos y recursos adicionales</span>
+                          </div>
+                        </div>
+                        {work.driveFolderUrl ? (
+                          <a
+                            href={work.driveFolderUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="trabajo-link-action-btn d-inline-flex align-items-center justify-content-center gap-1.5"
+                          >
+                            <FaArrowUpRightFromSquare size={14} />
+                            Abrir Carpeta en Drive
+                          </a>
+                        ) : (
+                          <span className="text-muted small py-2">No se adjuntó carpeta de Google Drive</span>
+                        )}
+                      </div>
+                    </div>
+                  ) : activeTab === 'historial' ? (
+                    /* Pestaña Historial de Versiones y Auditoría */
+                    <div className="p-4 bg-light rounded-3 border">
+                      <h4 className="fs-6 fw-bold mb-3 text-dark d-flex align-items-center gap-2">
+                        <FaClock size={16} /> Registro de Actividad y Versiones
+                      </h4>
+                      <div className="d-flex flex-column gap-3 small text-secondary">
+                        <div className="d-flex justify-content-between border-bottom pb-2">
+                          <span>Fecha inicial de registro:</span>
+                          <strong className="text-dark">
+                            {work.createdAt ? new Date(work.createdAt).toLocaleString() : 'No registrada'}
+                          </strong>
+                        </div>
+                        <div className="d-flex justify-content-between border-bottom pb-2">
+                          <span>Última modificación de enlaces:</span>
+                          <strong className="text-dark">
+                            {work.updatedAt ? new Date(work.updatedAt).toLocaleString() : 'No registrada'}
+                          </strong>
+                        </div>
+                        <div className="d-flex justify-content-between border-bottom pb-2">
+                          <span>Última intervención docente:</span>
+                          <strong className="text-dark">
+                            {work.lastReviewedAt
+                              ? `${new Date(work.lastReviewedAt).toLocaleString()}${work.lastReviewedBy ? ` (${resolveUserName(work.lastReviewedBy)})` : ''}`
+                              : 'Sin revisiones registradas'}
+                          </strong>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                          <span>Última tutoría docente:</span>
+                          <strong className="text-dark">
+                            {work.lastTutoredAt
+                              ? `${new Date(work.lastTutoredAt).toLocaleString()}${work.lastTutoredBy ? ` (${resolveUserName(work.lastTutoredBy)})` : ''}`
+                              : 'Sin tutorías registradas'}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Pestaña Documento: Visor incrustado estilo Mockup */
+                    <div className="trabajo-preview-container mt-0">
+                      <div className="trabajo-doc-topbar">
+                        <div className="trabajo-doc-title-group">
+                          <div className="trabajo-doc-file-icon">
+                            <FaFileLines size={14} />
+                          </div>
+                          <span className="trabajo-doc-filename">
+                            Documento de Entrega - {project?.titulo || project?.title || 'Proyecto TFI'}.docx
+                          </span>
+                          <span className="trabajo-doc-badge">Google Docs</span>
+                        </div>
 
-                    {/* Solicitar Tutoría */}
-                    {!work.tutoringRequested && (
+                        <div className="trabajo-doc-controls">
+                          <span className="trabajo-doc-page-badge">1 / 5</span>
+                          <div className="trabajo-doc-zoom-pill">
+                            <button
+                              type="button"
+                              className="trabajo-doc-icon-btn"
+                              onClick={() => setZoomLevel((currentZoom) => Math.max(50, currentZoom - 10))}
+                              title="Reducir zoom"
+                            >
+                              -
+                            </button>
+                            <span>{zoomLevel}%</span>
+                            <button
+                              type="button"
+                              className="trabajo-doc-icon-btn"
+                              onClick={() => setZoomLevel((currentZoom) => Math.min(150, currentZoom + 10))}
+                              title="Aumentar zoom"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <a
+                            href={work.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="trabajo-doc-icon-btn"
+                            title="Pantalla completa"
+                          >
+                            <FaExpand size={13} />
+                          </a>
+                          <a
+                            href={work.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="trabajo-doc-icon-btn"
+                            title="Abrir / Descargar"
+                          >
+                            <FaDownload size={13} />
+                          </a>
+                        </div>
+                      </div>
+
+                      {getGoogleDocsEmbedUrl(work.documentUrl) ? (
+                        <iframe
+                          src={getGoogleDocsEmbedUrl(work.documentUrl)!}
+                          title="Vista previa del documento de entrega"
+                          className="trabajo-iframe"
+                          allow="autoplay"
+                        />
+                      ) : (
+                        <div className="p-4 text-center text-muted">
+                          <p className="mb-2">La previsualización interactiva no está disponible para esta URL.</p>
+                          <a
+                            href={work.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-sm btn-outline-danger"
+                          >
+                            Abrir directamente en Google Docs ↗
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Fila de 4 Tarjetas de Auditoría inferiores (Mockup) */}
+                  <div className="trabajo-audit-grid">
+                    <div className="trabajo-audit-card">
+                      <div className="trabajo-audit-icon-box">
+                        <FaCalendarDays size={18} />
+                      </div>
+                      <div className="trabajo-audit-card-content">
+                        <span className="trabajo-audit-card-label">Fecha de entrega</span>
+                        <span className="trabajo-audit-card-val">
+                          {work.createdAt ? new Date(work.createdAt).toLocaleDateString() : 'No registrada'}
+                        </span>
+                        <span className="trabajo-audit-card-sub">
+                          {work.createdAt
+                            ? new Date(work.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                            : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="trabajo-audit-card">
+                      <div className="trabajo-audit-icon-box">
+                        <FaClock size={18} />
+                      </div>
+                      <div className="trabajo-audit-card-content">
+                        <span className="trabajo-audit-card-label">Última actualización</span>
+                        <span className="trabajo-audit-card-val">
+                          {work.updatedAt ? new Date(work.updatedAt).toLocaleDateString() : 'No registrada'}
+                        </span>
+                        <span className="trabajo-audit-card-sub">
+                          {work.updatedAt
+                            ? new Date(work.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                            : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="trabajo-audit-card">
+                      <div className="trabajo-audit-icon-box">
+                        <FaUser size={18} />
+                      </div>
+                      <div className="trabajo-audit-card-content">
+                        <span className="trabajo-audit-card-label">Última revisión docente</span>
+                        <span className="trabajo-audit-card-val">
+                          {work.lastReviewedBy ? resolveUserName(work.lastReviewedBy) : 'Sin revisiones'}
+                        </span>
+                        <span className="trabajo-audit-card-sub">
+                          {work.lastReviewedAt
+                            ? new Date(work.lastReviewedAt).toLocaleDateString()
+                            : 'Pendiente de calificación'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="trabajo-audit-card">
+                      <div className="trabajo-audit-icon-box">
+                        <FaGraduationCap size={18} />
+                      </div>
+                      <div className="trabajo-audit-card-content">
+                        <span className="trabajo-audit-card-label">Última tutoría</span>
+                        <span className="trabajo-audit-card-val">
+                          {work.lastTutoredBy ? resolveUserName(work.lastTutoredBy) : 'Sin tutorías'}
+                        </span>
+                        <span className="trabajo-audit-card-sub">
+                          {work.lastTutoredAt
+                            ? new Date(work.lastTutoredAt).toLocaleDateString()
+                            : work.tutoringRequested
+                              ? 'Tutoría solicitada'
+                              : 'No agendada'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Columna Lateral: Panel de Acciones (Mockup) */}
+                <div className="trabajo-sidebar-column">
+                  <div className="trabajo-actions-sidebar">
+                    <div className="trabajo-actions-sidebar-header">
+                      <div className="trabajo-actions-title-row">
+                        <span className="trabajo-red-dot">●</span>
+                        <h3 className="trabajo-actions-title">Acciones</h3>
+                      </div>
+                    </div>
+
+                    <div className="trabajo-action-cards-list">
+                      {/* Marcar con Observaciones (Docente evaluador / Admin) */}
+                      {(isTeacher || isAdmin) && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            setConfirmActionModal({
+                              open: true,
+                              title: 'Marcar Entrega con Observaciones',
+                              message:
+                                '¿Deseas marcar esta entrega con observaciones? El estado cambiará a "Con observaciones" para que los estudiantes corrijan y notifiquen sus avances.',
+                              confirmText: 'Confirmar Observaciones',
+                              actionType: 'mark_observed',
+                            })
+                          }
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle purple">
+                            <FaPencil size={15} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Marcar con observaciones</div>
+                            <div className="trabajo-action-card-desc">
+                              Agregar comentarios y notas detalladas para el estudiante.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Aprobar Entrega (Docente evaluador / Admin) */}
+                      {(isTeacher || isAdmin) && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card approve"
+                          onClick={() => {
+                            setQualificationInput(
+                              work.qualification !== null && work.qualification !== undefined && work.qualification >= 4
+                                ? String(work.qualification)
+                                : '7'
+                            );
+                            setShowQualifyModal(true);
+                          }}
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle green">
+                            <FaCheck size={16} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Aprobar entrega</div>
+                            <div className="trabajo-action-card-desc">
+                              La entrega será marcada como aprobada y el estado se actualizará.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Rechazar / Desaprobar (Docente evaluador / Admin) */}
+                      {(isTeacher || isAdmin) && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card disapprove"
+                          onClick={() => {
+                            setQualificationInput(
+                              work.qualification !== null && work.qualification !== undefined && work.qualification > 0 && work.qualification <= 3
+                                ? String(work.qualification)
+                                : '2'
+                            );
+                            setShowQualifyModal(true);
+                          }}
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle red">
+                            <FaXmark size={16} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Rechazar / Desaprobar</div>
+                            <div className="trabajo-action-card-desc">
+                              La entrega será desaprobada y el estudiante notificado.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Notificar Avances */}
                       <button
                         type="button"
-                        className="btn-trabajo-info d-inline-flex align-items-center gap-1.5"
+                        className="trabajo-action-card"
                         onClick={() =>
                           setConfirmActionModal({
                             open: true,
-                            title: 'Solicitar Tutoría Docente',
-                            message:
-                              '¿Deseas solicitar una tutoría docente para recibir acompañamiento en el avance de este proyecto?',
-                            confirmText: 'Solicitar Tutoría',
-                            actionType: 'request_tutoring',
+                            title: isStudent ? 'Notificar Avances al Docente' : 'Notificar Novedades del Proyecto',
+                            message: isStudent
+                              ? '¿Confirmas que actualizaste el documento con las correcciones requeridas? El estado volverá a "Pendiente de revisión" para que el docente pueda evaluarlo.'
+                              : '¿Deseas enviar una notificación al equipo del proyecto informando sobre el estado actual de la revisión?',
+                            confirmText: 'Notificar avances',
+                            actionType: 'notify_advances',
                           })
                         }
                         disabled={actionLoading}
                       >
-                        <FaChalkboardUser size={16} />
-                        Solicitar Tutoría
+                        <div className="trabajo-action-icon-circle slate">
+                          <FaBell size={16} />
+                        </div>
+                        <div className="trabajo-action-card-text">
+                          <div className="trabajo-action-card-title">Notificar avances</div>
+                          <div className="trabajo-action-card-desc">
+                            Informar al estudiante o equipo sobre el estado de la revisión.
+                          </div>
+                        </div>
+                        <FaChevronRight className="trabajo-action-chevron" />
                       </button>
-                    )}
-                  </>
-                )}
+
+                      {/* Confirmar Tutoría (Tutor o Admin si fue solicitada) */}
+                      {(isTeacher || isAdmin) && work.tutoringRequested && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            setConfirmActionModal({
+                              open: true,
+                              title: 'Confirmar Tutoría',
+                              message:
+                                '¿Confirmás que se llevó a cabo una sesión de tutoría con el equipo de este proyecto? Se registrará tu atención con la fecha actual y se quitará la solicitud de tutoría pendiente.',
+                              confirmText: 'Confirmar tutoría',
+                              actionType: 'mark_tutored',
+                            })
+                          }
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle sky">
+                            <FaGraduationCap size={16} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Confirmar tutoría</div>
+                            <div className="trabajo-action-card-desc">
+                              Registrar la atención de la tutoría solicitada.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Modificar Enlaces (Estudiante / Admin) */}
+                      {(isStudent || isAdmin) && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() => handleOpenLinksModal(true)}
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle slate">
+                            <FaPencil size={15} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Modificar Enlaces</div>
+                            <div className="trabajo-action-card-desc">
+                              Editar enlaces a Google Docs o carpeta Google Drive.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Solicitar Tutoría (Estudiante / Admin si no hay tutoría pendiente) */}
+                      {(isStudent || isAdmin) && !work.tutoringRequested && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            setConfirmActionModal({
+                              open: true,
+                              title: 'Solicitar Tutoría Docente',
+                              message:
+                                '¿Deseas solicitar una tutoría docente para recibir acompañamiento en el avance de este proyecto?',
+                              confirmText: 'Solicitar Tutoría',
+                              actionType: 'request_tutoring',
+                            })
+                          }
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle sky">
+                            <FaChalkboardUser size={16} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Solicitar Tutoría</div>
+                            <div className="trabajo-action-card-desc">
+                              Pedir acompañamiento docente en el proyecto.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Regla de Evaluación Institucional (Mockup) */}
+                    <div className="trabajo-eval-rules-box">
+                      <div className="trabajo-eval-rules-header">
+                        <FaCircleInfo size={14} />
+                        <span>Regla de evaluación institucional:</span>
+                      </div>
+                      <p className="trabajo-eval-rules-sub">
+                        El estado de la calificación se asigna según la escala definida:
+                      </p>
+                      <div className="trabajo-eval-badges">
+                        <span className="eval-badge absent">0 = ausente</span>
+                        <span className="eval-badge disapproved">1-3 = desaprobada</span>
+                        <span className="eval-badge approved">4+ = aprobada</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -878,7 +1170,7 @@ const Trabajo: React.FC = () => {
                     className="form-control form-control-lg"
                     placeholder="Ej. 8"
                     value={qualificationInput}
-                    onChange={(e) => setQualificationInput(e.target.value)}
+                    onChange={(changeEvent) => setQualificationInput(changeEvent.target.value)}
                     required
                     autoFocus
                   />
@@ -955,9 +1247,9 @@ const Trabajo: React.FC = () => {
                     className={`form-control ${urlErrors.doc ? 'is-invalid' : ''}`}
                     placeholder="https://docs.google.com/document/d/..."
                     value={docUrlInput}
-                    onChange={(e) => {
-                      setDocUrlInput(e.target.value);
-                      if (urlErrors.doc) setUrlErrors((prev) => ({ ...prev, doc: undefined }));
+                    onChange={(changeEvent) => {
+                      setDocUrlInput(changeEvent.target.value);
+                      if (urlErrors.doc) setUrlErrors((previousErrors) => ({ ...previousErrors, doc: undefined }));
                     }}
                     required
                   />
@@ -981,9 +1273,9 @@ const Trabajo: React.FC = () => {
                     className={`form-control ${urlErrors.drive ? 'is-invalid' : ''}`}
                     placeholder="https://drive.google.com/drive/folders/..."
                     value={driveUrlInput}
-                    onChange={(e) => {
-                      setDriveUrlInput(e.target.value);
-                      if (urlErrors.drive) setUrlErrors((prev) => ({ ...prev, drive: undefined }));
+                    onChange={(changeEvent) => {
+                      setDriveUrlInput(changeEvent.target.value);
+                      if (urlErrors.drive) setUrlErrors((previousErrors) => ({ ...previousErrors, drive: undefined }));
                     }}
                   />
                   {urlErrors.drive ? (
@@ -1022,7 +1314,7 @@ const Trabajo: React.FC = () => {
               <button
                 type="button"
                 className="trabajo-modal-close"
-                onClick={() => setConfirmActionModal((prev) => ({ ...prev, open: false }))}
+                onClick={() => setConfirmActionModal((previousState) => ({ ...previousState, open: false }))}
               >
                 ×
               </button>
@@ -1036,7 +1328,7 @@ const Trabajo: React.FC = () => {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setConfirmActionModal((prev) => ({ ...prev, open: false }))}
+                onClick={() => setConfirmActionModal((previousState) => ({ ...previousState, open: false }))}
                 disabled={actionLoading}
               >
                 Cancelar
