@@ -12,9 +12,15 @@ import {
 
 export interface StudentSidebarProps {
   onShowLogoutConfirm: () => void;
+  activeView?: 'inicio' | 'proyectos';
+  onSelectView?: (view: 'inicio' | 'proyectos') => void;
 }
 
-export const StudentSidebar: React.FC<StudentSidebarProps> = ({ onShowLogoutConfirm }) => {
+export const StudentSidebar: React.FC<StudentSidebarProps> = ({
+  onShowLogoutConfirm,
+  activeView = 'inicio',
+  onSelectView,
+}) => {
   const navigate = useNavigate();
 
   // Estado de secciones desplegables del sidebar
@@ -36,12 +42,18 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({ onShowLogoutConf
   return (
     <aside className="student-sidebar">
       <nav className="student-sidebar-menu">
-        {/* Item 1: Inicio (Activo) */}
+        {/* Item 1: Inicio */}
         <div className="student-sidebar-group">
           <button
             type="button"
-            className="student-sidebar-header-btn active"
-            onClick={() => navigate('/dashboard')}
+            className={`student-sidebar-header-btn ${activeView === 'inicio' ? 'active' : ''}`}
+            onClick={() => {
+              if (onSelectView) {
+                onSelectView('inicio');
+              } else {
+                navigate('/dashboard');
+              }
+            }}
           >
             <div className="student-sidebar-header-left">
               <span className="student-sidebar-icon">
@@ -90,10 +102,16 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({ onShowLogoutConf
               </li>
               <li>
                 <a
-                  className="student-sidebar-sublink"
-                  onClick={() => navigate('/alumno/mis-proyectos?tab=active')}
+                  className={`student-sidebar-sublink ${activeView === 'proyectos' ? 'active' : ''}`}
+                  onClick={() => {
+                    if (onSelectView) {
+                      onSelectView('proyectos');
+                    } else {
+                      navigate('/dashboard', { state: { initialView: 'proyectos' } });
+                    }
+                  }}
                 >
-                  Mis proyectos activos
+                  Mis proyectos
                 </a>
               </li>
             </ul>
