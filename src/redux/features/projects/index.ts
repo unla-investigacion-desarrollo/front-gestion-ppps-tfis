@@ -23,7 +23,10 @@ import {
   rejectStudentProjectRequest,
   approveProfessorProjectRequest,
   rejectProfessorProjectRequest,
+  normalizeBackendProject,
 } from './asyncActions';
+
+export { normalizeBackendProject };
 
 export type {
   Project,

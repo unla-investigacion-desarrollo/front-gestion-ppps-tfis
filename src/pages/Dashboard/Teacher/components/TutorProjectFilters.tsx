@@ -52,6 +52,7 @@ export const TutorProjectFilters: React.FC<TutorProjectFiltersProps> = ({
             <option value="en curso">Estado: En curso</option>
             <option value="pendiente">Estado: Pendiente</option>
             <option value="finalizado">Estado: Finalizado</option>
+            <option value="tutoria">Estado: Tutoría solicitada</option>
           </select>
         </div>
 

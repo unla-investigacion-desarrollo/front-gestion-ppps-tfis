@@ -10,11 +10,8 @@ interface ProjectTableProps {
   isTutor?: boolean;
   onRemoveStudent: (projectId: string, studentId: string) => void;
   onRemoveCoTeacher: (projectId: string, teacherId: string) => void;
-  onAssignClick: (project: Project) => void;
-  onAddCoTeacherClick: (project: Project) => void;
   onActivityClick: (project: Project) => void;
   onEditClick: (project: Project) => void;
-  onDeleteClick: (project: Project) => void;
   onViewProjectClick?: (project: Project) => void;
   onRequestJoinClick?: (project: Project) => void;
   pendingProjectIds?: Set<string>;
@@ -32,11 +29,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   isTutor = false,
   onRemoveStudent,
   onRemoveCoTeacher,
-  onAssignClick,
-  onAddCoTeacherClick,
   onActivityClick,
   onEditClick,
-  onDeleteClick,
   onViewProjectClick,
   onRequestJoinClick,
   pendingProjectIds,
@@ -44,18 +38,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Determinar si efectivamente es tutor (vía prop o localStorage como respaldo)
+  // Determinar si efectivamente es tutor (vía prop o user como respaldo)
   const effectiveIsTutor = useMemo(() => {
-    if (isTutor) return true;
+    if (isTutor !== undefined) return Boolean(isTutor);
     try {
-      if (localStorage.getItem('teacherViewProfile') === 'tutor') return true;
       const u = JSON.parse(localStorage.getItem('user') || '{}');
-      if (u.isTutor === true || u.isTutor === 'true') return true;
-      const rawRoles = Array.isArray(u.roles) ? u.roles : u.rol ? [u.rol] : [];
-      const normalizedRoles = rawRoles.map((r: any) => String(r).toUpperCase().trim());
-      if (normalizedRoles.includes('TUTOR')) return true;
-      const emailLower = (u.email || '').toLowerCase();
-      if (emailLower.includes('tutor') || emailLower.includes('jose') || emailLower.includes('gomez')) return true;
+      return Boolean(u.isTutor);
     } catch {}
     return false;
   }, [isTutor]);
@@ -80,10 +68,176 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     }
   };
 
-  // Resuelve el nombre completo o email de un miembro por su ID de usuario
-  const getMemberName = (userId: string) => {
-    const userFound = users.find((u) => String(u.id) === String(userId));
-    return userFound ? ([userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email) : `Usuario #${userId}`;
+  // Resuelve el nombre completo o email de un miembro por su ID de usuario o descriptor de objeto
+  const getMemberName = (member: any) => {
+    if (!member) return '';
+    if (typeof member === 'object') {
+      const userObj =
+        member.student?.user ||
+        member.professor?.user ||
+        member.user ||
+        member.student ||
+        member.professor ||
+        member;
+      const firstName = userObj.firstName || userObj.nombre || '';
+      const lastName = userObj.lastName || userObj.apellido || '';
+      const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+      if (fullName) return fullName;
+      if (userObj.name) return userObj.name;
+      if (userObj.email) return userObj.email;
+
+      const rawId = String(userObj.id || userObj.id_user || member.id || member.id_user || '');
+      if (rawId) {
+        const userFound = users.find((u) => String(u.id) === rawId || String(u.id_user) === rawId);
+        if (userFound) {
+          return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${rawId}`;
+        }
+        return `Usuario #${rawId}`;
+      }
+    }
+    const idStr = String(member);
+    const userFound = users.find((u) => String(u.id) === idStr || String(u.id_user) === idStr);
+    return userFound
+      ? ([userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email)
+      : `Usuario #${idStr}`;
+  };
+
+  // Obtiene el identificador primitivo de un miembro para acciones de eliminación
+  const getRawMemberId = (member: any): string => {
+    if (!member) return '';
+    if (typeof member === 'object') {
+      return String(
+        member.student?.user?.id ||
+        member.student?.id_user ||
+        member.student?.id ||
+        member.professor?.user?.id ||
+        member.professor?.id_user ||
+        member.professor?.id ||
+        member.id ||
+        member.id_user ||
+        ''
+      );
+    }
+    return String(member);
+  };
+
+  // Obtiene la lista de alumnos asignados para un proyecto
+  const getProjectStudents = (project: Project) => {
+    const list: any[] = [];
+    const seenIds = new Set<string>();
+
+    if (Array.isArray(project.activeStudents) && project.activeStudents.length > 0) {
+      project.activeStudents.forEach((as: any) => {
+        if (as && as.active !== false) {
+          const sObj = as.student?.user || as.student || as.user || as;
+          const id = String(sObj.id || as.student?.id_user || as.student?.id || as.id || '');
+          if (id && !seenIds.has(id)) {
+            seenIds.add(id);
+            list.push(as);
+          } else if (!id) {
+            list.push(as);
+          }
+        }
+      });
+    }
+
+    if (Array.isArray(project.students) && project.students.length > 0) {
+      project.students.forEach((s: any) => {
+        const id = typeof s === 'object' ? String(s.id || s.id_user || '') : String(s);
+        if (id && !seenIds.has(id)) {
+          seenIds.add(id);
+          list.push(s);
+        } else if (!id) {
+          list.push(s);
+        }
+      });
+    }
+
+    const rawList =
+      (project as any).raw?.activeStudents ||
+      (project as any).raw?.students ||
+      (project as any).users ||
+      (project as any).alumnos;
+    if (list.length === 0 && Array.isArray(rawList) && rawList.length > 0) {
+      rawList.forEach((s: any) => {
+        if (s && s.active !== false) {
+          const sObj = s.student?.user || s.student || s.user || s;
+          const id = String(sObj.id || s.student?.id_user || s.id || '');
+          if (id && !seenIds.has(id)) {
+            seenIds.add(id);
+            list.push(s);
+          } else if (!id) {
+            list.push(s);
+          }
+        }
+      });
+    }
+
+    return list;
+  };
+
+  // Obtiene la lista de docentes asignados para un proyecto (tutor principal + co-docentes)
+  const getProjectTeachers = (project: Project) => {
+    const list: any[] = [];
+    const seenIds = new Set<string>();
+
+    // 1. Docentes de activeProfessors
+    if (Array.isArray(project.activeProfessors) && project.activeProfessors.length > 0) {
+      project.activeProfessors.forEach((ap: any) => {
+        if (ap && ap.active !== false) {
+          const pObj = ap.professor?.user || ap.professor || ap.user || ap;
+          const id = String(pObj.id || ap.professor?.id_user || ap.professor?.id || ap.id || '');
+          if (id && !seenIds.has(id)) {
+            seenIds.add(id);
+            list.push(ap);
+          } else if (!id) {
+            list.push(ap);
+          }
+        }
+      });
+    }
+
+    // 2. Co-docentes
+    if (Array.isArray(project.coTeachers) && project.coTeachers.length > 0) {
+      project.coTeachers.forEach((t: any) => {
+        const id = typeof t === 'object' ? String(t.id || t.id_user || '') : String(t);
+        if (id && !seenIds.has(id)) {
+          seenIds.add(id);
+          list.push(t);
+        } else if (!id) {
+          list.push(t);
+        }
+      });
+    }
+
+    // 3. Tutor / Docente principal
+    const mainTeacher = (project as any).teacher || (project as any).tutor || project.teacherId;
+    if (mainTeacher) {
+      const id = typeof mainTeacher === 'object' ? String(mainTeacher.id || mainTeacher.id_user || '') : String(mainTeacher);
+      if (id && !seenIds.has(id)) {
+        seenIds.add(id);
+        list.push(mainTeacher);
+      } else if (!id && list.length === 0) {
+        list.push(mainTeacher);
+      }
+    }
+
+    // 4. Si el docente actual tiene este proyecto activo en sus asignaciones
+    if (activeProjectIds && activeProjectIds.has(String(project.id))) {
+      let localUser: any = null;
+      try {
+        localUser = JSON.parse(localStorage.getItem('user') || '{}');
+      } catch {}
+      const curId = String(localUser?.id || localUser?.id_user || '');
+      if (curId && !seenIds.has(curId)) {
+        seenIds.add(curId);
+        list.push(localUser);
+      } else if (!curId && list.length === 0 && (localUser?.nombre || localUser?.firstName)) {
+        list.push(localUser);
+      }
+    }
+
+    return list;
   };
 
   // Renderiza el badge estilizado de la categoría o tipo de proyecto
@@ -184,56 +338,72 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
                 {/* Columna: Alumnos asignados */}
                 <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
-                  {project.students.length === 0 ? (
-                    <span className="text-muted small">Sin alumnos asignados</span>
-                  ) : (
-                    <ul className="inline-member-list">
-                      {project.students.map((studentId) => (
-                        <li key={studentId} className="inline-member-item">
-                          <span className="text-truncate" style={{ maxWidth: '140px' }} title={getMemberName(studentId)}>
-                            {getMemberName(studentId)}
-                          </span>
-                          {!effectiveIsTutor && (
-                            <button
-                              type="button"
-                              className="btn-remove-member"
-                              title="Quitar alumno"
-                              onClick={() => onRemoveStudent(project.id, studentId)}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {(() => {
+                    const assignedStudents = getProjectStudents(project);
+                    if (assignedStudents.length === 0) {
+                      return <span className="text-muted small">Sin alumnos asignados</span>;
+                    }
+                    return (
+                      <ul className="inline-member-list">
+                        {assignedStudents.map((member, idx) => {
+                          const name = getMemberName(member);
+                          const memberId = getRawMemberId(member) || String(idx);
+                          return (
+                            <li key={`${memberId}-${idx}`} className="inline-member-item">
+                              <span className="text-truncate" style={{ maxWidth: '140px' }} title={name}>
+                                {name}
+                              </span>
+                              {!effectiveIsTutor && (
+                                <button
+                                  type="button"
+                                  className="btn-remove-member"
+                                  title="Quitar alumno"
+                                  onClick={() => onRemoveStudent(project.id, memberId)}
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    );
+                  })()}
                 </td>
 
-                {/* Columna: Co-docentes */}
+                {/* Columna: Docentes */}
                 <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
-                  {(!project.coTeachers || project.coTeachers.length === 0) ? (
-                    <span className="text-muted small">Sin docentes</span>
-                  ) : (
-                    <ul className="inline-member-list">
-                      {project.coTeachers.map((teacherId) => (
-                        <li key={teacherId} className="inline-member-item">
-                          <span className="text-truncate" style={{ maxWidth: '140px' }} title={getMemberName(teacherId)}>
-                            {getMemberName(teacherId)}
-                          </span>
-                          {!effectiveIsTutor && (
-                            <button
-                              type="button"
-                              className="btn-remove-member"
-                              title="Quitar co-docente"
-                              onClick={() => onRemoveCoTeacher(project.id, teacherId)}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {(() => {
+                    const assignedTeachers = getProjectTeachers(project);
+                    if (assignedTeachers.length === 0) {
+                      return <span className="text-muted small">Sin docentes</span>;
+                    }
+                    return (
+                      <ul className="inline-member-list">
+                        {assignedTeachers.map((member, idx) => {
+                          const name = getMemberName(member);
+                          const memberId = getRawMemberId(member) || String(idx);
+                          return (
+                            <li key={`${memberId}-${idx}`} className="inline-member-item">
+                              <span className="text-truncate" style={{ maxWidth: '140px' }} title={name}>
+                                {name}
+                              </span>
+                              {!effectiveIsTutor && (
+                                <button
+                                  type="button"
+                                  className="btn-remove-member"
+                                  title="Quitar co-docente"
+                                  onClick={() => onRemoveCoTeacher(project.id, memberId)}
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    );
+                  })()}
                 </td>
 
                 {/* Columna: Acciones (Menú Dropdown ⋮ / Lápiz) */}
@@ -294,19 +464,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               <>
                                 <li className="dropdown-divider" style={{ margin: '4px 0' }} />
 
-                                {/* Acción: Asignar Alumno */}
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item"
-                                  disabled={project.students.length >= 5}
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onAssignClick(project);
-                                  }}
-                                >
-                                  Asignar Alumno
-                                </button>
-
                                 {/* Acción: Ver Actividad */}
                                 <button
                                   type="button"
@@ -319,18 +476,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   Ver Actividad
                                 </button>
 
-                                {/* Acción: Agregar Co-docente */}
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item"
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onAddCoTeacherClick(project);
-                                  }}
-                                >
-                                  Agregar Docente
-                                </button>
-
                                 {/* Acción: Editar Proyecto */}
                                 <button
                                   type="button"
@@ -341,21 +486,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   }}
                                 >
                                   Editar Proyecto
-                                </button>
-
-                                {/* Divisor */}
-                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-
-                                {/* Acción: Eliminar (mover a papelera) */}
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item text-danger"
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onDeleteClick(project);
-                                  }}
-                                >
-                                  Eliminar Proyecto
                                 </button>
                               </>
                             )}

@@ -46,25 +46,57 @@ export interface Project {
 }
 
 export function normalizeBackendProject(p: any): Project {
-  const students = Array.isArray(p.activeStudents)
-    ? p.activeStudents
-        .filter((as: any) => as.active)
-        .map((as: any) => String(as.student?.id_user || as.student?.id || as.id))
-    : Array.isArray(p.students)
-    ? p.students.map(String)
-    : [];
+  // Normalize students array with support for activeStudents, students, users, and alumnos
+  const rawStudents =
+    Array.isArray(p.activeStudents) && p.activeStudents.length > 0
+      ? p.activeStudents
+      : Array.isArray(p.students) && p.students.length > 0
+      ? p.students
+      : Array.isArray(p.users) && p.users.length > 0
+      ? p.users
+      : Array.isArray(p.alumnos) && p.alumnos.length > 0
+      ? p.alumnos
+      : [];
 
-  const coTeachers = Array.isArray(p.activeProfessors)
-    ? p.activeProfessors
-        .filter((ap: any) => ap.active)
-        .map((ap: any) => String(ap.professor?.id_user || ap.professor?.id || ap.id))
-    : Array.isArray(p.coTeachers)
-    ? p.coTeachers.map(String)
-    : [];
+  const students = rawStudents
+    .filter((as: any) => as && as.active !== false)
+    .map((as: any) => {
+      const studentObj = as.student?.user || as.user || as.student || as;
+      return String(studentObj.id || as.student?.id_user || as.student?.id || as.id_user || as.id || '');
+    })
+    .filter(Boolean);
+
+  // Normalize professors / teachers
+  const rawProfessors =
+    Array.isArray(p.activeProfessors) && p.activeProfessors.length > 0
+      ? p.activeProfessors
+      : Array.isArray(p.coTeachers) && p.coTeachers.length > 0
+      ? p.coTeachers
+      : Array.isArray(p.professors) && p.professors.length > 0
+      ? p.professors
+      : Array.isArray(p.teachers) && p.teachers.length > 0
+      ? p.teachers
+      : [];
+
+  const coTeachers = rawProfessors
+    .filter((ap: any) => ap && ap.active !== false)
+    .map((ap: any) => {
+      const profObj = ap.professor?.user || ap.user || ap.professor || ap;
+      return String(profObj.id || ap.professor?.id_user || ap.professor?.id || ap.id_user || ap.id || '');
+    })
+    .filter(Boolean);
+
+  const mainTeacherId = p.teacherId
+    ? String(p.teacherId)
+    : p.teacher?.id
+    ? String(p.teacher.id)
+    : p.tutor?.id
+    ? String(p.tutor.id)
+    : coTeachers[0] || '';
 
   return {
     id: String(p.id),
-    teacherId: p.teacherId ? String(p.teacherId) : coTeachers[0] || '',
+    teacherId: mainTeacherId,
     titulo: p.title || p.titulo || 'Sin título',
     descripcion: p.description || p.descripcion || '',
     categoria: p.projectType?.name || p.categoria || 'Other',

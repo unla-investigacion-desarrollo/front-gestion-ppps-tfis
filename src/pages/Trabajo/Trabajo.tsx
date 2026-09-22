@@ -106,15 +106,30 @@ const Trabajo: React.FC = () => {
     }
   }, [dispatch, users.length, reduxProjects.length]);
 
-  // Función para obtener nombres de usuario
+  // Función para obtener nombres de usuario (admite ID o descriptor de objeto)
   const resolveUserName = useCallback(
-    (userId: string | number | undefined | null) => {
-      if (!userId) return 'Desconocido';
-      const userFound = users.find((u) => String(u.id) === String(userId) || String(u.id_user) === String(userId));
-      if (userFound) {
-        return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${userId}`;
+    (userIdOrObj: any) => {
+      if (!userIdOrObj) return 'Desconocido';
+      if (typeof userIdOrObj === 'object') {
+        const u =
+          userIdOrObj.student?.user ||
+          userIdOrObj.professor?.user ||
+          userIdOrObj.user ||
+          userIdOrObj.student ||
+          userIdOrObj.professor ||
+          userIdOrObj;
+        const name = [u.firstName || u.nombre, u.lastName || u.apellido].filter(Boolean).join(' ').trim();
+        if (name) return name;
+        if (u.name) return u.name;
+        if (u.email) return u.email;
+        userIdOrObj = u.id || u.id_user || userIdOrObj.id || userIdOrObj.id_user;
       }
-      return `Usuario #${userId}`;
+      const idStr = String(userIdOrObj);
+      const userFound = users.find((u) => String(u.id) === idStr || String(u.id_user) === idStr);
+      if (userFound) {
+        return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${idStr}`;
+      }
+      return `Usuario #${idStr}`;
     },
     [users]
   );
@@ -273,7 +288,7 @@ const Trabajo: React.FC = () => {
         case 'mark_tutored':
           updated = await studentWorkService.markTutored(work.id, token);
           setWork(updated);
-          showToast('Se registró la tutoría realizada correctamente', 'success');
+          showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
       }
       setConfirmActionModal((prev) => ({ ...prev, open: false }));
@@ -409,32 +424,84 @@ const Trabajo: React.FC = () => {
           <div className="trabajo-members-grid">
             <div className="trabajo-member-col">
               <h4>Alumnos Asignados</h4>
-              {(!project?.students || project.students.length === 0) ? (
-                <span className="text-muted small">Sin alumnos asignados</span>
-              ) : (
-                <div className="trabajo-member-tags">
-                  {project.students.map((sid: any) => (
-                    <span key={String(sid)} className="trabajo-member-pill">
-                      👤 {resolveUserName(sid)}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const assignedStudents = (project?.activeStudents && project.activeStudents.length > 0)
+                  ? project.activeStudents.filter((as: any) => as && as.active !== false)
+                  : project?.students || [];
+
+                if (assignedStudents.length === 0) {
+                  return <span className="text-muted small">Sin alumnos asignados</span>;
+                }
+
+                return (
+                  <div className="trabajo-member-tags">
+                    {assignedStudents.map((sid: any, idx: number) => (
+                      <span key={idx} className="trabajo-member-pill">
+                        👤 {resolveUserName(sid)}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="trabajo-member-col">
               <h4>Docentes Asignados</h4>
-              {(!project?.coTeachers || project.coTeachers.length === 0) ? (
-                <span className="text-muted small">Sin co-docentes</span>
-              ) : (
-                <div className="trabajo-member-tags">
-                  {project.coTeachers.map((tid: any) => (
-                    <span key={String(tid)} className="trabajo-member-pill">
-                      🎓 {resolveUserName(tid)}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const teachers: any[] = [];
+                const seen = new Set<string>();
+
+                if (Array.isArray(project?.activeProfessors) && project.activeProfessors.length > 0) {
+                  project.activeProfessors.forEach((ap: any) => {
+                    if (ap && ap.active !== false) {
+                      const id = String(ap.professor?.user?.id || ap.professor?.id_user || ap.id || '');
+                      if (id && !seen.has(id)) {
+                        seen.add(id);
+                        teachers.push(ap);
+                      } else if (!id) {
+                        teachers.push(ap);
+                      }
+                    }
+                  });
+                }
+
+                if (Array.isArray(project?.coTeachers) && project.coTeachers.length > 0) {
+                  project.coTeachers.forEach((t: any) => {
+                    const id = typeof t === 'object' ? String(t.id || t.id_user || '') : String(t);
+                    if (id && !seen.has(id)) {
+                      seen.add(id);
+                      teachers.push(t);
+                    } else if (!id) {
+                      teachers.push(t);
+                    }
+                  });
+                }
+
+                const mainTeacher = (project as any)?.teacher || (project as any)?.tutor || project?.teacherId;
+                if (mainTeacher) {
+                  const id = typeof mainTeacher === 'object' ? String(mainTeacher.id || mainTeacher.id_user || '') : String(mainTeacher);
+                  if (id && !seen.has(id)) {
+                    seen.add(id);
+                    teachers.push(mainTeacher);
+                  } else if (!id && teachers.length === 0) {
+                    teachers.push(mainTeacher);
+                  }
+                }
+
+                if (teachers.length === 0) {
+                  return <span className="text-muted small">Sin docentes asignados</span>;
+                }
+
+                return (
+                  <div className="trabajo-member-tags">
+                    {teachers.map((tid: any, idx: number) => (
+                      <span key={idx} className="trabajo-member-pill">
+                        🎓 {resolveUserName(tid)}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -672,24 +739,29 @@ const Trabajo: React.FC = () => {
                       Marcar con Observaciones
                     </button>
 
-                    {/* Registrar Tutoría (Tutor / admin) */}
+                    {/* Confirmar Tutoría (Tutor / admin) */}
                     <button
                       type="button"
                       className="btn-trabajo-info d-inline-flex align-items-center gap-1.5"
                       onClick={() =>
                         setConfirmActionModal({
                           open: true,
-                          title: 'Registrar Tutoría Realizada',
+                          title: 'Confirmar Tutoría',
                           message:
-                            '¿Confirmas que se llevó a cabo una sesión de tutoría con el equipo de este proyecto? Quedará registrado tu usuario y la fecha actual.',
-                          confirmText: 'Registrar Tutoría',
+                            '¿Confirmás que se llevó a cabo una sesión de tutoría con el equipo de este proyecto? Se registrará tu atención con la fecha actual y se quitará la solicitud de tutoría pendiente.',
+                          confirmText: 'Confirmar tutoría',
                           actionType: 'mark_tutored',
                         })
                       }
-                      disabled={actionLoading}
+                      disabled={actionLoading || !work.tutoringRequested}
+                      title={
+                        !work.tutoringRequested
+                          ? 'No hay una solicitud de tutoría pendiente de los estudiantes'
+                          : 'Confirmar atención de la tutoría solicitada'
+                      }
                     >
                       <FaGraduationCap size={16} />
-                      Registrar Tutoría
+                      Confirmar tutoría
                     </button>
                   </>
                 )}

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../hooks/useAuth';
+import { useUserProfile } from '../hooks/useUserProfile';
 import logo from '../assets/Campus-Virtual-UNLa.png';
 import '../styles/unla.css';
 
@@ -33,11 +34,13 @@ const AuthenticatedLayout = ({ children }) => {
   const displayName = user
     ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
     : '';
+  const { isAdmin: hookIsAdmin, isProfessor: hookIsTeacher } = useUserProfile();
   const rawRoles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
+  if (user?.role) rawRoles.push(user.role);
   if (user?.rol) rawRoles.push(user.rol);
   const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
-  const isAdmin = normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
-  const isTeacher = !isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'PROFESOR', 'TUTOR', 'EVALUADOR'].includes(r));
+  const isAdmin = hookIsAdmin || normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
+  const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'PROFESOR', 'TUTOR', 'EVALUADOR'].includes(r)));
   const mustChange = !!user?.mustChangePassword;
 
   // Toast handling con cola por usuario (localStorage 'userNotifications')
@@ -140,7 +143,9 @@ const AuthenticatedLayout = ({ children }) => {
   }, [toast, user]);
 
   const isTeacherDashboard =
-    (location.pathname === '/dashboard' || location.pathname === '/docente/proyectos') &&
+    (location.pathname === '/dashboard' ||
+      location.pathname === '/docente/proyectos' ||
+      location.pathname === '/admin/proposals') &&
     isTeacher &&
     !isAdmin;
 

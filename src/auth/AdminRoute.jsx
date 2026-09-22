@@ -1,14 +1,12 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 const AdminRoute = ({ children }) => {
-  const user = useSelector((state) => state.auth.user);
-  const isAdmin = !!user && Array.isArray(user.roles) && (
-    user.roles.includes('admin') ||
-    user.roles.includes('ADMIN') ||
-    user.roles.includes('ADMINISTRADOR')
-  );
+  const { isAdmin, user, loading } = useUserProfile();
+  if (loading && !user) {
+    return null;
+  }
   return isAdmin ? children : <Navigate to="/dashboard" />;
 };
 

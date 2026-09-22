@@ -1,7 +1,15 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaFolderOpen, FaCalendarDays, FaEllipsisVertical } from 'react-icons/fa6';
+import {
+  FaArrowLeft,
+  FaFolderOpen,
+  FaCalendarDays,
+  FaEllipsisVertical,
+  FaChalkboardUser,
+  FaGraduationCap,
+} from 'react-icons/fa6';
 import { projectService } from '../../../../services/projectService';
+import { studentWorkService } from '../../../../services/studentWorkService';
 import Pagination from '../../../../components/Pagination';
 import TutorProjectFilters from './TutorProjectFilters';
 import TutorProjectStatusPill from './TutorProjectStatusPill';
@@ -18,12 +26,20 @@ export interface TutorProjectRecord {
   estado: 'En curso' | 'Pendiente' | 'Finalizado';
   estadoClass: 'curso' | 'revision' | 'finalizado';
   ultimaTutoria: string;
+  tutoringRequested: boolean;
+  workId?: number;
   rawProject?: any;
 }
 
 interface TutorProjectsTableProps {
   onBackToInicio: () => void;
-  onOpenRegisterTutoring: (project: { id: string | number; titulo: string }) => void;
+  onOpenRegisterTutoring: (project: {
+    id: string | number;
+    titulo: string;
+    workId?: string | number;
+    studentName?: string;
+  }) => void;
+  refreshTrigger?: number;
 }
 
 /**
@@ -34,6 +50,7 @@ interface TutorProjectsTableProps {
 export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
   onBackToInicio,
   onOpenRegisterTutoring,
+  refreshTrigger,
 }) => {
   const navigate = useNavigate();
 
@@ -66,11 +83,30 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
       const data = await projectService.getMyActiveProjects(token);
       const list = Array.isArray(data) ? data : [];
 
-      const mapped: TutorProjectRecord[] = list.map((item: any) => {
+      // Consultar la entrega de cada proyecto en paralelo para obtener tutoringRequested y workId
+      const workResults = await Promise.allSettled(
+        list.map((item: any) => {
+          const projectData = item.project || item;
+          const projectId = projectData.id || item.id;
+          if (projectData.studentWork || item.studentWork) {
+            return Promise.resolve(projectData.studentWork || item.studentWork);
+          }
+          if (projectId) {
+            return studentWorkService.getWorkByProject(projectId, token);
+          }
+          return Promise.resolve(null);
+        })
+      );
+
+      const mapped: TutorProjectRecord[] = list.map((item: any, idx: number) => {
         const projectData = item.project || item;
         const projectId = String(projectData.id || item.id || '');
         const title = projectData.title || projectData.titulo || 'Proyecto sin título';
         const description = projectData.description || projectData.descripcion || 'Sin descripción';
+
+        const work = workResults[idx]?.status === 'fulfilled' ? workResults[idx].value : null;
+        const workId = work?.id ? Number(work.id) : undefined;
+        const tutoringRequested = Boolean(work?.tutoringRequested);
 
         // Extraer alumnos asignados al proyecto
         let studentNames: string[] = [];
@@ -80,7 +116,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
             .map((rawStudent: any) => {
               if (!rawStudent) return '';
               if (typeof rawStudent === 'string') return rawStudent;
-              const studentObject = rawStudent.student || rawStudent.user || rawStudent;
+              const studentObject = rawStudent.student?.user || rawStudent.user || rawStudent.student || rawStudent;
               const firstName = studentObject.firstName || studentObject.nombre || '';
               const lastName = studentObject.lastName || studentObject.apellido || '';
               const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
@@ -108,8 +144,8 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           estadoClass = 'curso';
         }
 
-        // Formatear última fecha registrada
-        const rawDate = projectData.lastTutoring || projectData.ultimaTutoria || projectData.updatedAt || projectData.createdAt || item.updatedAt || item.createdAt;
+        // Formatear última fecha registrada (priorizar lastTutoredAt de la entrega)
+        const rawDate = work?.lastTutoredAt || projectData.lastTutoring || projectData.ultimaTutoria || projectData.updatedAt || projectData.createdAt || item.updatedAt || item.createdAt;
         let ultimaTutoria = '-';
         if (rawDate) {
           try {
@@ -133,6 +169,8 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           estado,
           estadoClass,
           ultimaTutoria,
+          tutoringRequested,
+          workId,
           rawProject: projectData,
         };
       });
@@ -149,14 +187,18 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
   useEffect(() => {
     fetchMyProjects();
-  }, [fetchMyProjects]);
+  }, [fetchMyProjects, refreshTrigger]);
 
   // Filtrado reactivo en memoria
   const filteredList = useMemo(() => {
     return projectsList.filter((item) => {
       // Filtro por Estado
-      if (filterEstado !== 'todos' && item.estado.toLowerCase() !== filterEstado.toLowerCase()) {
-        return false;
+      if (filterEstado !== 'todos') {
+        if (filterEstado === 'tutoria') {
+          if (!item.tutoringRequested) return false;
+        } else if (item.estado.toLowerCase() !== filterEstado.toLowerCase()) {
+          return false;
+        }
       }
       // Filtro por Texto de búsqueda
       if (searchQuery.trim()) {
@@ -301,12 +343,23 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                     </div>
                   </td>
 
-                  {/* Columna Estado: Pill reutilizable */}
+                  {/* Columna Estado: Pill reutilizable y aviso de tutoría solicitada */}
                   <td>
                     <TutorProjectStatusPill
                       estado={row.estado}
                       estadoClass={row.estadoClass}
                     />
+                    {row.tutoringRequested && (
+                      <div className="mt-1">
+                        <span
+                          className="badge bg-warning text-dark border border-warning-subtle d-inline-flex align-items-center gap-1"
+                          style={{ fontSize: '11px', fontWeight: 600, padding: '3px 7px' }}
+                          title="El equipo del proyecto solicitó una sesión de tutoría"
+                        >
+                          <FaChalkboardUser size={11} /> Tutoría solicitada
+                        </span>
+                      </div>
+                    )}
                   </td>
 
                   {/* Columna Última Tutoría */}
@@ -325,18 +378,35 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   <td style={{ textAlign: 'right' }}>
                     <div className="d-inline-flex align-items-center justify-content-end gap-2">
                       {row.estado !== 'Finalizado' ? (
-                        <button
-                          type="button"
-                          className="btn btn-sm teacher-btn-register-tutoria"
-                          onClick={() =>
-                            onOpenRegisterTutoring({
-                              id: row.id,
-                              titulo: row.proyecto,
-                            })
-                          }
-                        >
-                          Registrar tutoría
-                        </button>
+                        row.tutoringRequested ? (
+                          <button
+                            type="button"
+                            className="btn btn-sm teacher-btn-register-tutoria d-inline-flex align-items-center gap-1.5"
+                            onClick={() =>
+                              onOpenRegisterTutoring({
+                                id: row.id,
+                                titulo: row.proyecto,
+                                workId: row.workId,
+                                studentName: row.estudiantePrincipal,
+                              })
+                            }
+                            title="Confirmar atención de la tutoría solicitada"
+                          >
+                            <FaGraduationCap size={13} />
+                            <span>Confirmar tutoría</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5"
+                            disabled
+                            style={{ opacity: 0.65, cursor: 'not-allowed' }}
+                            title="No hay solicitud de tutoría pendiente para este proyecto"
+                          >
+                            <FaGraduationCap size={13} />
+                            <span>Confirmar tutoría</span>
+                          </button>
+                        )
                       ) : (
                         <button
                           type="button"
