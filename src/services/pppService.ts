@@ -12,12 +12,20 @@ export type PPPStatus =
 
 export interface PPPApplicant {
   id?: number | string;
-  studentId: number | string;
+  applicationId?: number | string;
+  studentId?: number | string;
   studentName?: string;
   studentEmail?: string;
-  previousKnowledge: string;
+  previousKnowledge?: string;
   appliedAt?: string;
-  status?: 'pending' | 'accepted' | 'rejected';
+  status?: 'pending' | 'accepted' | 'rejected' | 'pending_application' | 'application_rejected' | string;
+  student?: {
+    id?: number | string;
+    fullName?: string;
+    name?: string;
+    email?: string;
+    [key: string]: any;
+  };
 }
 
 export interface PPPProposal {
@@ -224,22 +232,138 @@ export const pppService = {
    */
   getProposals: async (token: string, isStudent = false): Promise<PPPProposal[]> => {
     try {
-      const res = await fetch(`${API_URL}/ppp/proposals`, {
+      const response = await fetch(`${API_URL}/ppp/proposals`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await handleResponse(res, 'Error al obtener propuestas');
-      if (Array.isArray(data)) {
-        return isStudent ? data.filter((p) => p.isOpen) : data;
+      const data = await handleResponse(response, 'Error al obtener propuestas');
+      const rawList = Array.isArray(data) ? data : data?.proposals || [];
+      const normalizedList = rawList.map((proposalItem: any) => {
+        const rawApplicants =
+          proposalItem.applicants ||
+          proposalItem.applications ||
+          proposalItem.postulantes ||
+          [];
+        const applicantsCount =
+          proposalItem.applicantsCount ??
+          proposalItem.applicationsCount ??
+          proposalItem._count?.applications ??
+          proposalItem._count?.applicants ??
+          rawApplicants.length;
+        return {
+          ...proposalItem,
+          applicants: rawApplicants,
+          applications: rawApplicants,
+          applicantsCount,
+        };
+      });
+
+      const filteredList = isStudent
+        ? normalizedList.filter((proposalItem: PPPProposal) => proposalItem.isOpen)
+        : normalizedList;
+
+      // Si es evaluador o admin, enriquecemos en paralelo con GET /ppp/proposals/:id para reflejar el conteo real
+      if (!isStudent && token && filteredList.length > 0) {
+        try {
+          const enrichedList = await Promise.all(
+            filteredList.map(async (proposalItem: PPPProposal) => {
+              try {
+                const detailResponse = await fetch(`${API_URL}/ppp/proposals/${proposalItem.id}`, {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+                if (!detailResponse.ok) return proposalItem;
+                const detailData = await detailResponse.json();
+                const detailApplicants =
+                  detailData?.applicants ||
+                  detailData?.applications ||
+                  detailData?.postulantes ||
+                  [];
+                return {
+                  ...proposalItem,
+                  ...detailData,
+                  applicants: detailApplicants,
+                  applications: detailApplicants,
+                  applicantsCount: detailApplicants.length,
+                };
+              } catch (detailError) {
+                return proposalItem;
+              }
+            })
+          );
+          return enrichedList;
+        } catch (enrichListError) {
+          console.warn('Error al enriquecer convocatorias con postulantes', enrichListError);
+          return filteredList;
+        }
       }
-      return data?.proposals || [];
-    } catch (error) {
-      console.warn('pppService.getProposals: Usando persistencia local como respaldo', error);
-      const list = getLocalProposals();
-      return isStudent ? list.filter((p) => p.isOpen) : list;
+
+      return filteredList;
+    } catch (fetchError) {
+      console.warn('pppService.getProposals: Usando persistencia local como respaldo', fetchError);
+      const proposalList = getLocalProposals();
+      return isStudent
+        ? proposalList.filter((proposalItem) => proposalItem.isOpen)
+        : proposalList;
+    }
+  },
+
+  /**
+   * Convocatoria y sus Postulantes: GET /ppp/proposals/:id
+   * Exclusivo Docente Evaluador (isTutor: false) y Administrador.
+   */
+  getProposalById: async (
+    proposalId: number | string,
+    token: string
+  ): Promise<PPPProposal> => {
+    try {
+      const response = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await handleResponse(
+        response,
+        'Error al obtener la convocatoria y postulantes'
+      );
+      const applicants =
+        data?.applicants ||
+        data?.applications ||
+        data?.postulantes ||
+        [];
+      const applicantsCount =
+        data?.applicantsCount ??
+        data?._count?.applications ??
+        data?._count?.applicants ??
+        applicants.length;
+
+      return {
+        ...data,
+        applicants,
+        applications: applicants,
+        applicantsCount,
+      };
+    } catch (fetchError) {
+      console.warn(
+        'pppService.getProposalById: Usando persistencia local como respaldo',
+        fetchError
+      );
+      const proposalList = getLocalProposals();
+      const matchedProposal = proposalList.find(
+        (proposalItem) => String(proposalItem.id) === String(proposalId)
+      );
+      if (matchedProposal) {
+        return matchedProposal;
+      }
+      throw fetchError;
     }
   },
 
@@ -372,7 +496,7 @@ export const pppService = {
       expedientes.unshift(newExp);
       saveLocalExpedientes(expedientes);
 
-      return { success: true, expediente: newExp };
+      return { id: newExp.id, status: 'pending_application', success: true, expediente: newExp };
     }
   },
 

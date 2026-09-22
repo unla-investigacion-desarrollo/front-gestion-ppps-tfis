@@ -10,6 +10,7 @@ import {
   updatePPPGeneralDrive,
   fetchPPPExpedientes,
   fetchPPPExpedienteById,
+  fetchPPPProposalById,
   createPPPExternal,
 } from './asyncActions';
 
@@ -17,6 +18,7 @@ export type { PPPProposal, PPPEpidiente, CreateProposalDTO };
 
 export interface PPPState {
   proposals: PPPProposal[];
+  currentProposal: PPPProposal | null;
   expedientes: PPPEpidiente[];
   currentExpediente: PPPEpidiente | null;
   generalDriveUrl: string;
@@ -26,6 +28,7 @@ export interface PPPState {
 
 export const initialState: PPPState = {
   proposals: [],
+  currentProposal: null,
   expedientes: [],
   currentExpediente: null,
   generalDriveUrl: '',
@@ -37,6 +40,9 @@ export const pppSlice = createSlice({
   name: 'ppp',
   initialState,
   reducers: {
+    clearCurrentProposal: (state) => {
+      state.currentProposal = null;
+    },
     clearCurrentExpediente: (state) => {
       state.currentExpediente = null;
     },
@@ -79,6 +85,15 @@ export const pppSlice = createSlice({
       .addCase(fetchPPPExpedienteById.fulfilled, (state, action: PayloadAction<PPPEpidiente | null>) => {
         state.currentExpediente = action.payload;
       })
+      .addCase(fetchPPPProposalById.fulfilled, (state, action: PayloadAction<PPPProposal>) => {
+        state.currentProposal = action.payload;
+        const proposalIndex = state.proposals.findIndex(
+          (proposalItem) => String(proposalItem.id) === String(action.payload.id)
+        );
+        if (proposalIndex !== -1) {
+          state.proposals[proposalIndex] = action.payload;
+        }
+      })
       .addCase(createPPPExternal.fulfilled, (state, action: PayloadAction<PPPEpidiente>) => {
         state.expedientes.unshift(action.payload);
         state.currentExpediente = action.payload;
@@ -86,10 +101,11 @@ export const pppSlice = createSlice({
   },
 });
 
-export const { clearCurrentExpediente, clearPPPError } = pppSlice.actions;
+export const { clearCurrentProposal, clearCurrentExpediente, clearPPPError } = pppSlice.actions;
 
 // Selectores tipados
 export const selectPPPProposals = (state: { ppp: PPPState }) => state.ppp?.proposals || [];
+export const selectCurrentPPPProposal = (state: { ppp: PPPState }) => state.ppp?.currentProposal;
 export const selectPPPExpedientes = (state: { ppp: PPPState }) => state.ppp?.expedientes || [];
 export const selectCurrentPPPExpediente = (state: { ppp: PPPState }) => state.ppp?.currentExpediente;
 export const selectPPPGeneralDrive = (state: { ppp: PPPState }) => state.ppp?.generalDriveUrl;

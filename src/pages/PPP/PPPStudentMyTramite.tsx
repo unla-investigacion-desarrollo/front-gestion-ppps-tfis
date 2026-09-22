@@ -1,13 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaIdCard, FaSquarePlus } from 'react-icons/fa6';
+import { FaIdCard, FaSquarePlus, FaMagnifyingGlass } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchPPPExpedientes,
   createPPPExternal,
   selectPPPExpedientes,
-  selectPPPStatus,
 } from '../../../redux/slices/pppSlice';
 import { PPPEpidiente } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
@@ -19,26 +18,68 @@ export const PPPStudentMyTramite: React.FC = () => {
   const currentUser = useSelector(selectCurrentUser) as any;
   const expedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
 
+  const [consultIdInput, setConsultIdInput] = useState<string>('');
+
   useEffect(() => {
     dispatch(fetchPPPExpedientes());
   }, [dispatch]);
 
-  // Buscar trámites del alumno actual
+  // Leer postulaciones conservadas localmente por el estudiante
+  const studentStorageKey = `ppp_student_applications_${currentUser?.id || 'me'}`;
+  const storedApplications = useMemo(() => {
+    try {
+      const storedData = localStorage.getItem(studentStorageKey);
+      return storedData ? JSON.parse(storedData) : [];
+    } catch (readError) {
+      return [];
+    }
+  }, [studentStorageKey]);
+
+  // Buscar trámites del alumno actual combinando expedientes y postulaciones registradas
   const myExpedientes = useMemo(() => {
-    if (!currentUser?.id) return expedientes;
-    return expedientes.filter(
-      (e) =>
-        String(e.studentId) === String(currentUser.id) ||
-        (e.studentEmail && currentUser.email && e.studentEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
-        e.studentId === 'me'
-    );
-  }, [expedientes, currentUser]);
+    const rawList = [...expedientes];
+
+    // Filtrar expedientes del usuario
+    let filteredList = rawList.filter((expedienteItem) => {
+      const matchesUserId =
+        currentUser?.id && String(expedienteItem.studentId) === String(currentUser.id);
+      const matchesUserEmail =
+        expedienteItem.studentEmail &&
+        currentUser?.email &&
+        expedienteItem.studentEmail.toLowerCase() === currentUser.email.toLowerCase();
+      const matchesMe = expedienteItem.studentId === 'me';
+      return matchesUserId || matchesUserEmail || matchesMe;
+    });
+
+    // Añadir postulaciones guardadas localmente si no están ya en la lista
+    storedApplications.forEach((storedApp: any) => {
+      const alreadyIncluded = filteredList.some(
+        (existingItem) => String(existingItem.id) === String(storedApp.id)
+      );
+      if (!alreadyIncluded) {
+        filteredList.unshift({
+          id: storedApp.id,
+          type: 'interna',
+          status: storedApp.status || 'pending_application',
+          isSiuLoaded: false,
+          proposalId: storedApp.proposalId,
+          proposalTitle: storedApp.proposalTitle || 'Convocatoria PPP',
+          createdAt: storedApp.appliedAt || new Date().toISOString(),
+        } as PPPEpidiente);
+      }
+    });
+
+    return filteredList;
+  }, [expedientes, currentUser, storedApplications]);
 
   const handleCreateExternal = async () => {
     try {
       const studentInfo = {
         id: currentUser?.id,
-        name: [currentUser?.nombre, currentUser?.apellido].filter(Boolean).join(' ') || currentUser?.email,
+        name:
+          [currentUser?.nombre, currentUser?.apellido]
+            .filter(Boolean)
+            .join(' ') || currentUser?.email,
         email: currentUser?.email,
       };
       const newExp = await dispatch(createPPPExternal({ studentInfo })).unwrap();
@@ -46,14 +87,25 @@ export const PPPStudentMyTramite: React.FC = () => {
       if (newExp?.id) {
         navigate(`/ppp/${newExp.id}`);
       }
-    } catch (err: any) {
-      showToast(err || 'Error al iniciar trámite externo', 'error');
+    } catch (externalError: any) {
+      showToast(externalError || 'Error al iniciar trámite externo', 'error');
     }
+  };
+
+  const handleConsultSubmit = (formSubmitEvent: React.FormEvent) => {
+    formSubmitEvent.preventDefault();
+    const cleanId = consultIdInput.trim().replace(/^#/, '');
+    if (!cleanId) {
+      showToast('Por favor, ingresá el número de identificación de tu postulación o trámite', 'error');
+      return;
+    }
+    navigate(`/ppp/${cleanId}`);
   };
 
   return (
     <div className="ppp-page-wrapper">
       <div className="ppp-container">
+        {/* Cabecera Principal */}
         <div className="ppp-header-card">
           <div className="ppp-header-info">
             <div className="ppp-header-icon">
@@ -62,7 +114,7 @@ export const PPPStudentMyTramite: React.FC = () => {
             <div>
               <h1 className="ppp-title">Mis Trámites de Prácticas Profesionales (PPP)</h1>
               <p className="ppp-subtitle">
-                Accedé al estado de tus expedientes, entrega de convenios oficiales y avance académico.
+                Accedé al estado de tus postulaciones, entrega de convenios oficiales y avance académico.
               </p>
             </div>
           </div>
@@ -76,6 +128,30 @@ export const PPPStudentMyTramite: React.FC = () => {
           </div>
         </div>
 
+        {/* Buscador de Trámite / Postulación por ID (GET /ppp/:id) */}
+        <div className="bg-white rounded-3 border p-3.5 shadow-sm mb-4">
+          <form onSubmit={handleConsultSubmit} className="d-flex align-items-center flex-wrap gap-2">
+            <div className="text-secondary small fw-semibold me-2">
+              Consultar postulación o expediente por ID:
+            </div>
+            <div className="input-group" style={{ maxWidth: '280px' }}>
+              <span className="input-group-text bg-light text-muted">#</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Ej: 1, 14, 25..."
+                value={consultIdInput}
+                onChange={(changeEvent) => setConsultIdInput(changeEvent.target.value)}
+              />
+            </div>
+            <button type="submit" className="btn btn-sm btn-unla-primary d-inline-flex align-items-center gap-1.5">
+              <FaMagnifyingGlass size={13} />
+              Consultar trámite
+            </button>
+          </form>
+        </div>
+
+        {/* Listado de Trámites y Postulaciones del Alumno */}
         {myExpedientes.length === 0 ? (
           <div className="bg-white rounded-3 border p-5 text-center shadow-sm">
             <div className="mb-3 text-muted">
@@ -96,30 +172,51 @@ export const PPPStudentMyTramite: React.FC = () => {
           </div>
         ) : (
           <div className="d-flex flex-column gap-3">
-            {myExpedientes.map((exp) => (
-              <div key={exp.id} className="bg-white rounded-3 border p-4 shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3">
+            {myExpedientes.map((expedienteItem) => (
+              <div
+                key={expedienteItem.id}
+                className="bg-white rounded-3 border p-4 shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3"
+              >
                 <div>
-                  <div className="d-flex align-items-center gap-2 mb-1">
-                    <span className="badge bg-light text-secondary border">Expediente #{exp.id}</span>
-                    <span className={`badge ${exp.type === 'interna' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info'}`}>
-                      {exp.type === 'interna' ? 'Práctica Interna' : 'Práctica Externa'}
+                  <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <span className="badge bg-light text-secondary border">
+                      Trámite #{expedienteItem.id}
                     </span>
-                    <span className={`ppp-status-badge ppp-status-${exp.status}`}>
+                    <span
+                      className={`badge ${
+                        expedienteItem.type === 'interna'
+                          ? 'bg-primary-subtle text-primary'
+                          : 'bg-info-subtle text-info'
+                      }`}
+                    >
+                      {expedienteItem.type === 'interna' ? 'Práctica Interna' : 'Práctica Externa'}
+                    </span>
+                    <span className={`ppp-status-badge ppp-status-${expedienteItem.status}`}>
                       <span className="ppp-status-dot" />
-                      {exp.status}
+                      {expedienteItem.status === 'pending_application'
+                        ? 'Postulación Pendiente de Revisión'
+                        : expedienteItem.status}
                     </span>
                   </div>
-                  <h5 className="fw-bold text-dark m-0">{exp.proposalTitle || 'Práctica Profesional Supervisada'}</h5>
+                  <h5 className="fw-bold text-dark m-0">
+                    {expedienteItem.proposalTitle || 'Práctica Profesional Supervisada'}
+                  </h5>
                   <div className="text-muted small mt-1">
-                    Iniciado el: {exp.createdAt ? new Date(exp.createdAt).toLocaleDateString() : '-'}
+                    Iniciado el:{' '}
+                    {expedienteItem.createdAt
+                      ? new Date(expedienteItem.createdAt).toLocaleDateString()
+                      : '-'}
                   </div>
                 </div>
 
                 <div className="d-flex align-items-center gap-2">
-                  <span className={`ppp-siu-badge ${exp.isSiuLoaded ? 'loaded' : 'pending'}`}>
-                    {exp.isSiuLoaded ? '✓ SIU Asentado' : '○ SIU Pendiente'}
+                  <span className={`ppp-siu-badge ${expedienteItem.isSiuLoaded ? 'loaded' : 'pending'}`}>
+                    {expedienteItem.isSiuLoaded ? '✓ SIU Asentado' : '○ SIU Pendiente'}
                   </span>
-                  <Link to={`/ppp/${exp.id}`} className="btn-unla-primary text-decoration-none">
+                  <Link
+                    to={`/ppp/${expedienteItem.id}`}
+                    className="btn-unla-primary text-decoration-none"
+                  >
                     Ver seguimiento →
                   </Link>
                 </div>

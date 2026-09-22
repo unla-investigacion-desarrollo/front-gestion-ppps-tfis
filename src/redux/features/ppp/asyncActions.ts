@@ -50,6 +50,22 @@ export const updatePPPProposalStatus = createAsyncThunk<
   }
 });
 
+export const fetchPPPProposalById = createAsyncThunk<
+  PPPProposal,
+  number | string,
+  { rejectValue: string }
+>('ppp/fetchProposalById', async (proposalId, { rejectWithValue, signal }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    return await pppService.getProposalById(proposalId, token);
+  } catch (fetchError: any) {
+    if (signal?.aborted) return rejectWithValue('Petición cancelada');
+    return rejectWithValue(
+      fetchError.message || 'Error al obtener la convocatoria y postulantes'
+    );
+  }
+});
+
 export const applyToPPPProposal = createAsyncThunk<
   any,
   { proposalId: number | string; previousKnowledge: string; studentInfo?: any },

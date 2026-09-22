@@ -28,6 +28,7 @@ import PPPProposalsCatalog from '../pages/PPP/PPPProposalsCatalog';
 import PPPExpedientesList from '../pages/PPP/PPPExpedientesList';
 import PPPTramiteDetail from '../pages/PPP/PPPTramiteDetail';
 import PPPStudentMyTramite from '../pages/PPP/PPPStudentMyTramite';
+import PPPProposalApplicantsPage from '../pages/PPP/PPPProposalApplicantsPage';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 const TeacherProjectsRoute = () => {
@@ -207,6 +208,24 @@ const App = () => {
               <AuthenticatedLayout>
                 <PPPProposalsCatalog />
               </AuthenticatedLayout>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp/convocatorias/:id/postulaciones" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <PPPProposalApplicantsPage />
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp/proposals/:id" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <PPPProposalApplicantsPage />
+                </AuthenticatedLayout>
+              </TeacherRoute>
             </PrivateRoute>
           } />
           <Route path="/ppp/expedientes" element={
