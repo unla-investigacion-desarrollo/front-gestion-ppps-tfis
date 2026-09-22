@@ -1,9 +1,16 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { selectCurrentUser } from '../../redux/slices/authSlice';
-import { projectService } from '../services/projectService';
-import { showToast } from '../utils/toast';
+import React from 'react';
+import { FaFolderOpen } from 'react-icons/fa6';
+import { useProjectExplorer } from '../hooks/useProjectExplorer';
+import {
+  ProjectExplorerHeader,
+  ProjectExplorerTabs,
+  ProjectExplorerFilters,
+  ProjectExplorerTable,
+  ProjectExplorerCards,
+  ProjectRequestsTable,
+  ProjectActiveTable,
+} from './ProjectExplorer';
+import Pagination from './Pagination';
 import './ProjectJoinExplorer.css';
 
 export interface ProjectJoinExplorerProps {
@@ -12,329 +19,188 @@ export interface ProjectJoinExplorerProps {
   subtitle?: string;
 }
 
-interface ProjectItem {
-  id: number | string;
-  title?: string;
-  titulo?: string;
-  description?: string;
-  descripcion?: string;
-  status?: string;
-  estado?: string;
-  projectType?: { id: number; name: string };
-  categoria?: string;
-  students?: any[];
-  activeStudents?: any[];
-}
-
-interface RequestItem {
-  id: number;
-  active: boolean;
-  project: {
-    id: number;
-    title: string;
-    description: string;
-    status: string;
-    projectType?: { id: number; name: string };
-  };
-}
-
+/**
+ * Componente orquestador del explorador de proyectos y postulaciones.
+ * Integra la lógica del hook useProjectExplorer con subcomponentes modulares reutilizables.
+ */
 export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
   onJoinSuccess,
-  title = 'Proyectos Disponibles',
-  subtitle = 'Explorá proyectos existentes y postulate para participar.',
+  title = 'Proyectos y Postulaciones',
+  subtitle = 'Explorá proyectos existentes, postulate para participar y hacé seguimiento de tus solicitudes.',
 }) => {
-  const currentUser = useSelector(selectCurrentUser) as any;
-  const token = localStorage.getItem('token') || '';
-
-  const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'active'>(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab');
-      if (tabParam === 'requests' || tabParam === 'active') return tabParam;
-    } catch {}
-    return 'all';
-  });
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [myRequests, setMyRequests] = useState<RequestItem[]>([]);
-  const [myActiveProjects, setMyActiveProjects] = useState<RequestItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [requestingId, setRequestingId] = useState<number | string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Identificar si el usuario actual es Docente Tutor o Estudiante
-  const roles = Array.isArray(currentUser?.roles)
-    ? currentUser.roles
-    : currentUser?.roles
-    ? [currentUser.roles]
-    : [];
-  const isTeacher = roles.some((r: string) =>
-    ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(String(r).toUpperCase().trim())
-  );
-
-  // Cargar datos del backend
-  const loadData = async () => {
-    if (!token) return;
-    setLoading(true);
-    try {
-      const [allProjData, requestsData, activeProjData] = await Promise.all([
-        projectService.getProjects(token),
-        projectService.getMyRequests(token),
-        projectService.getMyActiveProjects(token),
-      ]);
-
-      setProjects(Array.isArray(allProjData) ? allProjData : []);
-      setMyRequests(Array.isArray(requestsData) ? requestsData : []);
-      setMyActiveProjects(Array.isArray(activeProjData) ? activeProjData : []);
-    } catch (err: any) {
-      console.error('Error cargando proyectos del usuario:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [token]);
-
-  // IDs de proyectos con solicitud pendiente
-  const pendingProjectIds = useMemo(() => {
-    return new Set(myRequests.map((r) => String(r.project?.id)));
-  }, [myRequests]);
-
-  // IDs de proyectos activos / aprobados
-  const activeProjectIds = useMemo(() => {
-    return new Set(myActiveProjects.map((r) => String(r.project?.id)));
-  }, [myActiveProjects]);
-
-  // Manejar solicitud de unirse al proyecto
-  const handleJoinProject = async (projectId: number | string, projectTitle: string) => {
-    if (!token) {
-      showToast('Sesión no válida o expirada', 'error');
-      return;
-    }
-
-    setRequestingId(projectId);
-    try {
-      if (isTeacher) {
-        // Postulación como docente tutor
-        await projectService.requestJoinAsProfessor(projectId, token);
-      } else {
-        // Postulación como alumno
-        await projectService.requestJoinAsStudent(projectId, token);
-      }
-
-      showToast(`¡Solicitud enviada para "${projectTitle}"! Pendiente de aprobación.`, 'success');
-      if (onJoinSuccess) {
-        onJoinSuccess(projectId);
-      }
-      // Recargar solicitudes para actualizar el botón en tiempo real
-      await loadData();
-    } catch (err: any) {
-      showToast(err?.message || 'Error al enviar solicitud al proyecto', 'error');
-    } finally {
-      setRequestingId(null);
-    }
-  };
-
-  // Filtrado por buscador
-  const filteredProjects = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return projects;
-    return projects.filter((p) => {
-      const title = (p.title || p.titulo || '').toLowerCase();
-      const desc = (p.description || p.descripcion || '').toLowerCase();
-      const type = (p.projectType?.name || p.categoria || '').toLowerCase();
-      return title.includes(q) || desc.includes(q) || type.includes(q);
-    });
-  }, [projects, searchQuery]);
+  const {
+    allUsers,
+    projects,
+    myRequests,
+    myActiveProjects,
+    loading,
+    requestingId,
+    activeTab,
+    setActiveTab,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    selectedStatus,
+    setSelectedStatus,
+    viewMode,
+    setViewMode,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    pendingProjectIds,
+    activeProjectIds,
+    availableCategories,
+    filteredProjects,
+    paginatedProjects,
+    handleJoinProject,
+    handleClearFilters,
+  } = useProjectExplorer({ onJoinSuccess });
 
   return (
     <div className="project-join-container">
-      <div className="project-join-header">
-        <h2 className="project-join-title">{title}</h2>
-        <p className="project-join-subtitle">{subtitle}</p>
-      </div>
+      {/* Cabecera institucional con Icon Box */}
+      <ProjectExplorerHeader title={title} subtitle={subtitle} />
 
-      {/* Selector de pestañas */}
-      <div className="project-join-tabs">
-        <button
-          type="button"
-          className={`project-join-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          Explorar Proyectos
-          <span className="project-join-tab-badge">{projects.length}</span>
-        </button>
+      {/* Pestañas de navegación institucionales con contadores */}
+      <ProjectExplorerTabs
+        activeTab={activeTab}
+        onSelectTab={(selectedTab) => {
+          setActiveTab(selectedTab);
+          setCurrentPage(1);
+        }}
+        totalProjectsCount={projects.length}
+        pendingRequestsCount={myRequests.length}
+        activeProjectsCount={myActiveProjects.length}
+      />
 
-        <button
-          type="button"
-          className={`project-join-tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
-          onClick={() => setActiveTab('requests')}
-        >
-          Mis Solicitudes Pendientes
-          {myRequests.length > 0 && (
-            <span className="project-join-tab-badge" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-              {myRequests.length}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          className={`project-join-tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-          onClick={() => setActiveTab('active')}
-        >
-          Mis Proyectos Activos
-          <span className="project-join-tab-badge" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
-            {myActiveProjects.length}
-          </span>
-        </button>
-      </div>
-
-      {/* Pestaña: Todos los proyectos (Explorador) */}
+      {/* =========================================================================
+          PESTAÑA 1: EXPLORAR PROYECTOS
+          ========================================================================= */}
       {activeTab === 'all' && (
         <>
-          <div className="mb-4">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Buscar por título, temática o tipo de proyecto..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ maxWidth: '450px' }}
-            />
-          </div>
+          {/* Barra de Filtros y Buscador */}
+          <ProjectExplorerFilters
+            searchQuery={searchQuery}
+            onSearchChange={(newQueryText) => {
+              setSearchQuery(newQueryText);
+              setCurrentPage(1);
+            }}
+            selectedCategory={selectedCategory}
+            onCategoryChange={(newCategorySelection) => {
+              setSelectedCategory(newCategorySelection);
+              setCurrentPage(1);
+            }}
+            availableCategories={availableCategories}
+            selectedStatus={selectedStatus}
+            onStatusChange={(newStatusSelection) => {
+              setSelectedStatus(newStatusSelection);
+              setCurrentPage(1);
+            }}
+            onClearFilters={handleClearFilters}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
 
-          {loading ? (
-            <div className="project-join-empty">Cargando proyectos disponibles...</div>
-          ) : filteredProjects.length === 0 ? (
-            <div className="project-join-empty">No se encontraron proyectos disponibles en el sistema.</div>
-          ) : (
-            <div className="project-join-grid">
-              {filteredProjects.map((p) => {
-                const strId = String(p.id);
-                const isApproved = activeProjectIds.has(strId);
-                const isPending = pendingProjectIds.has(strId);
-                const isRequesting = requestingId === p.id;
-                const projectTitle = p.title || p.titulo || 'Proyecto';
-                const typeName = p.projectType?.name || p.categoria || 'General';
-
-                return (
-                  <div key={p.id} className="project-card-item">
-                    <div>
-                      <div className="project-card-header">
-                        <h3 className="project-card-title">{projectTitle}</h3>
-                        <span className="badge bg-secondary">{typeName}</span>
-                      </div>
-
-                      <p className="project-card-desc">
-                        {p.description || p.descripcion || 'Sin descripción detallada.'}
-                      </p>
-                    </div>
-
-                    <div className="project-card-footer">
-                      {isApproved ? (
-                        <span className="badge-status-approved">
-                          ✓ Asignado y Activo
-                        </span>
-                      ) : isPending ? (
-                        <span className="badge-status-pending">
-                          ⏳ Solicitud enviada (Pendiente)
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn-join-project"
-                          disabled={isRequesting}
-                          onClick={() => handleJoinProject(p.id, projectTitle)}
-                        >
-                          {isRequesting ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                              Enviando...
-                            </>
-                          ) : (
-                            <>
-                              <span>+</span> Solicitar unirse
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Estado de carga */}
+          {loading && (
+            <div className="project-join-loading-state">
+              <div
+                className="spinner-border text-primary"
+                role="status"
+                style={{ color: 'var(--unla-primary) !important' }}
+              />
+              <p>Cargando proyectos disponibles del sistema...</p>
             </div>
+          )}
+
+          {/* Estado vacío cuando no hay proyectos o los filtros no coinciden */}
+          {!loading && filteredProjects.length === 0 && (
+            <div className="project-join-empty">
+              <FaFolderOpen size={42} className="text-muted mb-3" />
+              <h3>No se encontraron proyectos</h3>
+              <p>
+                {searchQuery || selectedCategory !== 'ALL' || selectedStatus !== 'ALL'
+                  ? 'No hay resultados que coincidan con los filtros aplicados. Intentá restablecerlos.'
+                  : 'Aún no hay proyectos registrados disponibles para postularse en el sistema.'}
+              </p>
+              {(searchQuery || selectedCategory !== 'ALL' || selectedStatus !== 'ALL') && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary mt-2"
+                  onClick={handleClearFilters}
+                >
+                  Limpiar filtros de búsqueda
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Vista 1: Tabla Institucional */}
+          {!loading && filteredProjects.length > 0 && viewMode === 'table' && (
+            <ProjectExplorerTable
+              projects={paginatedProjects}
+              allUsers={allUsers}
+              pendingProjectIds={pendingProjectIds}
+              activeProjectIds={activeProjectIds}
+              requestingId={requestingId}
+              onJoinProject={handleJoinProject}
+            />
+          )}
+
+          {/* Vista 2: Cuadrícula de Tarjetas */}
+          {!loading && filteredProjects.length > 0 && viewMode === 'cards' && (
+            <ProjectExplorerCards
+              projects={paginatedProjects}
+              allUsers={allUsers}
+              pendingProjectIds={pendingProjectIds}
+              activeProjectIds={activeProjectIds}
+              requestingId={requestingId}
+              onJoinProject={handleJoinProject}
+            />
+          )}
+
+          {/* Controles de Paginación */}
+          {!loading && filteredProjects.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredProjects.length}
+              pageSize={pageSize}
+              onPageChange={(targetPageNumber) => setCurrentPage(targetPageNumber)}
+              pageSizeOptions={[5, 10, 20]}
+              onPageSizeChange={(targetPageSize) => {
+                setPageSize(targetPageSize);
+                setCurrentPage(1);
+              }}
+            />
           )}
         </>
       )}
 
-      {/* Pestaña: Mis Solicitudes Pendientes */}
+      {/* =========================================================================
+          PESTAÑA 2: MIS SOLICITUDES PENDIENTES
+          ========================================================================= */}
       {activeTab === 'requests' && (
-        <div>
-          {myRequests.length === 0 ? (
-            <div className="project-join-empty">
-              No tenés solicitudes pendientes de aprobación en este momento.
-            </div>
-          ) : (
-            <div className="project-join-grid">
-              {myRequests.map((req) => (
-                <div key={req.id} className="project-card-item">
-                  <div>
-                    <div className="project-card-header">
-                      <h3 className="project-card-title">{req.project?.title}</h3>
-                      <span className="badge bg-warning text-dark">Pendiente</span>
-                    </div>
-                    <p className="project-card-desc">{req.project?.description}</p>
-                  </div>
-                  <div className="project-card-footer">
-                    <span className="badge-status-pending">
-                      ⏳ A la espera de aprobación del docente
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="tab-pane-content">
+          <ProjectRequestsTable
+            requests={myRequests}
+            allUsers={allUsers}
+            onExploreClick={() => setActiveTab('all')}
+          />
         </div>
       )}
 
-      {/* Pestaña: Mis Proyectos Activos */}
+      {/* =========================================================================
+          PESTAÑA 3: MIS PROYECTOS ACTIVOS
+          ========================================================================= */}
       {activeTab === 'active' && (
-        <div>
-          {myActiveProjects.length === 0 ? (
-            <div className="project-join-empty">
-              Aún no estás asignado activamente a ningún proyecto aprobado.
-            </div>
-          ) : (
-            <div className="project-join-grid">
-              {myActiveProjects.map((act) => (
-                <div key={act.id} className="project-card-item">
-                  <div>
-                    <div className="project-card-header">
-                      <h3 className="project-card-title">{act.project?.title}</h3>
-                      <span className="badge bg-success">Activo</span>
-                    </div>
-                    <p className="project-card-desc">{act.project?.description}</p>
-                  </div>
-                  <div className="project-card-footer d-flex justify-content-between align-items-center">
-                    <span className="badge-status-approved">
-                      ✓ Participando activamente
-                    </span>
-                    {act.project?.id && (
-                      <Link
-                        to={`/alumno/entregas?projectId=${encodeURIComponent(act.project.id)}`}
-                        className="btn btn-sm btn-outline-primary"
-                        style={{ fontSize: '0.8rem', padding: '0.25rem 0.6rem' }}
-                      >
-                        Entregas →
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="tab-pane-content">
+          <ProjectActiveTable
+            activeProjects={myActiveProjects}
+            allUsers={allUsers}
+            onExploreClick={() => setActiveTab('all')}
+          />
         </div>
       )}
     </div>

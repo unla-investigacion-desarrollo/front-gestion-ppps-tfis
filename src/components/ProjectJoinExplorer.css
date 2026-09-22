@@ -1,48 +1,97 @@
-/* Estilos para el explorador reutilizable de proyectos y solicitudes de unión */
-.project-join-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+/* ==========================================================================
+   ESTILOS EXPLORADOR DE PROYECTOS Y POSTULACIONES (VISTA ESTUDIANTE)
+   Diseño institucional UNLa alineado con módulos Teacher y Admin
+   ========================================================================== */
+
+/* Contenedor principal de la página (fondo claro grisáceo institucional) */
+.projects-page-container.student-projects-container {
+  background-color: #f8fafc;
+  min-height: calc(100vh - 56px);
+  padding: 32px 24px;
 }
 
+/* Tarjeta contenedora principal */
+.projects-card-main.student-projects-card {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 32px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  min-height: calc(100vh - 56px - 64px - 10px);
+  display: flex;
+  flex-direction: column;
+}
+
+.project-join-container {
+  width: 100%;
+}
+
+/* --- CABECERA DE PÁGINA CON ICON BOX --- */
 .project-join-header {
-  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.project-join-header-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: #fdf2f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--unla-primary, #64001d);
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(100, 0, 29, 0.08);
+}
+
+.project-join-header-icon-box svg {
+  width: 24px;
+  height: 24px;
 }
 
 .project-join-title {
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--unla-primary, #64001d);
-  margin-bottom: 0.25rem;
+  color: #111827;
+  margin: 0 0 3px 0;
+  line-height: 1.2;
 }
 
 .project-join-subtitle {
   color: #6b7280;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
-/* Pestañas de navegación */
+/* --- PESTAÑAS DE NAVEGACIÓN INSTITUCIONALES --- */
 .project-join-tabs {
   display: flex;
-  gap: 0.5rem;
-  border-bottom: 2px solid #e5e7eb;
-  margin-bottom: 1.5rem;
+  gap: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+  overflow-x: auto;
 }
 
 .project-join-tab-btn {
   background: none;
   border: none;
-  padding: 0.75rem 1.25rem;
+  padding: 10px 4px 14px 4px;
   font-size: 0.95rem;
   font-weight: 600;
   color: #6b7280;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .project-join-tab-btn:hover {
@@ -54,131 +103,491 @@
   border-bottom-color: var(--unla-primary, #64001d);
 }
 
-.project-join-tab-badge {
-  background-color: #fee2e2;
-  color: #991b1b;
+.project-join-tab-counter {
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
   font-size: 0.75rem;
+  font-weight: 700;
   padding: 2px 8px;
   border-radius: 9999px;
-  font-weight: 700;
+  line-height: 1.3;
 }
 
-/* Grilla de tarjetas de proyectos */
+.project-join-tab-counter.counter-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.project-join-tab-counter.counter-active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* --- BARRA DE FILTROS Y BÚSQUEDA --- */
+.project-join-filters-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.project-join-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+}
+
+.project-join-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.project-join-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  background-color: #f9fafb;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.project-join-search-input:focus {
+  border-color: var(--unla-primary, #64001d);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(100, 0, 29, 0.1);
+}
+
+.project-join-select {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.project-join-select:focus {
+  border-color: var(--unla-primary, #64001d);
+}
+
+.project-join-clear-btn {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4b5563;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.project-join-clear-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+/* Alternador de Vista (Tabla vs Cuadrícula) */
+.project-join-view-toggle {
+  display: inline-flex;
+  background-color: #f3f4f6;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-left: auto;
+}
+
+.view-toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 7px 12px;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.view-toggle-btn:hover {
+  color: #111827;
+}
+
+.view-toggle-btn.active {
+  background-color: #ffffff;
+  color: var(--unla-primary, #64001d);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* --- TABLA ESTRUCTURADA DE PROYECTOS (ESTILO DOCENTE & ADMIN) --- */
+.projects-table-wrapper {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  margin-bottom: 20px;
+}
+
+.table-header-unla th {
+  background-color: #f9fafb !important;
+  color: #4b5563 !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb !important;
+  border-top: none;
+}
+
+.project-table-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  display: block;
+  margin-bottom: 4px;
+  line-height: 1.35;
+}
+
+.project-table-desc {
+  font-size: 0.88rem;
+  color: #6b7280;
+  margin: 0 0 6px 0;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-table-date {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Lista de Miembros en Celdas */
+.project-table-member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.project-table-member-item {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f9fafb;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #374151;
+  border: 1px solid #f1f5f9;
+}
+
+/* Badges de Categoría */
+.project-category-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+  letter-spacing: 0.02em;
+}
+
+.badge-desarrollo {
+  background-color: #ffe4e6;
+  color: #be123c;
+}
+
+.badge-investigacion {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-extension {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.badge-ppp {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
+
+.badge-tfi {
+  background-color: #fdf2f4;
+  color: #991b1b;
+}
+
+.badge-generic {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Badges de Estado */
+.badge-status-approved {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-status-pending {
+  background-color: #fef9c3;
+  color: #854d0e;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-status-available {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Botones de Acción en Tabla */
+.btn-join-primary {
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(100, 0, 29, 0.2);
+}
+
+.btn-join-primary:hover:not(:disabled) {
+  background-color: #4a0015;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(100, 0, 29, 0.3);
+}
+
+.btn-join-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-action-deliveries {
+  background-color: #ffffff;
+  color: var(--unla-primary, #64001d);
+  border: 1px solid var(--unla-primary, #64001d);
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-action-deliveries:hover {
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
+}
+
+.btn-action-disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-block;
+  cursor: not-allowed;
+}
+
+/* --- VISTA EN CUADRÍCULA / TARJETAS REDISEÑADAS --- */
 .project-join-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.25rem;
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
 .project-card-item {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 1.25rem;
+  border-radius: 12px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .project-card-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+  border-color: #cbd5e1;
 }
 
 .project-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.project-card-date-badge {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .project-card-title {
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: #111827;
-  margin: 0;
+  margin: 0 0 8px 0;
   line-height: 1.35;
 }
 
 .project-card-desc {
   color: #4b5563;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.5;
-  margin-bottom: 1rem;
+  margin-bottom: 14px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+.project-card-teachers {
+  background-color: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
 .project-card-footer {
   border-top: 1px solid #f3f4f6;
-  padding-top: 1rem;
+  padding-top: 14px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
 }
 
-/* Badges de estado de postulación */
-.badge-status-approved {
-  background-color: #dcfce7;
-  color: #166534;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  display: inline-flex;
+/* Estados de carga y vacío */
+.project-join-loading-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 12px;
 }
 
-.badge-status-pending {
-  background-color: #fef9c3;
-  color: #854d0e;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-/* Botón solicitar unirse */
-.btn-join-project {
-  background-color: var(--unla-primary, #64001d);
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
-}
-
-.btn-join-project:hover:not(:disabled) {
-  background-color: #4a0015;
-}
-
-.btn-join-project:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Estado vacío */
 .project-join-empty {
   text-align: center;
-  padding: 3rem 1.5rem;
+  padding: 48px 24px;
   background: #f9fafb;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px dashed #d1d5db;
-  color: #6b7280;
+  color: #4b5563;
+  margin: 16px 0 24px 0;
 }
+
+.project-join-empty h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 6px 0;
+}
+
+.project-join-empty p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .projects-page-container.student-projects-container {
+    padding: 16px 12px;
+  }
+
+  .projects-card-main.student-projects-card {
+    padding: 20px 16px;
+  }
+
+  .project-join-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .project-join-filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-join-view-toggle {
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .project-join-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
