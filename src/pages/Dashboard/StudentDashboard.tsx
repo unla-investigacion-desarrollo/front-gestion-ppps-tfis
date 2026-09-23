@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaFileLines,
   FaCloudArrowUp,
@@ -12,6 +12,7 @@ import ConfirmLogoutModal from '../../components/ConfirmLogoutModal';
 import StudentSidebar from './components/StudentSidebar';
 import StudentCard from './components/StudentCard';
 import StudentPromoCard from './components/StudentPromoCard';
+import { TutorProjectsTable } from './Teacher/components/TutorProjectsTable';
 import './StudentDashboard.css';
 
 export interface StudentDashboardProps {
@@ -26,8 +27,22 @@ export interface StudentDashboardProps {
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
+
+  const [activeView, setActiveView] = useState<'inicio' | 'proyectos'>(() => {
+    if (location.state?.initialView === 'proyectos') return 'proyectos';
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('view') === 'proyectos' || searchParams.get('tab') === 'active') return 'proyectos';
+    return 'inicio';
+  });
+
+  useEffect(() => {
+    if (location.state?.initialView === 'proyectos') {
+      setActiveView('proyectos');
+    }
+  }, [location.state]);
 
   const currentUser = useMemo(() => {
     if (propUser) return propUser;
@@ -61,72 +76,85 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUs
   return (
     <div className="student-dashboard-layout">
       {/* Sidebar Lateral Izquierdo Reutilizable */}
-      <StudentSidebar onShowLogoutConfirm={() => setShowLogoutConfirm(true)} />
+      <StudentSidebar
+        activeView={activeView}
+        onSelectView={(selectedView) => setActiveView(selectedView)}
+        onShowLogoutConfirm={() => setShowLogoutConfirm(true)}
+      />
 
       {/* Área Principal de Contenido */}
       <main className="student-main-content">
-        <div className="student-content-container">
-          {/* Sección de Bienvenida */}
-          <div className="student-greeting-section">
-            <div className="student-greeting-pretitle">BIENVENIDO/A</div>
-            <h1 className="student-greeting-title">
-              Hola, {studentFirstName} 👋
-            </h1>
-            <p className="student-greeting-subtitle">
-              Desde aquí podés gestionar tus proyectos, entregas y trámites académicos.
-            </p>
-          </div>
-
-          {/* Grilla de 6 Tarjetas (Mismo tamaño, centradas) */}
-          <div className="student-cards-grid">
-            {/* Tarjeta 1: Proyectos TFI */}
-            <StudentCard
-              title="Proyectos TFI"
-              description="Consultá los proyectos disponibles, revisá tus solicitudes y accedé a tus proyectos activos."
-              colorTheme="purple"
-              onClick={() => navigate('/alumno/mis-proyectos')}
-              icon={<FaFileLines size={22} />}
+        <div className={`student-content-container ${activeView === 'proyectos' ? 'view-table' : ''}`}>
+          {activeView === 'proyectos' ? (
+            <TutorProjectsTable
+              onBackToInicio={() => setActiveView('inicio')}
+              isStudent={true}
             />
+          ) : (
+            <>
+              {/* Sección de Bienvenida */}
+              <div className="student-greeting-section">
+                <div className="student-greeting-pretitle">BIENVENIDO/A</div>
+                <h1 className="student-greeting-title">
+                  Hola, {studentFirstName} 👋
+                </h1>
+                <p className="student-greeting-subtitle">
+                  Desde aquí podés gestionar tus proyectos, entregas y trámites académicos.
+                </p>
+              </div>
 
-            {/* Tarjeta 2: Entregas TFI */}
-            <StudentCard
-              title="Entregas TFI"
-              description="Subí tus entregas y consultá observaciones, tutoría y calificación."
-              colorTheme="blue"
-              onClick={() => navigate('/alumno/entregas')}
-              icon={<FaCloudArrowUp size={22} />}
-            />
+              {/* Grilla de 6 Tarjetas (Mismo tamaño, centradas) */}
+              <div className="student-cards-grid">
+                {/* Tarjeta 1: Proyectos TFI */}
+                <StudentCard
+                  title="Proyectos TFI"
+                  description="Consultá los proyectos disponibles, revisá tus solicitudes y accedé a tus proyectos activos."
+                  colorTheme="purple"
+                  onClick={() => setActiveView('proyectos')}
+                  icon={<FaFileLines size={22} />}
+                />
 
-            {/* Tarjeta 3: Convocatorias PPP */}
-            <StudentCard
-              title="Convocatorias PPP"
-              description="Revisá las convocatorias abiertas, postulate y gestioná tus trámites PPP."
-              colorTheme="green"
-              onClick={() => navigate('/ppp/convocatorias')}
-              icon={<FaBullhorn size={22} />}
-            />
+                {/* Tarjeta 2: Entregas TFI */}
+                <StudentCard
+                  title="Entregas TFI"
+                  description="Subí tus entregas y consultá observaciones, tutoría y calificación."
+                  colorTheme="blue"
+                  onClick={() => navigate('/alumno/entregas')}
+                  icon={<FaCloudArrowUp size={22} />}
+                />
 
-            {/* Tarjeta 4: Mis trámites PPP */}
-            <StudentCard
-              title="Mis trámites PPP"
-              description="Seguimiento de tu postulación o trámite, notificación de documentación y abandono cuando corresponda."
-              colorTheme="pink"
-              onClick={() => navigate('/alumno/ppp')}
-              icon={<FaClipboardList size={22} />}
-            />
+                {/* Tarjeta 3: Convocatorias PPP */}
+                <StudentCard
+                  title="Convocatorias PPP"
+                  description="Revisá las convocatorias abiertas, postulate y gestioná tus trámites PPP."
+                  colorTheme="green"
+                  onClick={() => navigate('/ppp/convocatorias')}
+                  icon={<FaBullhorn size={22} />}
+                />
 
-            {/* Tarjeta 5: Mi perfil */}
-            <StudentCard
-              title="Mi perfil"
-              description="Actualizá tus datos y configuraciones de cuenta."
-              colorTheme="amber"
-              onClick={() => navigate('/change-password')}
-              icon={<FaUser size={22} />}
-            />
+                {/* Tarjeta 4: Mis trámites PPP */}
+                <StudentCard
+                  title="Mis trámites PPP"
+                  description="Seguimiento de tu postulación o trámite, notificación de documentación y abandono cuando corresponda."
+                  colorTheme="pink"
+                  onClick={() => navigate('/alumno/ppp')}
+                  icon={<FaClipboardList size={22} />}
+                />
 
-            {/* Tarjeta 6: Banner Promocional Tu Futuro Reutilizable */}
-            <StudentPromoCard />
-          </div>
+                {/* Tarjeta 5: Mi perfil */}
+                <StudentCard
+                  title="Mi perfil"
+                  description="Actualizá tus datos y configuraciones de cuenta."
+                  colorTheme="amber"
+                  onClick={() => navigate('/change-password')}
+                  icon={<FaUser size={22} />}
+                />
+
+                {/* Tarjeta 6: Banner Promocional Tu Futuro Reutilizable */}
+                <StudentPromoCard />
+              </div>
+            </>
+          )}
         </div>
       </main>
 

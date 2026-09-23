@@ -247,10 +247,23 @@ export const registerStudent = createAsyncThunk<
     const data = await response.json();
 
     if (!response.ok) {
-      return rejectWithValue(data.message || 'Error al registrar el estudiante');
+      const serverErrorMessage = (data && (data.message || data.error)) || '';
+      const isOnlyWelcomeEmailFailure =
+        typeof serverErrorMessage === 'string' &&
+        (serverErrorMessage.toLowerCase().includes('correo de bienvenida') ||
+          serverErrorMessage.toLowerCase().includes('email de bienvenida') ||
+          serverErrorMessage.toLowerCase().includes('mail de bienvenida') ||
+          (serverErrorMessage.toLowerCase().includes('bienvenida') &&
+            (serverErrorMessage.toLowerCase().includes('correo') ||
+              serverErrorMessage.toLowerCase().includes('email') ||
+              serverErrorMessage.toLowerCase().includes('enviar'))));
+
+      if (!isOnlyWelcomeEmailFailure) {
+        return rejectWithValue(data?.message || 'Error al registrar el estudiante');
+      }
     }
 
-    const rawUser = data.user || data || {};
+    const rawUser = data.user || data.student || data || {};
     const userRoles = Array.isArray(rawUser.roles)
       ? rawUser.roles
       : (rawUser.rol ? [rawUser.rol] : ['ESTUDIANTE']);

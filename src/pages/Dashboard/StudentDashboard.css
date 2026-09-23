@@ -172,6 +172,11 @@
   flex-direction: column;
 }
 
+.student-content-container.view-table {
+  margin: 0 auto;
+  max-width: 100%;
+}
+
 .student-greeting-section {
   margin-bottom: 22px;
   flex-shrink: 0;

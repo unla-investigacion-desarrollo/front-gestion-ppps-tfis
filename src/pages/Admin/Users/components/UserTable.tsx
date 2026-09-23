@@ -178,49 +178,49 @@ const UserTable: React.FC<UserTableProps> = ({
               </td>
             </tr>
           ) : (
-            users.map((u) => (
-              <tr key={u.id}>
+            users.map((userItem) => (
+              <tr key={userItem.id}>
                 {/* Celda del Email con Iniciales */}
                 <td style={{ padding: '12px 16px' }}>
                   <div className="d-flex align-items-center gap-3">
                     <div className="user-avatar-initials">
-                      {getInitials(u.nombre, u.apellido, u.email)}
+                      {getInitials(userItem.nombre, userItem.apellido, userItem.email)}
                     </div>
-                    <span style={{ fontWeight: 500 }}>{u.email}</span>
+                    <span style={{ fontWeight: 500 }}>{userItem.email}</span>
                   </div>
                 </td>
                 
                 {/* Celda de Nombre Completo */}
                 <td style={{ padding: '12px 16px', fontWeight: 500 }}>
-                  {[u.nombre, u.apellido].filter(Boolean).join(' ') || '-'}
+                  {[userItem.nombre, userItem.apellido].filter(Boolean).join(' ') || '-'}
                 </td>
                 
                 {/* Celda del Rol (Badge) */}
                 <td style={{ padding: '12px 16px' }}>
-                  {renderRoleBadge(u.rol)}
+                  {renderRoleBadge(userItem.rol)}
                 </td>
                 
                 {/* Celda del Estado (Badge de color con punto) */}
                 <td style={{ padding: '12px 16px' }}>
-                  {renderStatusBadge(u.estado)}
+                  {renderStatusBadge(userItem.estado)}
                 </td>
 
                 {/* Celda del DNI */}
-                <td style={{ padding: '12px 16px' }}>{u.dni ?? '-'}</td>
+                <td style={{ padding: '12px 16px' }}>{userItem.dni ?? '-'}</td>
 
                 {/* Columna de Acciones Unificadas en un Botón Dropdown (⋮) */}
                 {showActionsColumn && (
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    {canManage(u.rol, u) && (
+                    {canManage(userItem.rol, userItem) && (
                       <div className="actions-dropdown-wrapper">
                         <button
                           type="button"
-                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${openDropdownId === u.id ? 'active' : ''}`}
-                          onClick={() => setOpenDropdownId(openDropdownId === u.id ? null : u.id)}
+                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${openDropdownId === userItem.id ? 'active' : ''}`}
+                          onClick={() => setOpenDropdownId(openDropdownId === userItem.id ? null : userItem.id)}
                         >
                           <FaEllipsisVertical />
                         </button>
-                        {openDropdownId === u.id && (
+                        {openDropdownId === userItem.id && (
                           <>
                             {/* Backdrop invisible para capturar el click afuera y cerrar el dropdown */}
                             <div 
@@ -235,7 +235,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                   className="custom-dropdown-item"
                                   onClick={() => {
                                     setOpenDropdownId(null);
-                                    onViewClick(u);
+                                    onViewClick(userItem);
                                   }}
                                 >
                                   <FaEye size={14} style={{ minWidth: '14px' }} />
@@ -250,7 +250,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                   className="custom-dropdown-item"
                                   onClick={() => {
                                     setOpenDropdownId(null);
-                                    onEditClick(u);
+                                    onEditClick(userItem);
                                   }}
                                 >
                                   <FaPencil size={14} />
@@ -259,14 +259,14 @@ const UserTable: React.FC<UserTableProps> = ({
                               </li>
 
                               {/* Acción especial: Activar docente invitado */}
-                              {u.rol === 'DOCENTE' && u.estado === 'invited' && (
+                              {userItem.rol === 'DOCENTE' && userItem.estado === 'invited' && (
                                 <li>
                                   <button
                                     type="button"
                                     className="custom-dropdown-item text-success"
                                     onClick={() => {
                                       setOpenDropdownId(null);
-                                      onActivateClick(u);
+                                      onActivateClick(userItem);
                                     }}
                                   >
                                     <FaCircleCheck size={14} />
@@ -276,14 +276,14 @@ const UserTable: React.FC<UserTableProps> = ({
                               )}
 
                               {/* Acción: Resetear Contraseña (solo si el usuario tiene DNI registrado) */}
-                              {u.dni && u.estado !== 'papelera' && (
+                              {userItem.dni && userItem.estado !== 'papelera' && (
                                 <li>
                                   <button
                                     type="button"
                                     className="custom-dropdown-item"
                                     onClick={() => {
                                       setOpenDropdownId(null);
-                                      onResetPassword(u);
+                                      onResetPassword(userItem);
                                     }}
                                   >
                                     <FaKey size={14} />
@@ -293,14 +293,14 @@ const UserTable: React.FC<UserTableProps> = ({
                               )}
 
                               {/* Acción: Desactivar o Activar cuenta (toggle estado active/disabled) */}
-                              {u.estado === 'active' && (
+                              {userItem.estado === 'active' && (
                                 <li>
                                   <button
                                     type="button"
                                     className="custom-dropdown-item text-warning"
                                     onClick={() => {
                                       setOpenDropdownId(null);
-                                      onToggleActivation(u, false);
+                                      onToggleActivation(userItem, false);
                                     }}
                                   >
                                     <FaBan size={14} />
@@ -308,14 +308,14 @@ const UserTable: React.FC<UserTableProps> = ({
                                   </button>
                                 </li>
                               )}
-                              {(u.estado === 'disabled' || u.estado === 'rejected') && (
+                              {(userItem.estado === 'disabled' || userItem.estado === 'rejected') && (
                                 <li>
                                   <button
                                     type="button"
                                     className="custom-dropdown-item text-success"
                                     onClick={() => {
                                       setOpenDropdownId(null);
-                                      onToggleActivation(u, true);
+                                      onToggleActivation(userItem, true);
                                     }}
                                   >
                                     <FaCircleCheck size={14} />
@@ -332,7 +332,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                   className="custom-dropdown-item text-danger"
                                   onClick={() => {
                                     setOpenDropdownId(null);
-                                    onDeleteUser(u);
+                                    onDeleteUser(userItem);
                                   }}
                                 >
                                   <FaTrashCan size={14} />
