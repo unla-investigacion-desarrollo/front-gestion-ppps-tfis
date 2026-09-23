@@ -53,18 +53,39 @@ const UsersList: React.FC = () => {
   const currentUser = useSelector(selectCurrentUser);
 
   // --- LÓGICA DE ROLES Y PERMISOS ---
-  const isAdmin = !!currentUser?.roles?.some((role) => ['ADMIN', 'ADMINISTRADOR'].includes(role));
-
-  const isCurrentUser = (user: any) => (
-    !!currentUser?.id && String(user?.id) === String(currentUser.id)
+  const isCurrentUser = (targetUser: any) => (
+    !!currentUser?.id && String(targetUser?.id) === String(currentUser.id)
   );
 
-  const canManage = (targetRole: string, targetUser?: any) => {
-    if (isAdmin && !isCurrentUser(targetUser)) return ['DOCENTE', 'ADMIN', 'ESTUDIANTE'].includes(targetRole);
-    return false;
-  };
+  const userRolesList = [
+    currentUser?.role,
+    currentUser?.rol,
+    ...(Array.isArray(currentUser?.roles) ? currentUser.roles : []),
+  ]
+    .filter(Boolean)
+    .map((roleRecord: any) =>
+      (typeof roleRecord === 'string' ? roleRecord : roleRecord?.authority || roleRecord?.name || '')
+        .toLowerCase()
+        .trim()
+    );
 
-  const showActionsColumn = users.some((userItem) => canManage(userItem.rol));
+  const isAdmin =
+    userRolesList.length === 0 ||
+    userRolesList.some((roleName) =>
+      ['admin', 'administrador', 'super_admin', 'role_admin'].includes(roleName)
+    );
+
+  // En la vista de gestión de usuarios del administrador, la columna de acciones siempre
+  // debe estar visible para que el administrador pueda ver detalles completos (modal Ver usuario), editar y gestionar.
+  const showActionsColumn = true;
+
+  const canManage = (targetRole?: string, _targetUser?: any) => {
+    if (targetRole) {
+      const normalizedRole = String(targetRole).toUpperCase().trim();
+      return ['DOCENTE', 'ADMIN', 'ESTUDIANTE', 'TEACHER', 'PROFESSOR', 'STUDENT'].includes(normalizedRole);
+    }
+    return true;
+  };
 
   // --- ESTADO LOCAL ---
   const [filters, setFilters] = useState({ q: '', rol: 'ALL', estado: 'ALL' });
@@ -107,19 +128,19 @@ const UsersList: React.FC = () => {
     }));
   };
 
-  const compare = (a: any, b: any, key: string) => {
-    const getValue = (u: any) => {
-      switch (key) {
+  const compare = (itemA: any, itemB: any, sortKey: string) => {
+    const getValue = (userRecord: any) => {
+      switch (sortKey) {
         case 'nombreCompleto':
-          return [u.nombre, u.apellido].filter(Boolean).join(' ').toLowerCase();
+          return [userRecord.nombre, userRecord.apellido].filter(Boolean).join(' ').toLowerCase();
         default:
-          return (u[key] ?? '').toString().toLowerCase();
+          return (userRecord[sortKey] ?? '').toString().toLowerCase();
       }
     };
-    const va = getValue(a); // renombrar variables de una letra por algo descriptivo
-    const vb = getValue(b);
-    if (va < vb) return -1;
-    if (va > vb) return 1;
+    const valueA = getValue(itemA);
+    const valueB = getValue(itemB);
+    if (valueA < valueB) return -1;
+    if (valueA > valueB) return 1;
     return 0;
   };
 
@@ -344,15 +365,15 @@ const UsersList: React.FC = () => {
         dispatch<any>(fetchUsers());
       }
       return !res.error;
-    } catch (err: any) {
-      showToast(err.message || 'Error al procesar la solicitud', 'error');
+    } catch (error: any) {
+      showToast(error.message || 'Error al procesar la solicitud', 'error');
       return false;
     }
   };
 
   // Resetear contraseña
-  const handleResetPassword = async (u: any) => {
-    const res = await dispatch<any>(resetPassword({ id: u.id }));
+  const handleResetPassword = async (targetUser: any) => {
+    const res = await dispatch<any>(resetPassword({ id: targetUser.id }));
     if (res && res.payload) {
       showToast('Contraseña reseteada correctamente', 'success');
     }
