@@ -32,13 +32,15 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
     try {
       const searchParams = new URLSearchParams(location.search);
       const tabParam = searchParams.get('tab');
-      if (tabParam === 'requests' || tabParam === 'active' || tabParam === 'all') {
+      if (tabParam === 'requests' || tabParam === 'active') {
         setActiveTab(tabParam as ExplorerTab);
+      } else {
+        setActiveTab('all');
       }
     } catch {
-      // Ignorar fallas al parsear parámetros de búsqueda
+      setActiveTab('all');
     }
-  }, [location.search]);
+  }, [location.search, location.key]);
 
   // Estados de datos principales
   const [projects, setProjects] = useState<ProjectItem[]>([]);

@@ -26,9 +26,13 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
 
   const isDashboard = location.pathname === '/dashboard';
   const isInicioActive = isDashboard && (activeView ?? 'inicio') === 'inicio';
-  const isMisProyectosActive = isDashboard && activeView === 'proyectos';
+  const isMisProyectosActive =
+    (isDashboard && activeView === 'proyectos') ||
+    (location.pathname === '/alumno/mis-proyectos' && location.search.includes('tab=active'));
   const isAvailableProjectsActive =
-    location.pathname === '/alumno/mis-proyectos' && !location.search.includes('tab=requests');
+    location.pathname === '/alumno/mis-proyectos' &&
+    !location.search.includes('tab=requests') &&
+    !location.search.includes('tab=active');
   const isRequestsActive =
     location.pathname === '/alumno/mis-proyectos' && location.search.includes('tab=requests');
   const isDeliveriesActive = location.pathname.startsWith('/alumno/entregas');
@@ -102,7 +106,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               <li>
                 <a
                   className={`student-sidebar-sublink ${isAvailableProjectsActive ? 'active' : ''}`}
-                  onClick={() => navigate('/alumno/mis-proyectos')}
+                  onClick={() => navigate('/alumno/mis-proyectos?tab=all')}
                 >
                   Ver proyectos disponibles
                 </a>

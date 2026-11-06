@@ -345,7 +345,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-primary"
-                          onClick={() => navigate('/alumno/mis-proyectos')}
+                          onClick={() => navigate('/alumno/mis-proyectos?tab=all')}
                         >
                           Ver proyectos disponibles
                         </button>

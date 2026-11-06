@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaFolderOpen } from 'react-icons/fa6';
 import { useProjectExplorer } from '../hooks/useProjectExplorer';
 import {
@@ -28,6 +29,8 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
   title = 'Proyectos y Postulaciones',
   subtitle = 'Explorá proyectos existentes, postulate para participar y hacé seguimiento de tus solicitudes.',
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
     allUsers,
     projects,
@@ -69,6 +72,7 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
         onSelectTab={(selectedTab) => {
           setActiveTab(selectedTab);
           setCurrentPage(1);
+          navigate(`${location.pathname}?tab=${selectedTab}`, { replace: true });
         }}
         totalProjectsCount={projects.length}
         pendingRequestsCount={myRequests.length}
@@ -186,7 +190,10 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
           <ProjectRequestsTable
             requests={myRequests}
             allUsers={allUsers}
-            onExploreClick={() => setActiveTab('all')}
+            onExploreClick={() => {
+              setActiveTab('all');
+              navigate(`${location.pathname}?tab=all`, { replace: true });
+            }}
           />
         </div>
       )}
@@ -199,7 +206,10 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({
           <ProjectActiveTable
             activeProjects={myActiveProjects}
             allUsers={allUsers}
-            onExploreClick={() => setActiveTab('all')}
+            onExploreClick={() => {
+              setActiveTab('all');
+              navigate(`${location.pathname}?tab=all`, { replace: true });
+            }}
           />
         </div>
       )}
