@@ -4,6 +4,9 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../hooks/useAuth';
 import { useUserProfile } from '../hooks/useUserProfile';
+import StudentSidebar from '../pages/Dashboard/components/StudentSidebar';
+import ConfirmLogoutModal from './ConfirmLogoutModal';
+import '../pages/Dashboard/StudentDashboard.css';
 import logo from '../assets/Campus-Virtual-UNLa.png';
 import '../styles/unla.css';
 
@@ -13,6 +16,7 @@ const AuthenticatedLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown if clicked outside
@@ -159,34 +163,20 @@ const AuthenticatedLayout = ({ children }) => {
             <span className="unla-header-title">Gestión de TFI y PPP</span>
           </div>
           <div className="spacer" />
-          <nav className="unla-nav-links">
-            <NavLink to="/dashboard">Inicio</NavLink>
-            {(isAdmin || isTeacher) && (
-              <>
-                <NavLink to="/admin/proposals">Propuestas TFI</NavLink>
-                <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
-                {isTeacher && !isAdmin && (
-                  <NavLink to="/docente/entregas">Entregas TFI</NavLink>
-                )}
-                <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
-                <NavLink to="/ppp/expedientes">Expedientes PPP</NavLink>
-                <NavLink to="/admin/approvals">Solicitudes</NavLink>
-              </>
-            )}
-            {(!isAdmin && !isTeacher) && (
-              <>
-                <NavLink to="/alumno/mis-proyectos">Proyectos TFI</NavLink>
-                <NavLink to="/alumno/entregas">Entregas TFI</NavLink>
-                <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
-                <NavLink to="/alumno/ppp">Mis trámites PPP</NavLink>
-              </>
-            )}
-            {isAdmin && (
-              <>
-                <NavLink to="/admin/users">Usuarios</NavLink>
-              </>
-            )}
-          </nav>
+          {(isAdmin || isTeacher) && (
+            <nav className="unla-nav-links">
+              <NavLink to="/dashboard">Inicio</NavLink>
+              <NavLink to="/admin/proposals">Propuestas TFI</NavLink>
+              <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
+              {isTeacher && !isAdmin && (
+                <NavLink to="/docente/entregas">Entregas TFI</NavLink>
+              )}
+              <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
+              <NavLink to="/ppp/expedientes">Expedientes PPP</NavLink>
+              <NavLink to="/admin/approvals">Solicitudes</NavLink>
+              {isAdmin && <NavLink to="/admin/users">Usuarios</NavLink>}
+            </nav>
+          )}
           {user && (
             <div className="profile-dropdown-container" ref={dropdownRef}>
               <button
@@ -228,7 +218,24 @@ const AuthenticatedLayout = ({ children }) => {
           )}
         </header>
       )}
-      {children}
+      {!isAdmin && !isTeacher && location.pathname !== '/dashboard' ? (
+        <div className="student-dashboard-layout">
+          <StudentSidebar onShowLogoutConfirm={() => setShowLogoutConfirm(true)} />
+          <main className="student-main-content" style={{ padding: 0 }}>
+            {children}
+          </main>
+          <ConfirmLogoutModal
+            isOpen={showLogoutConfirm}
+            onCancel={() => setShowLogoutConfirm(false)}
+            onConfirm={() => {
+              setShowLogoutConfirm(false);
+              handleLogoutClick();
+            }}
+          />
+        </div>
+      ) : (
+        children
+      )}
       {toast && (
         <div
           onClick={() => {

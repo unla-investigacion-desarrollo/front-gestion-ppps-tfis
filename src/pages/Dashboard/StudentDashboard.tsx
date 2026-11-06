@@ -41,6 +41,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUs
   useEffect(() => {
     if (location.state?.initialView === 'proyectos') {
       setActiveView('proyectos');
+    } else if (location.state?.initialView === 'inicio') {
+      setActiveView('inicio');
     }
   }, [location.state]);
 

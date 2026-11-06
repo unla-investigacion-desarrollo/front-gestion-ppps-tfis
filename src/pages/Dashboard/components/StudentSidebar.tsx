@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaHouse,
   FaFileLines,
@@ -18,10 +18,25 @@ export interface StudentSidebarProps {
 
 export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   onShowLogoutConfirm,
-  activeView = 'inicio',
+  activeView,
   onSelectView,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isDashboard = location.pathname === '/dashboard';
+  const isInicioActive = isDashboard && (activeView ?? 'inicio') === 'inicio';
+  const isMisProyectosActive = isDashboard && activeView === 'proyectos';
+  const isAvailableProjectsActive =
+    location.pathname === '/alumno/mis-proyectos' && !location.search.includes('tab=requests');
+  const isRequestsActive =
+    location.pathname === '/alumno/mis-proyectos' && location.search.includes('tab=requests');
+  const isDeliveriesActive = location.pathname.startsWith('/alumno/entregas');
+  const isConvocatoriasActive = location.pathname.startsWith('/ppp/convocatorias');
+  const isTramitesActive =
+    location.pathname.startsWith('/alumno/ppp') ||
+    (location.pathname.startsWith('/ppp/') && !location.pathname.startsWith('/ppp/convocatorias'));
+  const isChangePasswordActive = location.pathname === '/change-password';
 
   // Estado de secciones desplegables del sidebar
   const [openSections, setOpenSections] = useState<{ [sectionKey: string]: boolean }>({
@@ -46,12 +61,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         <div className="student-sidebar-group">
           <button
             type="button"
-            className={`student-sidebar-header-btn ${activeView === 'inicio' ? 'active' : ''}`}
+            className={`student-sidebar-header-btn ${isInicioActive ? 'active' : ''}`}
             onClick={() => {
-              if (onSelectView) {
+              if (onSelectView && isDashboard) {
                 onSelectView('inicio');
               } else {
-                navigate('/dashboard');
+                navigate('/dashboard', { state: { initialView: 'inicio' } });
               }
             }}
           >
@@ -86,7 +101,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             <ul className="student-sidebar-sublist">
               <li>
                 <a
-                  className="student-sidebar-sublink"
+                  className={`student-sidebar-sublink ${isAvailableProjectsActive ? 'active' : ''}`}
                   onClick={() => navigate('/alumno/mis-proyectos')}
                 >
                   Ver proyectos disponibles
@@ -94,7 +109,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               </li>
               <li>
                 <a
-                  className="student-sidebar-sublink"
+                  className={`student-sidebar-sublink ${isRequestsActive ? 'active' : ''}`}
                   onClick={() => navigate('/alumno/mis-proyectos?tab=requests')}
                 >
                   Mis solicitudes
@@ -102,9 +117,9 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               </li>
               <li>
                 <a
-                  className={`student-sidebar-sublink ${activeView === 'proyectos' ? 'active' : ''}`}
+                  className={`student-sidebar-sublink ${isMisProyectosActive ? 'active' : ''}`}
                   onClick={() => {
-                    if (onSelectView) {
+                    if (onSelectView && isDashboard) {
                       onSelectView('proyectos');
                     } else {
                       navigate('/dashboard', { state: { initialView: 'proyectos' } });
@@ -140,7 +155,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             <ul className="student-sidebar-sublist">
               <li>
                 <a
-                  className="student-sidebar-sublink"
+                  className={`student-sidebar-sublink ${isDeliveriesActive ? 'active' : ''}`}
                   onClick={() => navigate('/alumno/entregas')}
                 >
                   Ver/subir entrega
@@ -180,7 +195,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             <ul className="student-sidebar-sublist">
               <li>
                 <a
-                  className="student-sidebar-sublink"
+                  className={`student-sidebar-sublink ${isConvocatoriasActive ? 'active' : ''}`}
                   onClick={() => navigate('/ppp/convocatorias')}
                 >
                   Ver convocatorias abiertas
@@ -228,7 +243,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             <ul className="student-sidebar-sublist">
               <li>
                 <a
-                  className="student-sidebar-sublink"
+                  className={`student-sidebar-sublink ${isTramitesActive ? 'active' : ''}`}
                   onClick={() => navigate('/alumno/ppp')}
                 >
                   Ver estado de la postulación o trámite
@@ -276,7 +291,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             <ul className="student-sidebar-sublist">
               <li>
                 <a
-                  className="student-sidebar-sublink"
+                  className={`student-sidebar-sublink ${isChangePasswordActive ? 'active' : ''}`}
                   onClick={() => navigate('/change-password')}
                 >
                   Cambiar contraseña
