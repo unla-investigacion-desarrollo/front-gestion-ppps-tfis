@@ -55,6 +55,32 @@ export function saveUsers(users: User[]) {
   } catch {}
 }
 
+export function resolveUserStatus(u: any): { estado: UserStatus; activo: boolean } {
+  const rawStatus = String(u?.estado || u?.status || '').toLowerCase().trim();
+  if (rawStatus === 'disabled' || rawStatus === 'inactive' || rawStatus === 'inactivo') {
+    return { estado: 'disabled', activo: false };
+  }
+  if (rawStatus === 'rejected' || rawStatus === 'rechazado') {
+    return { estado: 'rejected', activo: false };
+  }
+  if (rawStatus === 'pending' || rawStatus === 'pendiente') {
+    return { estado: 'pending', activo: false };
+  }
+  if (rawStatus === 'invited' || rawStatus === 'invitado') {
+    return { estado: 'invited', activo: false };
+  }
+  if (rawStatus === 'papelera' || rawStatus === 'deleted') {
+    return { estado: 'papelera', activo: false };
+  }
+
+  const rawActive = u?.isActive ?? u?.active ?? u?.activo ?? u?.enabled;
+  if (rawActive === false || rawActive === 0 || String(rawActive).toLowerCase() === 'false') {
+    return { estado: 'disabled', activo: false };
+  }
+
+  return { estado: 'active', activo: true };
+}
+
 export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }>(
   'users/fetch',
   async (_, { rejectWithValue, signal }) => {
@@ -62,24 +88,27 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
       const token = localStorage.getItem('token') || '';
       const data = await userService.getUsers(token, signal);
 
-      return data.map((u: any) => ({
-        id: String(u.id),
-        email: u.email,
-        nombre: u.firstName || u.nombre,
-        apellido: u.lastName || u.apellido,
-        rol: (normalizeRole(u.role || u.rol) as UserRole) || 'ESTUDIANTE',
-        estado: u.estado || (u.activo === false ? 'disabled' : 'active'),
-        activo: u.activo ?? u.estado !== 'disabled',
-        dni: u.dni,
-        legajo: u.fileNumber || u.legajo,
-        yearOfAdmission: u.yearOfAdmission,
-        completedCoursesWithFinal: u.completedCoursesWithFinal,
-        completedCoursesWithoutFinal: u.completedCoursesWithoutFinal,
-        specialization: u.specialization || u.categoria,
-        isTutor: !!u.isTutor,
-        createdAt: u.createdAt || new Date().toISOString(),
-        updatedAt: u.updatedAt || new Date().toISOString(),
-      }));
+      return data.map((u: any) => {
+        const { estado, activo } = resolveUserStatus(u);
+        return {
+          id: String(u.id),
+          email: u.email,
+          nombre: u.firstName || u.nombre,
+          apellido: u.lastName || u.apellido,
+          rol: (normalizeRole(u.role || u.rol) as UserRole) || 'ESTUDIANTE',
+          estado,
+          activo,
+          dni: u.dni,
+          legajo: u.fileNumber || u.legajo,
+          yearOfAdmission: u.yearOfAdmission,
+          completedCoursesWithFinal: u.completedCoursesWithFinal,
+          completedCoursesWithoutFinal: u.completedCoursesWithoutFinal,
+          specialization: u.specialization || u.categoria,
+          isTutor: !!u.isTutor,
+          createdAt: u.createdAt || new Date().toISOString(),
+          updatedAt: u.updatedAt || new Date().toISOString(),
+        };
+      });
     } catch (error: any) {
       if (signal?.aborted) {
         return rejectWithValue('Petición cancelada');
@@ -176,23 +205,14 @@ export const toggleUserActivation = createAsyncThunk<
     const response = await userService.updateUserStatus(id, token, enable);
     const rawUser = response.user || response || {};
 
-    const roleMap: Record<string, UserRole> = {
-      student: 'ESTUDIANTE',
-      professor: 'DOCENTE',
-      admin: 'ADMIN',
-      ESTUDIANTE: 'ESTUDIANTE',
-      DOCENTE: 'DOCENTE',
-      ADMIN: 'ADMIN',
-    };
-
     const updatedUser: User = {
       id: String(rawUser.id || id),
       email: rawUser.email || user?.email || '',
       nombre: rawUser.firstName || rawUser.nombre || user?.nombre || '',
       apellido: rawUser.lastName || rawUser.apellido || user?.apellido || '',
-      rol: roleMap[rawUser.role] || roleMap[rawUser.rol] || user?.rol || 'ESTUDIANTE',
-      estado: rawUser.estado || (enable ? 'active' : 'disabled'),
-      activo: rawUser.activo ?? enable,
+      rol: (normalizeRole(rawUser.role || rawUser.rol || user?.rol) as UserRole) || 'ESTUDIANTE',
+      estado: enable ? 'active' : 'disabled',
+      activo: enable,
       dni: rawUser.dni || user?.dni,
       legajo: rawUser.fileNumber || rawUser.legajo || user?.legajo,
       yearOfAdmission: rawUser.yearOfAdmission || user?.yearOfAdmission,

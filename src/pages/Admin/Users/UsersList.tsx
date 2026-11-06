@@ -250,6 +250,12 @@ const UsersList: React.FC = () => {
         nombre: data.firstName || user.nombre || user.firstName,
         apellido: data.lastName || user.apellido || user.lastName,
         rol: normalizedRole,
+        estado:
+          data.isActive === false || data.active === false || data.activo === false
+            ? 'disabled'
+            : data.isActive === true || data.active === true || data.activo === true
+            ? 'active'
+            : data.estado || user.estado,
         legajo: data.fileNumber || data.legajo || user.legajo || user.fileNumber,
       });
     } catch (error: any) {
