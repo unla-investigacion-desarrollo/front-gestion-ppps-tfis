@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '../../../services/authService';
 import { userService } from '../../../services/userService';
+import { normalizeRole } from '../auth/asyncActions';
 
 export type UserRole = 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
 export type UserStatus = 'pending' | 'active' | 'rejected' | 'invited' | 'disabled' | 'papelera';
@@ -61,22 +62,12 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
       const token = localStorage.getItem('token') || '';
       const data = await userService.getUsers(token, signal);
 
-      const roleMap: Record<string, UserRole> = {
-        student: 'ESTUDIANTE',
-        professor: 'DOCENTE',
-        admin: 'ADMIN',
-        ESTUDIANTE: 'ESTUDIANTE',
-        DOCENTE: 'DOCENTE',
-        ADMIN: 'ADMIN',
-        SUPER_ADMIN: 'ADMIN',
-      };
-
       return data.map((u: any) => ({
         id: String(u.id),
         email: u.email,
         nombre: u.firstName || u.nombre,
         apellido: u.lastName || u.apellido,
-        rol: roleMap[u.role] || roleMap[u.rol] || 'ESTUDIANTE',
+        rol: (normalizeRole(u.role || u.rol) as UserRole) || 'ESTUDIANTE',
         estado: u.estado || (u.activo === false ? 'disabled' : 'active'),
         activo: u.activo ?? u.estado !== 'disabled',
         dni: u.dni,

@@ -12,7 +12,7 @@ import {
   activateInvitedTeacher,
   toggleUserActivation
 } from '../../../../redux/slices/usersSlice';
-import { selectCurrentUser } from '../../../../redux/slices/authSlice';
+import { selectCurrentUser, normalizeRole } from '../../../../redux/slices/authSlice';
 
 // Styles & Assets
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -54,7 +54,9 @@ const UsersList: React.FC = () => {
   const currentUser = useSelector(selectCurrentUser);
 
   // --- LÓGICA DE ROLES Y PERMISOS ---
-  const isAdmin = !!currentUser?.roles?.some((role) => ['ADMIN', 'ADMINISTRADOR'].includes(role));
+  const isAdmin =
+    ['ADMIN', 'ADMINISTRADOR'].includes(String(currentUser?.role || '').toUpperCase()) ||
+    !!currentUser?.roles?.some((role) => ['ADMIN', 'ADMINISTRADOR'].includes(String(role).toUpperCase()));
 
   const isCurrentUser = (user: any) => (
     !!currentUser?.id && String(user?.id) === String(currentUser.id)
@@ -96,7 +98,7 @@ const UsersList: React.FC = () => {
 
   // --- ESTADÍSTICAS ---
   // Calculadas sobre el total de usuarios en base de datos (excluyendo la papelera de reciclaje)
-  const totalCount = users.filter((u) => u.estado !== 'papelera').length;
+  const totalCount = users.filter((u) => u.rol === 'DOCENTE' && u.estado !== 'papelera').length;
   const activeCount = users.filter((u) => u.estado === 'active').length;
   const pendingCount = users.filter((u) => u.estado === 'pending' || u.estado === 'invited').length;
   const inactiveCount = users.filter((u) => u.estado === 'disabled' || u.estado === 'rejected').length;
@@ -132,16 +134,7 @@ const UsersList: React.FC = () => {
 
   // Preparar estado del usuario para editar
   const handleStartEdit = (user: any) => {
-    const roleMap: Record<string, string> = {
-      student: 'ESTUDIANTE',
-      professor: 'DOCENTE',
-      admin: 'ADMIN',
-      ESTUDIANTE: 'ESTUDIANTE',
-      DOCENTE: 'DOCENTE',
-      ADMIN: 'ADMIN',
-    };
-
-    const normalizedRole = roleMap[user.role] || roleMap[user.rol] || user.rol || user.role;
+    const normalizedRole = normalizeRole(user.role || user.rol);
 
     setEditingUser({
       ...user,
@@ -232,16 +225,7 @@ const UsersList: React.FC = () => {
       const userId = user.id;
       const data = await userService.getUserProfile(userId, token);
       
-      const roleMap: Record<string, string> = {
-        student: 'ESTUDIANTE',
-        professor: 'DOCENTE',
-        admin: 'ADMIN',
-        ESTUDIANTE: 'ESTUDIANTE',
-        DOCENTE: 'DOCENTE',
-        ADMIN: 'ADMIN',
-      };
-
-      const normalizedRole = roleMap[data.role] || roleMap[user.rol] || user.rol || data.role;
+      const normalizedRole = normalizeRole(data.role || user.rol || user.role);
 
       setSelectedUserDetail({
         ...user,

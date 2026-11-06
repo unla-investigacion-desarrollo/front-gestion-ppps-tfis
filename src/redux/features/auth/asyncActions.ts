@@ -38,6 +38,8 @@ export const normalizeRole = (role: any): string => {
     case 'PROFESSOR':
       return 'DOCENTE';
     case 'ADMIN':
+    case 'ADMINISTRADOR':
+    case 'SUPER_ADMIN':
       return 'ADMIN';
     case 'DOCENTE':
     case 'ESTUDIANTE':
@@ -160,7 +162,7 @@ export const loginUser = createAsyncThunk<
         firstName: firstName,
         lastName: lastName,
         role: role,
-        roles: [role],
+        roles: normalizeRoles([role]),
         mustChangePassword: !!(decoded.mustChangePassword || data.mustChangePassword),
         isTutor: isTutor,
       };
