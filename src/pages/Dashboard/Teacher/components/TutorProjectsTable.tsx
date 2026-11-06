@@ -33,24 +33,26 @@ export interface TutorProjectRecord {
 
 interface TutorProjectsTableProps {
   onBackToInicio: () => void;
-  onOpenRegisterTutoring: (project: {
+  onOpenRegisterTutoring?: (project: {
     id: string | number;
     titulo: string;
     workId?: string | number;
     studentName?: string;
   }) => void;
   refreshTrigger?: number;
+  isStudent?: boolean;
 }
 
 /**
- * Componente que renderiza el listado de "Mis proyectos" a cargo del Profesor Tutor.
- * Reutiliza el diseño visual, componentes compartidos (Filtros, Paginación, Badges)
- * y el sistema de grid responsive de Bootstrap implementado en la gestión de proyectos.
+ * Componente que renderiza el listado de "Mis proyectos".
+ * Reutilizable tanto para el Profesor Tutor (con asignaciones y registro de tutorías)
+ * como para Estudiantes (con proyectos activos y acceso a entregas).
  */
 export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
   onBackToInicio,
   onOpenRegisterTutoring,
   refreshTrigger,
+  isStudent = false,
 }) => {
   const navigate = useNavigate();
 
@@ -67,7 +69,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
 
-  // Obtener proyectos asignados activamente al tutor desde el backend
+  // Obtener proyectos activos del usuario (profesor o estudiante) desde el backend
   const fetchMyProjects = useCallback(async () => {
     const token = localStorage.getItem('token') || '';
     if (!token) {
@@ -85,11 +87,11 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
       // Consultar la entrega de cada proyecto en paralelo para obtener tutoringRequested y workId
       const workResults = await Promise.allSettled(
-        list.map((item: any) => {
-          const projectData = item.project || item;
-          const projectId = projectData.id || item.id;
-          if (projectData.studentWork || item.studentWork) {
-            return Promise.resolve(projectData.studentWork || item.studentWork);
+        list.map((projectItemCandidate: any) => {
+          const projectData = projectItemCandidate.project || projectItemCandidate;
+          const projectId = projectData.id || projectItemCandidate.id;
+          if (projectData.studentWork || projectItemCandidate.studentWork) {
+            return Promise.resolve(projectData.studentWork || projectItemCandidate.studentWork);
           }
           if (projectId) {
             return studentWorkService.getWorkByProject(projectId, token);
@@ -98,13 +100,13 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
         })
       );
 
-      const mapped: TutorProjectRecord[] = list.map((item: any, idx: number) => {
-        const projectData = item.project || item;
-        const projectId = String(projectData.id || item.id || '');
+      const mapped: TutorProjectRecord[] = list.map((projectItemCandidate: any, projectIndex: number) => {
+        const projectData = projectItemCandidate.project || projectItemCandidate;
+        const projectId = String(projectData.id || projectItemCandidate.id || '');
         const title = projectData.title || projectData.titulo || 'Proyecto sin título';
         const description = projectData.description || projectData.descripcion || 'Sin descripción';
 
-        const work = workResults[idx]?.status === 'fulfilled' ? workResults[idx].value : null;
+        const work = workResults[projectIndex]?.status === 'fulfilled' ? workResults[projectIndex].value : null;
         const workId = work?.id ? Number(work.id) : undefined;
         const tutoringRequested = Boolean(work?.tutoringRequested);
 
@@ -125,11 +127,39 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
             .filter(Boolean);
         }
 
-        const estudiantePrincipal = studentNames.length > 0 ? studentNames[0] : 'Sin asignar';
-        const estudiantesExtras = studentNames.length > 1 ? `+${studentNames.length - 1}` : '';
+        // Extraer docentes o tutor asignados al proyecto
+        let teacherNames: string[] = [];
+        const rawTeachers =
+          projectData.activeProfessors ||
+          projectData.professors ||
+          projectData.teachers ||
+          (projectData.teacher ? [projectData.teacher] : []) ||
+          (projectData.tutor ? [projectData.tutor] : []) ||
+          (projectItemCandidate.teacher ? [projectItemCandidate.teacher] : []) ||
+          [];
+
+        if (Array.isArray(rawTeachers)) {
+          teacherNames = rawTeachers
+            .map((rawTeacher: any) => {
+              if (!rawTeacher) return '';
+              if (typeof rawTeacher === 'string') return rawTeacher;
+              const teacherObject = rawTeacher.professor?.user || rawTeacher.user || rawTeacher.teacher || rawTeacher;
+              const firstName = teacherObject.firstName || teacherObject.nombre || '';
+              const lastName = teacherObject.lastName || teacherObject.apellido || '';
+              const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+              return fullName || teacherObject.name || teacherObject.email || '';
+            })
+            .filter(Boolean);
+        }
+
+        const estudiantePrincipal = studentNames.length > 0 ? studentNames[0] : (teacherNames.length > 0 ? teacherNames[0] : 'Sin asignar');
+        const estudiantesExtras = studentNames.length > 1 ? `+${studentNames.length - 1}` : (teacherNames.length > 1 ? `+${teacherNames.length - 1}` : '');
+
+        const docentePrincipal = teacherNames.length > 0 ? teacherNames[0] : (studentNames.length > 0 ? studentNames[0] : 'Sin tutor asignado');
+        const docentesExtras = teacherNames.length > 1 ? `+${teacherNames.length - 1}` : (studentNames.length > 1 ? `+${studentNames.length - 1}` : '');
 
         // Determinar estado contextual
-        const rawEstado = String(projectData.estado || projectData.status || (item.active ? 'En curso' : 'Pendiente')).toLowerCase();
+        const rawEstado = String(projectData.estado || projectData.status || (projectItemCandidate.active ? 'En curso' : 'Pendiente')).toLowerCase();
         let estado: 'En curso' | 'Pendiente' | 'Finalizado' = 'En curso';
         let estadoClass: 'curso' | 'revision' | 'finalizado' = 'curso';
 
@@ -145,7 +175,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
         }
 
         // Formatear última fecha registrada (priorizar lastTutoredAt de la entrega)
-        const rawDate = work?.lastTutoredAt || projectData.lastTutoring || projectData.ultimaTutoria || projectData.updatedAt || projectData.createdAt || item.updatedAt || item.createdAt;
+        const rawDate = work?.lastTutoredAt || projectData.lastTutoring || projectData.ultimaTutoria || projectData.updatedAt || projectData.createdAt || projectItemCandidate.updatedAt || projectItemCandidate.createdAt;
         let ultimaTutoria = '-';
         if (rawDate) {
           try {
@@ -164,8 +194,8 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           id: projectId,
           proyecto: title,
           subtitulo: description,
-          estudiantePrincipal,
-          estudiantesExtras,
+          estudiantePrincipal: isStudent ? docentePrincipal : estudiantePrincipal,
+          estudiantesExtras: isStudent ? docentesExtras : estudiantesExtras,
           estado,
           estadoClass,
           ultimaTutoria,
@@ -176,14 +206,14 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
       });
 
       setProjectsList(mapped);
-    } catch (err: any) {
-      console.error('Error al cargar proyectos del docente:', err);
-      setError(err?.message || 'Error al conectar con el servidor para obtener los proyectos.');
+    } catch (fetchError: any) {
+      console.error('Error al cargar proyectos:', fetchError);
+      setError(fetchError?.message || 'Error al conectar con el servidor para obtener los proyectos.');
       setProjectsList([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isStudent]);
 
   useEffect(() => {
     fetchMyProjects();
@@ -191,21 +221,21 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
   // Filtrado reactivo en memoria
   const filteredList = useMemo(() => {
-    return projectsList.filter((item) => {
+    return projectsList.filter((itemCandidate) => {
       // Filtro por Estado
       if (filterEstado !== 'todos') {
         if (filterEstado === 'tutoria') {
-          if (!item.tutoringRequested) return false;
-        } else if (item.estado.toLowerCase() !== filterEstado.toLowerCase()) {
+          if (!itemCandidate.tutoringRequested) return false;
+        } else if (itemCandidate.estado.toLowerCase() !== filterEstado.toLowerCase()) {
           return false;
         }
       }
       // Filtro por Texto de búsqueda
       if (searchQuery.trim()) {
         const normalizedQuery = searchQuery.toLowerCase().trim();
-        const matchProyecto = item.proyecto.toLowerCase().includes(normalizedQuery);
-        const matchSubtitulo = item.subtitulo.toLowerCase().includes(normalizedQuery);
-        const matchEstudiante = item.estudiantePrincipal.toLowerCase().includes(normalizedQuery);
+        const matchProyecto = itemCandidate.proyecto.toLowerCase().includes(normalizedQuery);
+        const matchSubtitulo = itemCandidate.subtitulo.toLowerCase().includes(normalizedQuery);
+        const matchEstudiante = itemCandidate.estudiantePrincipal.toLowerCase().includes(normalizedQuery);
         if (!matchProyecto && !matchSubtitulo && !matchEstudiante) return false;
       }
       return true;
@@ -247,7 +277,9 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
       <div className="mb-4">
         <h1 className="projects-title m-0">Mis proyectos</h1>
         <p className="projects-subtitle text-muted m-0">
-          Seguimiento de los proyectos que tenés a cargo.
+          {isStudent
+            ? 'Seguimiento de tus proyectos activos y estado de entregas.'
+            : 'Seguimiento de los proyectos que tenés a cargo.'}
         </p>
       </div>
 
@@ -266,7 +298,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           <thead className="table-light">
             <tr>
               <th scope="col" style={{ width: '32%' }}>PROYECTO</th>
-              <th scope="col" style={{ width: '22%' }}>ESTUDIANTES</th>
+              <th scope="col" style={{ width: '22%' }}>{isStudent ? 'DOCENTE / TUTOR' : 'ESTUDIANTES'}</th>
               <th scope="col" style={{ width: '16%' }}>ESTADO</th>
               <th scope="col" style={{ width: '16%' }}>ÚLTIMA TUTORÍA</th>
               <th scope="col" style={{ width: '14%', textAlign: 'right' }}>ACCIONES</th>
@@ -303,7 +335,22 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                 <td colSpan={5} className="text-center py-5 text-muted">
                   <div className="py-4">
                     <FaFolderOpen size={36} color="#cbd5e1" className="mb-2" />
-                    <div className="fw-medium text-secondary">No se encontraron proyectos a cargo.</div>
+                    <div className="fw-medium text-secondary">
+                      {isStudent
+                        ? 'No tenés proyectos asignados actualmente.'
+                        : 'No se encontraron proyectos a cargo.'}
+                    </div>
+                    {isStudent && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => navigate('/alumno/mis-proyectos')}
+                        >
+                          Ver proyectos disponibles
+                        </button>
+                      </div>
+                    )}
                     {(searchQuery || filterEstado !== 'todos') && (
                       <button
                         type="button"
@@ -317,28 +364,29 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                 </td>
               </tr>
             ) : (
-              paginatedList.map((row) => (
-                <tr key={row.id}>
+              paginatedList.map((projectRow) => (
+                <tr key={projectRow.id}>
                   {/* Columna Proyecto: Título con link y descripción secundaria */}
                   <td>
                     <Link
-                      to={`/proyectos/${row.id}/trabajo?from=mis-proyectos`}
+                      to={`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`}
                       state={{ from: 'mis-proyectos' }}
                       className="project-title-link"
-                      title={row.proyecto}
+                      title={projectRow.proyecto}
                     >
-                      {row.proyecto}
+                      {projectRow.proyecto}
                     </Link>
-                    <p className="project-description-text mb-0">{row.subtitulo}</p>
+                    <p className="project-description-text mb-0">{projectRow.subtitulo}</p>
                   </td>
 
-                  {/* Columna Estudiantes: Alumno principal y badge extra */}
+                  {/* Columna Estudiantes / Docentes: Alumno/docente principal y badge extra */}
                   <td>
                     <div className="d-flex align-items-center gap-2">
-                      <span className="fw-medium text-dark">{row.estudiantePrincipal}</span>
-                      {row.estudiantesExtras && (
+                      {isStudent && <FaChalkboardUser size={13} className="text-secondary" />}
+                      <span className="fw-medium text-dark">{projectRow.estudiantePrincipal}</span>
+                      {projectRow.estudiantesExtras && (
                         <span className="badge bg-light text-secondary border">
-                          {row.estudiantesExtras}
+                          {projectRow.estudiantesExtras}
                         </span>
                       )}
                     </div>
@@ -347,15 +395,15 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   {/* Columna Estado: Pill reutilizable y aviso de tutoría solicitada */}
                   <td>
                     <TutorProjectStatusPill
-                      estado={row.estado}
-                      estadoClass={row.estadoClass}
+                      estado={projectRow.estado}
+                      estadoClass={projectRow.estadoClass}
                     />
-                    {row.tutoringRequested && (
+                    {projectRow.tutoringRequested && (
                       <div className="mt-1">
                         <span
                           className="badge bg-warning text-dark border border-warning-subtle d-inline-flex align-items-center gap-1"
                           style={{ fontSize: '11px', fontWeight: 600, padding: '3px 7px' }}
-                          title="El equipo del proyecto solicitó una sesión de tutoría"
+                          title={isStudent ? 'Solicitaste una sesión de tutoría' : 'El equipo del proyecto solicitó una sesión de tutoría'}
                         >
                           <FaChalkboardUser size={11} /> Tutoría solicitada
                         </span>
@@ -365,10 +413,10 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
                   {/* Columna Última Tutoría */}
                   <td className="text-secondary small">
-                    {row.ultimaTutoria !== '-' ? (
+                    {projectRow.ultimaTutoria !== '-' ? (
                       <div className="d-flex align-items-center gap-1">
                         <FaCalendarDays size={12} className="text-muted" />
-                        <span>{row.ultimaTutoria}</span>
+                        <span>{projectRow.ultimaTutoria}</span>
                       </div>
                     ) : (
                       <span className="text-muted">-</span>
@@ -378,17 +426,25 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   {/* Columna Acciones */}
                   <td style={{ textAlign: 'right' }}>
                     <div className="d-inline-flex align-items-center justify-content-end gap-2">
-                      {row.estado !== 'Finalizado' ? (
-                        row.tutoringRequested ? (
+                      {isStudent ? (
+                        <button
+                          type="button"
+                          className="btn btn-sm teacher-btn-view-outline"
+                          onClick={() => navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
+                        >
+                          Ver proyecto
+                        </button>
+                      ) : projectRow.estado !== 'Finalizado' ? (
+                        projectRow.tutoringRequested ? (
                           <button
                             type="button"
                             className="btn btn-sm teacher-btn-register-tutoria d-inline-flex align-items-center gap-1.5"
                             onClick={() =>
-                              onOpenRegisterTutoring({
-                                id: row.id,
-                                titulo: row.proyecto,
-                                workId: row.workId,
-                                studentName: row.estudiantePrincipal,
+                              onOpenRegisterTutoring?.({
+                                id: projectRow.id,
+                                titulo: projectRow.proyecto,
+                                workId: projectRow.workId,
+                                studentName: projectRow.estudiantePrincipal,
                               })
                             }
                             title="Confirmar atención de la tutoría solicitada"
@@ -412,7 +468,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                         <button
                           type="button"
                           className="btn btn-sm teacher-btn-view-outline"
-                          onClick={() => navigate(`/proyectos/${row.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
+                          onClick={() => navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
                         >
                           Ver proyecto
                         </button>
@@ -423,14 +479,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                         className="teacher-btn-more-actions d-inline-flex align-items-center justify-content-center"
                         title="Opciones"
                         onClick={() => {
-                          window.dispatchEvent(
-                            new CustomEvent('toast', {
-                              detail: {
-                                message: `Detalles del proyecto ${row.proyecto}`,
-                                type: 'info',
-                              },
-                            })
-                          );
+                          navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } });
                         }}
                       >
                         <FaEllipsisVertical size={13} />

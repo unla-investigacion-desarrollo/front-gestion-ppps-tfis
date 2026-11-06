@@ -1,8 +1,424 @@
-.background {
-    background-image: url("../../assets/fondo-rojo.jpg");
-    background-size: cover;
+/* ==========================================================================
+   Página de Registro de Estudiante - Rediseño UNLa
+   ========================================================================== */
+
+.register-page-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 32px 16px;
 }
 
-.register-success {
-    border-left: 4px solid #198754;
+/* Tarjeta Principal Dividida en 2 Columnas */
+.register-card {
+  width: 100%;
+  max-width: 1040px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 900px) {
+  .register-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Columna Lateral Izquierda (Banner Informativo) */
+.register-sidebar-banner {
+  background-color: #faf8f8;
+  border-right: 1px solid #f1ecec;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  .register-sidebar-banner {
+    border-right: none;
+    border-bottom: 1px solid #f1ecec;
+    padding: 32px 24px;
+  }
+}
+
+.register-banner-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-banner-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #64748b;
+  margin: 0;
+}
+
+.register-banner-line {
+  width: 34px;
+  height: 3px;
+  background-color: var(--unla-primary, #64001d);
+  margin: 12px 0 16px 0;
+  border-radius: 2px;
+}
+
+.register-banner-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.22;
+  margin: 0;
+}
+
+.register-banner-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 14px 0 0 0;
+}
+
+/* Puntos de Confianza / Seguridad */
+.register-trust-points {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 36px;
+}
+
+.register-trust-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.register-trust-icon {
+  color: var(--unla-primary, #64001d);
+  font-size: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.register-trust-text {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+/* Columna Derecha (Formulario) */
+.register-form-panel {
+  padding: 40px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .register-form-panel {
+    padding: 28px 20px;
+  }
+}
+
+.register-form-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.register-form-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0 0 24px 0;
+}
+
+.register-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Filas con Grid */
+.register-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.register-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.register-row-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .register-row-2,
+  .register-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Grupo de Campo de Entrada */
+.register-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.register-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.register-field-asterisk {
+  color: #dc2626;
+}
+
+/* Input con Ícono Integrado */
+.register-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.register-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 14px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #1e293b;
+  background-color: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.register-input::placeholder {
+  color: #94a3b8;
+}
+
+.register-input:focus {
+  border-color: var(--unla-primary, #64001d);
+  box-shadow: 0 0 0 3px rgba(100, 0, 29, 0.08);
+}
+
+.register-input.is-invalid {
+  border-color: #ef4444;
+  background-color: #fffafb;
+}
+
+.register-input.is-invalid:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Botón Mostrar/Ocultar Contraseña */
+.register-password-toggle {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.register-password-toggle:hover {
+  color: #475569;
+}
+
+/* Mensajes de Ayuda y Errores */
+.register-field-help {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.register-field-error {
+  font-size: 11.5px;
+  color: #dc2626;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.register-field-error a {
+  color: #b91c1c;
+  text-decoration: underline;
+}
+
+/* Botones de Acción */
+.register-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.btn-register-submit {
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-register-submit:hover {
+  background-color: var(--unla-primary-hover, #4a0014);
+  transform: translateY(-1px);
+}
+
+.btn-register-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-register-cancel {
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 11px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-register-cancel:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   Modal de Confirmación de Registro Exitoso (Mockup 2)
+   ========================================================================== */
+
+.register-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.register-modal-box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
+}
+
+.register-modal-icon-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+}
+
+.register-modal-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 10px 0;
+}
+
+.register-modal-message {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.register-modal-message strong {
+  color: #1e293b;
+  word-break: break-all;
+}
+
+.register-modal-btn {
+  width: 100%;
+  height: 46px;
+  background-color: #1e3a5f;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-modal-btn:hover {
+  background-color: #162b46;
 }

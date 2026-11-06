@@ -4,11 +4,9 @@ import {
   FaUsers,
   FaFileLines,
   FaFolderOpen,
-  FaCircleCheck,
   FaClockRotateLeft,
   FaUserPlus,
   FaFileCircleCheck,
-  FaCloudArrowUp,
   FaFilePen,
   FaUserXmark,
   FaChartColumn,
@@ -57,9 +55,9 @@ const Dashboard = () => {
           <p>Resumen general del sistema.</p>
         </div>
 
-        {/* 4 Cards Row */}
+        {/* 3 Cards Row */}
         <div className="row g-3 mb-4">
-          <div className="col-md-3">
+          <div className="col-md-4">
             <MetricCard
               title="Usuarios activos"
               value="8"
@@ -70,7 +68,7 @@ const Dashboard = () => {
               icon={<FaUsers size={24} />}
             />
           </div>
-          <div className="col-md-3">
+          <div className="col-md-4">
             <MetricCard
               title="Proyectos en curso"
               value="12"
@@ -81,7 +79,7 @@ const Dashboard = () => {
               icon={<FaFileLines size={24} />}
             />
           </div>
-          <div className="col-md-3">
+          <div className="col-md-4">
             <MetricCard
               title="Propuestas pendientes"
               value="3"
@@ -90,17 +88,6 @@ const Dashboard = () => {
               colorTheme="yellow"
               onClick={() => navigate('/admin/proposals')}
               icon={<FaFolderOpen size={24} />}
-            />
-          </div>
-          <div className="col-md-3">
-            <MetricCard
-              title="Entregas pendientes de revisión"
-              value="5"
-              trendText="2 más que el mes anterior"
-              trendDirection="up"
-              colorTheme="blue"
-              onClick={() => navigate('/docente/entregas')}
-              icon={<FaCircleCheck size={24} />}
             />
           </div>
         </div>
@@ -137,13 +124,13 @@ const Dashboard = () => {
                   icon={<FaFileCircleCheck size={18} />}
                 />
                 <ActivityItem
-                  title="Entrega recibida"
-                  description='Se recibió una nueva entrega para el proyecto "Plataforma de gestión".'
+                  title="Solicitud de proyecto recibida"
+                  description='Se recibió una nueva solicitud de postulación a proyecto de TFI.'
                   time="Hace 6 horas"
                   badgeText="Pendiente"
                   badgeType="pendiente"
                   iconTheme="blue"
-                  icon={<FaCloudArrowUp size={18} />}
+                  icon={<FaFilePen size={18} />}
                 />
                 <ActivityItem
                   title="Proyecto actualizado"
@@ -179,7 +166,6 @@ const Dashboard = () => {
                 <SummaryRow label="PPP" value="5" theme="ppp" />
                 <SummaryRow label="Propuestas" value="3" theme="propuestas" />
                 <SummaryRow label="Proyectos" value="12" theme="proyectos" />
-                <SummaryRow label="Entregas" value="5" theme="entregas" />
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaArrowLeft,
@@ -12,6 +12,7 @@ import {
   FaXmark,
   FaBullhorn,
 } from 'react-icons/fa6';
+import { pppService } from '../../../../services/pppService';
 
 interface EvaluatorDashboardProps {
   userName: string;
@@ -25,6 +26,74 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
   onViewActivity,
 }) => {
   const navigate = useNavigate();
+
+  const [pppCounts, setPppCounts] = useState<{
+    totalPendientes: number;
+    enRevision: number;
+    conObservaciones: number;
+    pendDocumentacion: number;
+    pendSiu: number;
+  }>({
+    totalPendientes: 0,
+    enRevision: 0,
+    conObservaciones: 0,
+    pendDocumentacion: 0,
+    pendSiu: 0,
+  });
+
+  useEffect(() => {
+    const loadCounts = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const tramites = await pppService.getPPPTramites(token);
+        let revisionCount = 0;
+        let observacionesCount = 0;
+        let documentacionCount = 0;
+        let siuCount = 0;
+
+        for (const itemRecord of tramites) {
+          const status = (itemRecord.status || itemRecord.estado || '').toLowerCase().trim();
+          const isSiuLoaded = Boolean(
+            itemRecord.loadedInSiu ?? itemRecord.isSiuLoaded ?? itemRecord.siuLoaded ?? itemRecord.siu
+          );
+
+          if (
+            status === 'in_review' ||
+            status === 'en revisión' ||
+            status === 'en revision' ||
+            status === 'pending_application'
+          ) {
+            revisionCount += 1;
+          } else if (status === 'observed' || status === 'con observaciones') {
+            observacionesCount += 1;
+          } else if (
+            status === 'pending_documentation' ||
+            status === 'pend. documentación' ||
+            status === 'documentacion_pendiente'
+          ) {
+            documentacionCount += 1;
+          } else if (
+            status === 'pending_siu' ||
+            status === 'pending_siu_upload' ||
+            (!isSiuLoaded && (status === 'approved' || status === 'aprobada'))
+          ) {
+            siuCount += 1;
+          }
+        }
+
+        setPppCounts({
+          totalPendientes: revisionCount + observacionesCount + documentacionCount + siuCount,
+          enRevision: revisionCount,
+          conObservaciones: observacionesCount,
+          pendDocumentacion: documentacionCount,
+          pendSiu: siuCount,
+        });
+      } catch (loadError) {
+        // Silenciosamente conservar conteos por defecto si no hay conexión
+      }
+    };
+    loadCounts();
+  }, []);
 
   return (
     <div>
@@ -49,7 +118,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                 </div>
                 <h3 className="teacher-breakdown-title">PPP pendientes de revisión</h3>
               </div>
-              <span className="teacher-counter-badge">5</span>
+              <span className="teacher-counter-badge">{pppCounts.totalPendientes}</span>
             </div>
 
             <ul className="teacher-breakdown-list">
@@ -58,28 +127,28 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                   <span className="teacher-dot-amber" />
                   <span>En revisión</span>
                 </div>
-                <span className="teacher-breakdown-count">2</span>
+                <span className="teacher-breakdown-count">{pppCounts.enRevision}</span>
               </li>
               <li className="teacher-breakdown-item">
                 <div className="teacher-breakdown-item-left">
                   <span className="teacher-dot-amber" />
                   <span>Con observaciones</span>
                 </div>
-                <span className="teacher-breakdown-count">1</span>
+                <span className="teacher-breakdown-count">{pppCounts.conObservaciones}</span>
               </li>
               <li className="teacher-breakdown-item">
                 <div className="teacher-breakdown-item-left">
                   <span className="teacher-dot-amber" />
                   <span>Pend. de documentación</span>
                 </div>
-                <span className="teacher-breakdown-count">1</span>
+                <span className="teacher-breakdown-count">{pppCounts.pendDocumentacion}</span>
               </li>
               <li className="teacher-breakdown-item">
                 <div className="teacher-breakdown-item-left">
                   <span className="teacher-dot-amber" />
                   <span>Pend. de carga en SIU</span>
                 </div>
-                <span className="teacher-breakdown-count">1</span>
+                <span className="teacher-breakdown-count">{pppCounts.pendSiu}</span>
               </li>
             </ul>
 
