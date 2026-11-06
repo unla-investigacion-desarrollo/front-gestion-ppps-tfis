@@ -1,341 +1,623 @@
-import React, { useMemo, useState } from 'react';
-import '../../styles/unla.css';
-import { useSelector } from 'react-redux';
-import { selectCurrentUser } from '../../../redux/slices/authSlice';
-import { selectProjects } from '../../../redux/slices/projectsSlice';
-import { selectUsers } from '../../../redux/slices/usersSlice';
-import bgImage from '../../assets/fondo-rojo.jpg';
-
-// Local storage helpers
-const KEY = 'deliveries';
-const ACTIVITY_KEY = 'projectActivity';
-
-type Delivery = {
-  id: string;
-  projectId: string;
-  studentId: string;
-  note?: string;
-  link?: string; // Optional external link (Drive, etc.)
-  filename?: string; // File metadata only
-  filesize?: number;
-  uploadedAt: string; // ISO
-  teacherNote?: string;
-  reviewedAt?: string;
-  reviewerId?: string;
-};
-
-function readDeliveries(): Delivery[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) as Delivery[] : [];
-  } catch {
-    return [];
-  }
-}
-function writeDeliveries(list: Delivery[]) {
-  localStorage.setItem(KEY, JSON.stringify(list));
-}
-
-type Activity = {
-  id: string;
-  projectId: string;
-  type: 'message' | 'delivery' | 'teacher_note';
-  by: string; // userId
-  at: string; // ISO
-  data?: any;
-};
-function readActivity(): Record<string, Activity[]> {
-  try {
-    const raw = localStorage.getItem(ACTIVITY_KEY);
-    return raw ? JSON.parse(raw) as Record<string, Activity[]> : {};
-  } catch {
-    return {};
-  }
-}
-function writeActivity(map: Record<string, Activity[]>) {
-  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(map));
-}
-function appendActivity(entry: Activity) {
-  const map = readActivity();
-  const list = Array.isArray(map[entry.projectId]) ? map[entry.projectId] : [];
-  map[entry.projectId] = [...list, entry];
-  writeActivity(map);
-}
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  FaCloudArrowUp,
+  FaFileLines,
+  FaFolderOpen,
+  FaClock,
+  FaCircleExclamation,
+  FaCheck,
+  FaXmark,
+  FaMinus,
+  FaPaperPlane,
+  FaChalkboardUser,
+  FaArrowUpRightFromSquare,
+  FaPencil,
+  FaCircleInfo,
+} from 'react-icons/fa6';
+import { projectService } from '../../services/projectService';
+import {
+  studentWorkService,
+  StudentWork,
+  StudentWorkStatus,
+} from '../../services/studentWorkService';
+import { showToast } from '../../utils/toast';
+import '../Trabajo/Trabajo.css';
 
 const StudentDeliveries: React.FC = () => {
-  const me = useSelector(selectCurrentUser) as any;
-  const allProjects = useSelector(selectProjects);
-  const allUsers = useSelector(selectUsers);
+  const token = localStorage.getItem('token') || '';
 
-  const myProjects = useMemo(() => {
-    if (!me?.id) return [] as any[];
-    return allProjects.filter(p => Array.isArray(p.students) && p.students.includes(me.id));
-  }, [allProjects, me]);
+  const [myProjects, setMyProjects] = useState<any[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [work, setWork] = useState<StudentWork | null>(null);
 
-  const [projectId, setProjectId] = useState<string>(() => (myProjects[0]?.id || ''));
-  const currentProject = useMemo(() => myProjects.find(p => p.id === projectId) || myProjects[0], [myProjects, projectId]);
+  const [loadingProjects, setLoadingProjects] = useState<boolean>(true);
+  const [loadingWork, setLoadingWork] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const deliveries = useMemo(() => {
-    const all = readDeliveries();
-    const pid = currentProject?.id || '';
-    return all.filter(d => d.projectId === pid).sort((a, b) => (b.uploadedAt || '').localeCompare(a.uploadedAt || ''));
-  }, [currentProject]);
+  const [documentUrl, setDocumentUrl] = useState<string>('');
+  const [driveFolderUrl, setDriveFolderUrl] = useState<string>('');
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
-  const [form, setForm] = useState<{ note: string; link: string; file: File | null }>({ note: '', link: '', file: null });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [detail, setDetail] = useState<Delivery | null>(null);
-  const [visibleCount, setVisibleCount] = useState<number>(10);
-  const [msg, setMsg] = useState('');
+  const [backendError, setBackendError] = useState<string | null>(null);
+  const [urlErrors, setUrlErrors] = useState<{ doc?: string; drive?: string }>({});
 
-  const userNameOrEmail = (id: string) => {
-    const u = allUsers.find(u => String(u.id) === String(id));
-    return u ? ([u.nombre, u.apellido].filter(Boolean).join(' ') || u.email || id) : id;
+  // 1. Cargar proyectos activos asignados al estudiante desde el backend
+  const loadMyActiveProjects = useCallback(async () => {
+    if (!token) return;
+    setLoadingProjects(true);
+    setBackendError(null);
+    try {
+      const activeList = await projectService.getMyActiveProjects(token);
+      const normalized = Array.isArray(activeList)
+        ? activeList.map((item: any) => item.project || item).filter((p: any) => p && p.id)
+        : [];
+
+      setMyProjects(normalized);
+
+      if (normalized.length > 0) {
+        const firstId = String(normalized[0].id);
+        setSelectedProjectId((prev) => prev || firstId);
+      } else {
+        setSelectedProjectId('');
+        // Consultar al backend para obtener el mensaje oficial cuando no tiene proyecto asignado
+        try {
+          const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+          const res = await fetch(`${API_URL}/student-work/project/0`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              documentUrl: 'https://docs.google.com/document/d/placeholder',
+            }),
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            let parsed: any;
+            try {
+              parsed = JSON.parse(text);
+            } catch {}
+            const msg =
+              parsed?.message ||
+              (Array.isArray(parsed?.errors) ? parsed.errors.join(', ') : null) ||
+              text;
+            if (msg) {
+              setBackendError(Array.isArray(msg) ? msg.join(', ') : String(msg));
+            }
+          }
+        } catch {}
+      }
+    } catch (err: any) {
+      setBackendError(err?.message || 'Error al obtener los proyectos asignados del servidor.');
+    } finally {
+      setLoadingProjects(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    loadMyActiveProjects();
+  }, [loadMyActiveProjects]);
+
+  // 2. Cargar la entrega (StudentWork) del proyecto seleccionado
+  const loadWorkForProject = useCallback(
+    async (projId: string) => {
+      if (!projId || !token) {
+        setWork(null);
+        return;
+      }
+      setLoadingWork(true);
+      try {
+        const data = await studentWorkService.getWorkByProject(projId, token);
+        setWork(data);
+        if (data) {
+          setDocumentUrl(data.documentUrl || '');
+          setDriveFolderUrl(data.driveFolderUrl || '');
+          setIsEditing(false);
+        } else {
+          setDocumentUrl('');
+          setDriveFolderUrl('');
+          setIsEditing(true);
+        }
+      } catch (err: any) {
+        setBackendError(err?.message || 'Error al consultar la entrega del proyecto.');
+      } finally {
+        setLoadingWork(false);
+      }
+    },
+    [token]
+  );
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadWorkForProject(selectedProjectId);
+    }
+  }, [selectedProjectId, loadWorkForProject]);
+
+  const currentProject = myProjects.find((p) => String(p.id) === String(selectedProjectId));
+
+  const validateUrls = (docUrl: string, driveUrl: string) => {
+    const errs: { doc?: string; drive?: string } = {};
+
+    if (!docUrl.trim()) {
+      errs.doc = 'El enlace a Google Docs es obligatorio.';
+    } else if (!docUrl.trim().startsWith('https://docs.google.com/')) {
+      errs.doc = 'Debe ser una URL válida que comience con https://docs.google.com/';
+    }
+
+    if (driveUrl.trim() && !driveUrl.trim().startsWith('https://drive.google.com/')) {
+      errs.drive = 'Debe ser una URL válida que comience con https://drive.google.com/';
+    }
+
+    setUrlErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
+  // 3. Registrar o actualizar entrega: POST /student-work/project/:projectId o PATCH /student-work/:id
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    if (!currentProject?.id) {
-      setError('No tenés un proyecto asignado.');
-      return;
-    }
-    if (!form.file && !form.link.trim()) {
-      setError('Subí un PDF o ingresá un link.');
-      return;
-    }
-    if (form.file) {
-      const isPdf = form.file.type === 'application/pdf' || /\.pdf$/i.test(form.file.name);
-      if (!isPdf) {
-        setError('El archivo debe ser un PDF.');
-        return;
-      }
-      const max = 10 * 1024 * 1024;
-      if (form.file.size > max) {
-        setError('El archivo no puede superar 10MB.');
-        return;
-      }
-    }
+    setBackendError(null);
+
+    if (!validateUrls(documentUrl, driveFolderUrl)) return;
+
+    const targetProjectId = selectedProjectId || '0';
     setSubmitting(true);
     try {
-      const payload: Delivery = {
-        id: `del-${Date.now()}`,
-        projectId: currentProject.id,
-        studentId: String(me?.id || ''),
-        note: form.note.trim() || undefined,
-        link: form.link.trim() || undefined,
-        filename: form.file?.name,
-        filesize: form.file?.size,
-        uploadedAt: new Date().toISOString(),
-      };
-      const all = readDeliveries();
-      all.push(payload);
-      writeDeliveries(all);
-      // Append to project activity timeline
-      appendActivity({
-        id: `act-${Date.now()}`,
-        projectId: currentProject.id,
-        type: 'delivery',
-        by: String(me?.id || ''),
-        at: new Date().toISOString(),
-        data: { note: payload.note, link: payload.link, filename: payload.filename, filesize: payload.filesize },
-      });
-      try {
-        const evt = new CustomEvent('toast', { detail: { message: 'Entrega subida correctamente', type: 'success' } });
-        window.dispatchEvent(evt);
-      } catch { /* ignore */ }
-      setForm({ note: '', link: '', file: null });
+      if (work?.id && isEditing) {
+        const updated = await studentWorkService.updateWork(
+          work.id,
+          {
+            documentUrl: documentUrl.trim(),
+            driveFolderUrl: driveFolderUrl.trim() || undefined,
+          },
+          token
+        );
+        setWork(updated);
+        setIsEditing(false);
+        showToast('Enlaces de la entrega actualizados correctamente', 'success');
+      } else {
+        const created = await studentWorkService.createWork(
+          targetProjectId,
+          {
+            documentUrl: documentUrl.trim(),
+            driveFolderUrl: driveFolderUrl.trim() || undefined,
+          },
+          token
+        );
+        setWork(created);
+        setIsEditing(false);
+        showToast('Entrega registrada exitosamente', 'success');
+      }
+    } catch (err: any) {
+      const message = err?.message || 'Error al registrar la entrega en el servidor';
+      setBackendError(message);
+      showToast(message, 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!me) return null;
+  const handleNotifyAdvances = async () => {
+    if (!work?.id || !token) return;
+    setSubmitting(true);
+    setBackendError(null);
+    try {
+      const updated = await studentWorkService.notifyAdvances(work.id, token);
+      setWork(updated);
+      showToast('Se notificaron los avances. Estado: Pendiente de revisión', 'success');
+    } catch (err: any) {
+      const message = err?.message || 'Error al notificar avances';
+      setBackendError(message);
+      showToast(message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRequestTutoring = async () => {
+    if (!work?.id || !token) return;
+    setSubmitting(true);
+    setBackendError(null);
+    try {
+      const updated = await studentWorkService.requestTutoring(work.id, token);
+      setWork(updated);
+      showToast('Tutoría solicitada exitosamente al equipo docente', 'success');
+    } catch (err: any) {
+      const message = err?.message || 'Error al solicitar tutoría';
+      setBackendError(message);
+      showToast(message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const renderStatusBadge = (status: StudentWorkStatus) => {
+    switch (status) {
+      case 'pending_review':
+        return (
+          <span className="badge-status badge-pending_review d-inline-flex align-items-center gap-1">
+            <FaClock size={14} />
+            Pendiente de revisión
+          </span>
+        );
+      case 'observed':
+        return (
+          <span className="badge-status badge-observed d-inline-flex align-items-center gap-1">
+            <FaCircleExclamation size={14} />
+            Con observaciones
+          </span>
+        );
+      case 'approved':
+        return (
+          <span className="badge-status badge-approved d-inline-flex align-items-center gap-1">
+            <FaCheck size={14} />
+            Aprobada
+          </span>
+        );
+      case 'disapproved':
+        return (
+          <span className="badge-status badge-disapproved d-inline-flex align-items-center gap-1">
+            <FaXmark size={14} />
+            Desaprobada
+          </span>
+        );
+      case 'absent':
+        return (
+          <span className="badge-status badge-absent d-inline-flex align-items-center gap-1">
+            <FaMinus size={14} />
+            Ausente
+          </span>
+        );
+      default:
+        return <span className="badge bg-secondary">{status}</span>;
+    }
+  };
 
   return (
-    <>
-    <div
-      className="unla-page"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        padding: '16px'
-      }}
-    >
-      <div className="unla-card" style={{ width: '100%', margin: '0 auto' }}>
-        <h1>Subir Entregas</h1>
-        {myProjects.length === 0 ? (
-          <div className="unla-hint" style={{ marginTop: 8 }}>No tenés proyectos asignados aún.</div>
-        ) : (
-          <>
-            {/* Selector de proyecto en caso de tener varios */}
-            {myProjects.length > 1 && (
-              <div className="unla-form" style={{ marginTop: 6 }}>
-                <label htmlFor="projSel" className="unla-label">Proyecto</label>
-                <select id="projSel" className="unla-input" value={currentProject?.id || ''} onChange={(e) => setProjectId(e.target.value)}>
-                  {myProjects.map(p => (
-                    <option key={p.id} value={p.id}>{p.titulo}</option>
-                  ))}
-                </select>
+    <div className="trabajo-page-container">
+      <div className="trabajo-wrapper">
+        {/* Encabezado Principal */}
+        <div className="trabajo-card mb-4">
+          <div className="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div className="d-flex align-items-center gap-3">
+              <div
+                className="d-flex align-items-center justify-content-center rounded-3"
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  backgroundColor: 'rgba(138, 21, 56, 0.1)',
+                  color: 'var(--unla-wine, #8a1538)',
+                }}
+              >
+                <FaCloudArrowUp size={24} />
               </div>
+              <div>
+                <h1 className="trabajo-project-title m-0" style={{ fontSize: '24px' }}>
+                  Entregas de Proyecto TFI
+                </h1>
+                <p className="trabajo-project-desc m-0">
+                  Registrá los enlaces de Google Docs y Google Drive de tu entrega, consultá observaciones, tutorías y calificación.
+                </p>
+              </div>
+            </div>
+
+            {selectedProjectId && (
+              <Link
+                to={`/proyectos/${selectedProjectId}/trabajo?from=mis-proyectos`}
+                state={{ from: 'mis-proyectos' }}
+                className="btn-trabajo-primary text-decoration-none d-inline-flex align-items-center gap-2"
+              >
+                <FaFileLines size={14} />
+                Abrir espacio de trabajo completo
+              </Link>
             )}
+          </div>
 
-            {/* Descripción del proyecto y equipo */}
-            {currentProject && (
-              <div className="unla-list" style={{ marginTop: 12 }}>
-                <div><strong>Título:</strong> {currentProject.titulo}</div>
-                <div><strong>Descripción:</strong> {currentProject.descripcion}</div>
-                <div><strong>Categoría:</strong> {currentProject.categoria || '-'}</div>
-                <div><strong>Docente:</strong> {userNameOrEmail(currentProject.teacherId)}</div>
-                <div><strong>Compañeros:</strong> {currentProject.students.filter((sid: string) => String(sid) !== String(me.id)).length === 0 ? '—' : ''}</div>
-                {currentProject.students.filter((sid: string) => String(sid) !== String(me.id)).length > 0 && (
-                  <ul className="unla-list" style={{ paddingLeft: 18 }}>
-                    {currentProject.students.filter((sid: string) => String(sid) !== String(me.id)).map((sid: string) => (
-                      <li key={sid}>{userNameOrEmail(sid)}</li>
-                    ))}
-                  </ul>
-                )}
+          {/* Selector de proyecto si tuviera más de uno activo */}
+          {myProjects.length > 1 && (
+            <div className="mt-3 pt-3 border-top">
+              <label htmlFor="projectSelect" className="form-label fw-semibold small text-secondary">
+                Seleccionar Proyecto Activo
+              </label>
+              <select
+                id="projectSelect"
+                className="form-select"
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+              >
+                {myProjects.map((p) => (
+                  <option key={p.id} value={String(p.id)}>
+                    #{p.id} - {p.title || p.titulo || `Proyecto #${p.id}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {currentProject && (
+            <div className="mt-3 pt-3 border-top d-flex flex-wrap gap-4 align-items-center">
+              <div>
+                <span className="text-muted small d-block">Proyecto asignado</span>
+                <strong className="text-dark">
+                  #{currentProject.id} — {currentProject.title || currentProject.titulo}
+                </strong>
               </div>
-            )}
-
-            {/* Form de carga */}
-            <form className="unla-form" onSubmit={handleSubmit} style={{ marginTop: 12 }}>
-              {error && <div className="unla-hint error" style={{ marginBottom: 8 }}>{error}</div>}
-              <label className="unla-label" htmlFor="note">Descripción breve (opcional)</label>
-              <input id="note" className="unla-input" placeholder="Descripción o comentario" value={form.note} onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))} />
-
-              <label className="unla-label" htmlFor="file">Archivo PDF (opcional)</label>
-              <input id="file" type="file" accept="application/pdf" onChange={(e) => setForm(f => ({ ...f, file: e.target.files && e.target.files[0] ? e.target.files![0] : null }))} />
-
-              <label className="unla-label" htmlFor="link">Link externo (opcional)</label>
-              <input id="link" className="unla-input" placeholder="https://drive.google.com/..." value={form.link} onChange={(e) => setForm(f => ({ ...f, link: e.target.value }))} />
-
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button className="btn btn-primary" type="submit" disabled={submitting || !currentProject?.id}>{submitting ? 'Subiendo...' : 'Subir entrega'}</button>
-              </div>
-            </form>
-
-            {/* Listado compartido de entregas del proyecto */}
-            <div className="unla-card" style={{ marginTop: 16 }}>
-              <h2>Entregas del proyecto</h2>
-              {deliveries.length === 0 ? (
-                <div className="unla-hint">Aún no hay entregas.</div>
-              ) : (
-                <div className="unla-table-container">
-                  <table className="unla-table wide">
-                    <thead>
-                      <tr>
-                        <th>Fecha</th>
-                        <th>Estudiante</th>
-                        <th>Descripción</th>
-                        <th>Archivo</th>
-                        <th>Link</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {deliveries.slice(0, visibleCount).map(d => (
-                        <tr key={d.id}>
-                          <td>{new Date(d.uploadedAt).toLocaleString()}</td>
-                          <td>{userNameOrEmail(d.studentId)}</td>
-                          <td>
-                            {d.note || '-'}
-                            {d.teacherNote && (
-                              <span className="unla-badge" style={{ marginLeft: 6, background: '#e8f5e9', border: '1px solid #2e7d32', color: '#1b5e20' }}>Con observación</span>
-                            )}
-                          </td>
-                          <td>{d.filename ? `${d.filename} (${((d.filesize || 0)/1024/1024).toFixed(2)} MB)` : '-'}</td>
-                          <td>{d.link ? <a href={d.link} target="_blank" rel="noreferrer">Abrir</a> : '-'}</td>
-                          <td>
-                            <button className="btn btn-info btn-sm" type="button" onClick={() => setDetail(d)}>Ver detalle</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {visibleCount < deliveries.length && (
-                    <div className="d-flex justify-content-center mt-3">
-                      <button className="btn btn-outline-secondary" type="button" onClick={() => setVisibleCount(c => c + 10)}>Cargar más</button>
-                    </div>
-                  )}
+              {(currentProject.projectType?.name || currentProject.categoria) && (
+                <div>
+                  <span className="text-muted small d-block">Categoría</span>
+                  <span className="badge bg-secondary">
+                    {currentProject.projectType?.name || currentProject.categoria}
+                  </span>
                 </div>
               )}
             </div>
-            {/* Mensajería y actividad */}
-            <div className="unla-card" style={{ marginTop: 16 }}>
-              <h2>Actividad del proyecto</h2>
-              <form
-                className="unla-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const text = msg.trim();
-                  if (!text || !currentProject?.id) return;
-                  appendActivity({ id: `act-${Date.now()}`, projectId: currentProject.id, type: 'message', by: String(me?.id || ''), at: new Date().toISOString(), data: { text } });
-                  setMsg('');
-                }}
+          )}
+        </div>
+
+        {/* Mensaje de error del backend (ej. cuando no tiene proyecto asignado o falla validación) */}
+        {backendError && (
+          <div className="alert alert-danger d-flex align-items-center gap-3 p-3 rounded-3 mb-4 shadow-sm">
+            <FaCircleExclamation size={22} className="flex-shrink-0" />
+            <div className="flex-grow-1">
+              <strong className="d-block">Aviso del servidor</strong>
+              <span>{backendError}</span>
+            </div>
+            {myProjects.length === 0 && (
+              <Link
+                to="/alumno/mis-proyectos?tab=all"
+                className="btn btn-sm btn-outline-danger text-nowrap"
               >
-                <label className="unla-label" htmlFor="msgBox">Nuevo mensaje al equipo/docente</label>
-                <textarea id="msgBox" className="unla-input" rows={3} placeholder="Escribí un mensaje para el equipo o el docente" value={msg} onChange={(e) => setMsg(e.target.value)} />
-                <div style={{ marginTop: 8 }}>
-                  <button className="btn btn-primary btn-sm" type="submit" disabled={!currentProject?.id || !msg.trim()}>Enviar</button>
+                Ver proyectos disponibles
+              </Link>
+            )}
+          </div>
+        )}
+
+        {loadingProjects || loadingWork ? (
+          <div className="trabajo-card text-center py-5">
+            <div className="spinner-border text-danger" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            <p className="text-muted mt-2 mb-0">Consultando datos del proyecto y entrega...</p>
+          </div>
+        ) : (
+          <div className="trabajo-card">
+            {/* Si ya existe una entrega registrada y no está en modo edición */}
+            {work && !isEditing ? (
+              <div>
+                <div className="trabajo-status-header">
+                  <div className="trabajo-status-title-group">
+                    <h2 className="trabajo-section-title">Estado de tu Entrega</h2>
+                    {renderStatusBadge(work.status)}
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <FaPencil size={12} />
+                      Modificar enlaces
+                    </button>
+                  </div>
+                </div>
+
+                {/* Calificación si existe */}
+                {work.qualification !== null && work.qualification !== undefined && (
+                  <div className="trabajo-qualification-card mb-4">
+                    <div>
+                      <span className="text-muted small text-uppercase fw-bold">
+                        Calificación Registrada
+                      </span>
+                      <div className="qualification-score-display">
+                        {work.qualification}{' '}
+                        <span style={{ fontSize: '18px', color: '#6b7280' }}>/ 10</span>
+                      </div>
+                    </div>
+                    <div className="text-end">
+                      <div className="qualification-status-text">
+                        {work.qualification === 0
+                          ? 'Estado: Ausente'
+                          : work.qualification >= 4
+                          ? 'Estado: Aprobado'
+                          : 'Estado: Desaprobado'}
+                      </div>
+                      {work.lastReviewedAt && (
+                        <span className="text-muted small">
+                          Revisado el {new Date(work.lastReviewedAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Banner de tutoría solicitada */}
+                {work.tutoringRequested && (
+                  <div className="trabajo-tutoring-banner mb-4">
+                    <FaCircleInfo size={20} />
+                    <div>
+                      <strong>Tutoría solicitada:</strong> Tu solicitud de tutoría fue enviada al
+                      equipo docente.
+                    </div>
+                  </div>
+                )}
+
+                {/* Enlaces registrados */}
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <div className="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+                      <div>
+                        <span className="text-muted small fw-semibold d-block mb-1">
+                          Documento Principal (Google Docs)
+                        </span>
+                        <div className="text-truncate small text-secondary mb-2">
+                          {work.documentUrl}
+                        </div>
+                      </div>
+                      <a
+                        href={work.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 align-self-start"
+                      >
+                        <FaFileLines size={13} />
+                        Abrir Google Docs
+                        <FaArrowUpRightFromSquare size={11} />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="col-md-6">
+                    <div className="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+                      <div>
+                        <span className="text-muted small fw-semibold d-block mb-1">
+                          Carpeta de Recursos (Google Drive)
+                        </span>
+                        <div className="text-truncate small text-secondary mb-2">
+                          {work.driveFolderUrl || 'No se adjuntó carpeta de Drive opcional'}
+                        </div>
+                      </div>
+                      {work.driveFolderUrl && (
+                        <a
+                          href={work.driveFolderUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 align-self-start"
+                        >
+                          <FaFolderOpen size={13} />
+                          Abrir Google Drive
+                          <FaArrowUpRightFromSquare size={11} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Acciones de seguimiento para el estudiante */}
+                <div className="d-flex flex-wrap gap-2 pt-3 border-top">
+                  {work.status === 'observed' && (
+                    <button
+                      type="button"
+                      className="btn-trabajo-primary d-inline-flex align-items-center gap-2"
+                      onClick={handleNotifyAdvances}
+                      disabled={submitting}
+                    >
+                      <FaPaperPlane size={14} />
+                      Notificar avances / correcciones realizadas
+                    </button>
+                  )}
+
+                  {!work.tutoringRequested && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
+                      onClick={handleRequestTutoring}
+                      disabled={submitting}
+                    >
+                      <FaChalkboardUser size={15} />
+                      Solicitar tutoría docente
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Formulario para registrar (POST /student-work/project/:projectId) o editar enlaces */
+              <form onSubmit={handleSubmit}>
+                <h2 className="trabajo-section-title mb-3">
+                  {work ? 'Modificar Enlaces de Entrega' : 'Registrar Entrega de Proyecto'}
+                </h2>
+                <p className="text-muted small mb-4">
+                  Ingresá el enlace obligatorio al documento de <strong>Google Docs</strong> y,
+                  opcionalmente, el enlace a la carpeta de <strong>Google Drive</strong> con anexos
+                  o código fuente.
+                </p>
+
+                <div className="mb-3">
+                  <label htmlFor="docUrlInput" className="form-label fw-semibold">
+                    Enlace a Google Docs <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    id="docUrlInput"
+                    type="url"
+                    className={`form-control ${urlErrors.doc ? 'is-invalid' : ''}`}
+                    placeholder="https://docs.google.com/document/d/..."
+                    value={documentUrl}
+                    onChange={(e) => {
+                      setDocumentUrl(e.target.value);
+                      if (urlErrors.doc) setUrlErrors((prev) => ({ ...prev, doc: undefined }));
+                    }}
+                    required
+                  />
+                  {urlErrors.doc ? (
+                    <div className="invalid-feedback">{urlErrors.doc}</div>
+                  ) : (
+                    <div className="form-text">
+                      Obligatorio. Debe comenzar con <code>https://docs.google.com/</code>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="driveUrlInput" className="form-label fw-semibold">
+                    Carpeta de Google Drive (Opcional)
+                  </label>
+                  <input
+                    id="driveUrlInput"
+                    type="url"
+                    className={`form-control ${urlErrors.drive ? 'is-invalid' : ''}`}
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    value={driveFolderUrl}
+                    onChange={(e) => {
+                      setDriveFolderUrl(e.target.value);
+                      if (urlErrors.drive) setUrlErrors((prev) => ({ ...prev, drive: undefined }));
+                    }}
+                  />
+                  {urlErrors.drive ? (
+                    <div className="invalid-feedback">{urlErrors.drive}</div>
+                  ) : (
+                    <div className="form-text">
+                      Opcional. Si se incluye, debe comenzar con <code>https://drive.google.com/</code>
+                    </div>
+                  )}
+                </div>
+
+                <div className="d-flex align-items-center gap-2">
+                  <button
+                    type="submit"
+                    className="btn-trabajo-primary d-inline-flex align-items-center gap-2"
+                    disabled={submitting}
+                  >
+                    <FaCloudArrowUp size={16} />
+                    {submitting
+                      ? 'Guardando...'
+                      : work
+                      ? 'Actualizar Enlaces'
+                      : 'Registrar Entrega'}
+                  </button>
+                  {work && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setDocumentUrl(work.documentUrl || '');
+                        setDriveFolderUrl(work.driveFolderUrl || '');
+                        setUrlErrors({});
+                      }}
+                      disabled={submitting}
+                    >
+                      Cancelar
+                    </button>
+                  )}
                 </div>
               </form>
-
-              {/* Timeline */}
-              {(() => {
-                const map = readActivity();
-                const list: Activity[] = Array.isArray(map[currentProject?.id || '']) ? map[currentProject?.id || ''] : [];
-                if (list.length === 0) return <div className="unla-hint" style={{ marginTop: 8 }}>Aún no hay actividad.</div>;
-                const sorted = [...list].sort((a, b) => (b.at || '').localeCompare(a.at || ''));
-                return (
-                  <ul className="unla-list" style={{ marginTop: 12 }}>
-                    {sorted.map(ev => (
-                      <li key={ev.id} style={{ marginBottom: 8 }}>
-                        <div style={{ fontSize: 12, opacity: 0.7 }}>{new Date(ev.at).toLocaleString()} • {userNameOrEmail(ev.by)}</div>
-                        {ev.type === 'message' && <div>{ev.data?.text}</div>}
-                        {ev.type === 'delivery' && (
-                          <div>
-                            <strong>Entrega:</strong> {ev.data?.filename ? `${ev.data.filename} (${((ev.data.filesize || 0)/1024/1024).toFixed(2)} MB)` : (ev.data?.link || 'sin archivo')}
-                            {ev.data?.note && <div>Nota: {ev.data.note}</div>}
-                          </div>
-                        )}
-                        {ev.type === 'teacher_note' && (
-                          <div>
-                            <strong>Observación del docente:</strong> {ev.data?.text || '—'}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                );
-              })()}
-            </div>
-          </>
+            )}
+          </div>
         )}
       </div>
     </div>
-    {/* Modal Detalle */}
-    {detail && (
-      <div className="session-reminder-modal" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-        <div style={{ background: 'white', padding: 20, borderRadius: 8, maxWidth: 700, width: '92%', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-          <h3>Detalle de entrega</h3>
-          <div className="unla-list" style={{ maxHeight: 420, overflow: 'auto' }}>
-            <div><strong>Fecha:</strong> {new Date(detail!.uploadedAt).toLocaleString()}</div>
-            <div><strong>Descripción:</strong><br />{detail!.note || '—'}</div>
-            <div><strong>Archivo:</strong> {detail!.filename ? `${detail!.filename} (${(((detail!.filesize || 0) as number)/1024/1024).toFixed(2)} MB)` : '—'}</div>
-            <div><strong>Link:</strong> {detail!.link ? <a href={detail!.link} target="_blank" rel="noreferrer">Abrir</a> : '—'}</div>
-            <div><strong>Observación del docente:</strong><br />{detail!.teacherNote || '—'}</div>
-            {detail!.reviewedAt && <div><strong>Revisado:</strong> {new Date(detail!.reviewedAt).toLocaleString()}</div>}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-            <button className="btn btn-secondary" type="button" onClick={() => setDetail(null)}>Cerrar</button>
-          </div>
-        </div>
-      </div>
-    )}
-    </>
   );
 };
 
