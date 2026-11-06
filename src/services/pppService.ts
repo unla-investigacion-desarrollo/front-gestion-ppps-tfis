@@ -446,58 +446,17 @@ export const pppService = {
     proposalId: number | string,
     previousKnowledge: string,
     token: string,
-    studentInfo?: { id?: string | number; name?: string; email?: string }
+    _studentInfo?: { id?: string | number; name?: string; email?: string }
   ): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}/apply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ previousKnowledge }),
-      });
-      return await handleResponse(res, 'Error al postularse a la convocatoria');
-    } catch (error) {
-      console.warn('pppService.applyToProposal: Usando respaldo local', error);
-      const list = getLocalProposals();
-      const item = list.find((p) => String(p.id) === String(proposalId));
-      if (item) {
-        if (!item.applicants) item.applicants = [];
-        item.applicants.push({
-          studentId: studentInfo?.id || 'me',
-          studentName: studentInfo?.name || 'Mi Postulación',
-          studentEmail: studentInfo?.email || '',
-          previousKnowledge,
-          appliedAt: new Date().toISOString(),
-          status: 'pending',
-        });
-        saveLocalProposals(list);
-      }
-
-      // También creamos el expediente preliminar en estado pending_application
-      const expedientes = getLocalExpedientes();
-      const newExp: PPPEpidiente = {
-        id: String(Date.now()),
-        type: 'interna',
-        status: 'pending_application',
-        isSiuLoaded: false,
-        studentId: studentInfo?.id || 'me',
-        studentName: studentInfo?.name || 'Estudiante',
-        studentEmail: studentInfo?.email || '',
-        proposalId,
-        proposalTitle: item?.title || 'Convocatoria PPP',
-        previousKnowledge,
-        driveFolderUrl: item?.driveFolderUrl,
-        generalDriveUrl: getLocalGeneralDrive(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      expedientes.unshift(newExp);
-      saveLocalExpedientes(expedientes);
-
-      return { id: newExp.id, status: 'pending_application', success: true, expediente: newExp };
-    }
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ previousKnowledge }),
+    });
+    return await handleResponse(res, 'Error al postularse a la convocatoria');
   },
 
   /**
@@ -548,38 +507,17 @@ export const pppService = {
    */
   createExternalPPP: async (
     token: string,
-    studentInfo?: { id?: string | number; name?: string; email?: string }
+    _studentInfo?: { id?: string | number; name?: string; email?: string }
   ): Promise<PPPEpidiente> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/external`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al iniciar trámite externo de PPP');
-    } catch (error) {
-      console.warn('pppService.createExternalPPP: Usando respaldo local', error);
-      const expedientes = getLocalExpedientes();
-      const newExp: PPPEpidiente = {
-        id: String(Date.now()),
-        type: 'externa',
-        status: 'pending_documentation',
-        isSiuLoaded: false,
-        studentId: studentInfo?.id || 'me',
-        studentName: studentInfo?.name || 'Estudiante',
-        studentEmail: studentInfo?.email || '',
-        proposalTitle: 'Práctica Profesional Externa Autogestionada',
-        generalDriveUrl: getLocalGeneralDrive(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      expedientes.unshift(newExp);
-      saveLocalExpedientes(expedientes);
-      return newExp;
-    }
+    const res = await fetch(`${API_URL}/ppp/external`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al iniciar trámite externo de PPP');
   },
 
   /**
