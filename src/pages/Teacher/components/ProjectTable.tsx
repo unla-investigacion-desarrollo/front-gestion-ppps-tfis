@@ -437,8 +437,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               Ver proyecto
                             </button>
 
-                            {/* Acción: Solicitar unirse */}
-                            {onRequestJoinClick && (
+                            {/* Acción: Solicitar unirse (solo para Tutor) */}
+                            {effectiveIsTutor && onRequestJoinClick && (
                               <>
                                 <li className="dropdown-divider" style={{ margin: '4px 0' }} />
                                 <button

@@ -5,6 +5,7 @@ import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 import { fetchProjects, selectProjects } from '../../../redux/slices/projectsSlice';
 import { projectService } from '../../services/projectService';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import {
   studentWorkService,
   StudentWork,
@@ -119,6 +120,8 @@ const Trabajo: React.FC = () => {
     () => roles.some((roleName: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)),
     [roles]
   );
+  const { isTutor: profileIsTutor, user: userProfile } = useUserProfile();
+  const isTutor = Boolean(currentUser?.isTutor ?? userProfile?.isTutor ?? profileIsTutor);
   const isStudent = useMemo(
     () => roles.some((roleName: string) => ['ESTUDIANTE', 'STUDENT', 'ALUMNO'].includes(roleName)),
     [roles]
@@ -952,7 +955,7 @@ const Trabajo: React.FC = () => {
                       )}
 
                       {/* Aprobar Entrega (Docente evaluador / Admin) */}
-                      {(isTeacher || isAdmin) && (
+                      {((isTeacher && !isTutor) || isAdmin) && (
                         <button
                           type="button"
                           className="trabajo-action-card approve"
@@ -980,7 +983,7 @@ const Trabajo: React.FC = () => {
                       )}
 
                       {/* Rechazar / Desaprobar (Docente evaluador / Admin) */}
-                      {(isTeacher || isAdmin) && (
+                      {((isTeacher && !isTutor) || isAdmin) && (
                         <button
                           type="button"
                           className="trabajo-action-card disapprove"
@@ -1007,34 +1010,35 @@ const Trabajo: React.FC = () => {
                         </button>
                       )}
 
-                      {/* Notificar Avances */}
-                      <button
-                        type="button"
-                        className="trabajo-action-card"
-                        onClick={() =>
-                          setConfirmActionModal({
-                            open: true,
-                            title: isStudent ? 'Notificar Avances al Docente' : 'Notificar Novedades del Proyecto',
-                            message: isStudent
-                              ? '¿Confirmas que actualizaste el documento con las correcciones requeridas? El estado volverá a "Pendiente de revisión" para que el docente pueda evaluarlo.'
-                              : '¿Deseas enviar una notificación al equipo del proyecto informando sobre el estado actual de la revisión?',
-                            confirmText: 'Notificar avances',
-                            actionType: 'notify_advances',
-                          })
-                        }
-                        disabled={actionLoading}
-                      >
-                        <div className="trabajo-action-icon-circle slate">
-                          <FaBell size={16} />
-                        </div>
-                        <div className="trabajo-action-card-text">
-                          <div className="trabajo-action-card-title">Notificar avances</div>
-                          <div className="trabajo-action-card-desc">
-                            Informar al estudiante o equipo sobre el estado de la revisión.
+                      {/* Notificar Avances (Exclusivo Estudiante) */}
+                      {isStudent && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            setConfirmActionModal({
+                              open: true,
+                              title: 'Notificar Avances al Docente',
+                              message:
+                                '¿Confirmas que actualizaste el documento con las correcciones requeridas? El estado volverá a "Pendiente de revisión" para que el docente pueda evaluarlo.',
+                              confirmText: 'Notificar avances',
+                              actionType: 'notify_advances',
+                            })
+                          }
+                          disabled={actionLoading}
+                        >
+                          <div className="trabajo-action-icon-circle slate">
+                            <FaBell size={16} />
                           </div>
-                        </div>
-                        <FaChevronRight className="trabajo-action-chevron" />
-                      </button>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Notificar avances</div>
+                            <div className="trabajo-action-card-desc">
+                              Informar al docente que el documento fue actualizado con las correcciones.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
 
                       {/* Confirmar Tutoría (Tutor o Admin si fue solicitada) */}
                       {(isTeacher || isAdmin) && work.tutoringRequested && (

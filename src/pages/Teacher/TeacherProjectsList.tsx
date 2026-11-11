@@ -30,6 +30,7 @@ import {
 
 // Styles & Assets
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { FaGraduationCap } from 'react-icons/fa6';
 import bgImage from '../../assets/fondo-rojo.jpg';
 import './TeacherProjectsList.css';
 import { projectService } from '../../services/projectService';
@@ -434,7 +435,10 @@ const TeacherProjectsList: React.FC = () => {
         {/* Cabecera principal: Título y Botones primario/secundario */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
-            <h1 className="m-0 projects-title">Proyectos</h1>
+            <h1 className="m-0 projects-title d-flex align-items-center gap-2">
+              <FaGraduationCap size={26} style={{ color: 'var(--unla-primary, #64001d)' }} />
+              <span>Gestión de TFI</span>
+            </h1>
             <p className="m-0 text-muted projects-subtitle">
               {isTutor
                 ? 'Convocatoria de proyectos disponibles para solicitar unirse como profesor tutor.'
@@ -467,7 +471,7 @@ const TeacherProjectsList: React.FC = () => {
           onRemoveCoTeacher={handleRemoveCoTeacher}
           onActivityClick={(project) => setActiveActivityProject(project)}
           onEditClick={(project) => setActiveEditProject(project)}
-          onRequestJoinClick={handleRequestJoin}
+          onRequestJoinClick={isTutor ? handleRequestJoin : undefined}
           pendingProjectIds={pendingProjectIds}
           activeProjectIds={activeProjectIds}
         />

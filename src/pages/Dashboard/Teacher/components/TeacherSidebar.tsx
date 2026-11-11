@@ -157,7 +157,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
               )}
             </div>
 
-            {/* Proyectos */}
+            {/* Gestión de TFI */}
             <div>
               <button
                 type="button"
@@ -165,8 +165,8 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 onClick={() => toggleSection('proyectos')}
               >
                 <div className="d-flex align-items-center gap-2">
-                  <FaFolder size={16} />
-                  <span>Proyectos</span>
+                  <FaGraduationCap size={16} />
+                  <span>Gestión de TFI</span>
                 </div>
                 <FaChevronDown
                   size={12}
