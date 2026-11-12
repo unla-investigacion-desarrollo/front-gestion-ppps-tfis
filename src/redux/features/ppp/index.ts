@@ -20,6 +20,7 @@ export interface PPPState {
   proposals: PPPProposal[];
   currentProposal: PPPProposal | null;
   expedientes: PPPEpidiente[];
+  expedientesStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
   currentExpediente: PPPEpidiente | null;
   generalDriveUrl: string;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -30,6 +31,7 @@ export const initialState: PPPState = {
   proposals: [],
   currentProposal: null,
   expedientes: [],
+  expedientesStatus: 'idle',
   currentExpediente: null,
   generalDriveUrl: '',
   status: 'idle',
@@ -79,8 +81,15 @@ export const pppSlice = createSlice({
       .addCase(updatePPPGeneralDrive.fulfilled, (state, action: PayloadAction<string>) => {
         state.generalDriveUrl = action.payload;
       })
+      .addCase(fetchPPPExpedientes.pending, (state) => {
+        state.expedientesStatus = 'loading';
+      })
       .addCase(fetchPPPExpedientes.fulfilled, (state, action: PayloadAction<PPPEpidiente[]>) => {
+        state.expedientesStatus = 'succeeded';
         state.expedientes = action.payload;
+      })
+      .addCase(fetchPPPExpedientes.rejected, (state) => {
+        state.expedientesStatus = 'failed';
       })
       .addCase(fetchPPPExpedienteById.fulfilled, (state, action: PayloadAction<PPPEpidiente | null>) => {
         state.currentExpediente = action.payload;
@@ -107,6 +116,7 @@ export const { clearCurrentProposal, clearCurrentExpediente, clearPPPError } = p
 export const selectPPPProposals = (state: { ppp: PPPState }) => state.ppp?.proposals || [];
 export const selectCurrentPPPProposal = (state: { ppp: PPPState }) => state.ppp?.currentProposal;
 export const selectPPPExpedientes = (state: { ppp: PPPState }) => state.ppp?.expedientes || [];
+export const selectPPPExpedientesStatus = (state: { ppp: PPPState }) => state.ppp?.expedientesStatus || 'idle';
 export const selectCurrentPPPExpediente = (state: { ppp: PPPState }) => state.ppp?.currentExpediente;
 export const selectPPPGeneralDrive = (state: { ppp: PPPState }) => state.ppp?.generalDriveUrl;
 export const selectPPPStatus = (state: { ppp: PPPState }) => state.ppp?.status || 'idle';
