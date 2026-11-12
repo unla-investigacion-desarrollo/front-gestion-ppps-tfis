@@ -71,7 +71,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChange, onC
             <option value="ALL">Estado: todos</option>
             <option value="pending">Pendiente</option>
             <option value="active">Activo</option>
-            <option value="invited">Invitado</option>
             <option value="rejected">Rechazado</option>
             <option value="disabled">Deshabilitado</option>
           </select>

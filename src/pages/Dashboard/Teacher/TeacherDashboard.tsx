@@ -11,7 +11,6 @@ import { TutorProjectsTable } from './components/TutorProjectsTable';
 import { RegisterTutoringModal } from './components/RegisterTutoringModal';
 import { ActivityDetailModal } from './components/ActivityDetailModal';
 import TeacherProjectsList from '../../Teacher/TeacherProjectsList';
-import ProposalsList from '../../Admin/Proposals/ProposalsList';
 import ApprovalQueue from '../../Admin/Approvals/ApprovalQueue';
 import { studentWorkService } from '../../../services/studentWorkService';
 import './TeacherDashboard.css';
@@ -78,15 +77,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   // Vista activa dentro del perfil
   const [activeView, setActiveView] = useState<string>(() => {
-    if (location.pathname === '/admin/proposals') return 'propuestas';
     if (location.pathname === '/admin/approvals') return 'solicitudes';
     return initialView || location.state?.initialView || 'inicio';
   });
 
   useEffect(() => {
-    if (location.pathname === '/admin/proposals') {
-      setActiveView('propuestas');
-    } else if (location.pathname === '/admin/approvals') {
+    if (location.pathname === '/admin/approvals') {
       setActiveView('solicitudes');
     } else if (initialView) {
       setActiveView(initialView);
@@ -108,10 +104,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     } else if (view === 'proyectos') {
       if (location.pathname !== '/dashboard') {
         navigate('/dashboard', { state: { initialView: 'proyectos' } });
-      }
-    } else if (view === 'propuestas') {
-      if (location.pathname !== '/admin/proposals') {
-        navigate('/admin/proposals');
       }
     } else if (view === 'ppp') {
       if (location.pathname !== '/dashboard') {
@@ -390,10 +382,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 />
               )}
 
-              {activeView === 'propuestas' && (
-                <ProposalsList />
-              )}
-
               {(activeView === 'convocatoria-tfi' || activeView === 'proyectos') && (
                 <TeacherProjectsList />
               )}
@@ -428,10 +416,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
               {activeView === 'convocatoria-tfi' && (
                 <TeacherProjectsList />
-              )}
-
-              {activeView === 'propuestas' && (
-                <ProposalsList />
               )}
 
               {activeView === 'solicitudes' && (

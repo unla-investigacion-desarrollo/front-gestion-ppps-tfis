@@ -8,12 +8,10 @@ import {
   fetchUsers,
   registerStudent,
   registerProfessor,
-  createOrInviteTeacher,
   approveUser,
   rejectUser,
   deleteUser,
   resetPassword,
-  activateInvitedTeacher,
   toggleUserActivation,
   changePassword,
 } from './asyncActions';
@@ -97,9 +95,6 @@ export const usersSlice = createSlice({
         state.status = 'failed';
         state.error = (action.payload as string) || action.error.message || 'Error al registrar el docente';
       })
-      .addCase(createOrInviteTeacher.fulfilled, (state, action) => {
-        state.list.push(action.payload);
-      })
       .addCase(approveUser.fulfilled, (state, action) => {
         const idx = state.list.findIndex((u) => u.id === action.payload.id);
         if (idx !== -1) state.list[idx] = action.payload;
@@ -113,10 +108,6 @@ export const usersSlice = createSlice({
         if (idx !== -1) state.list[idx].estado = 'papelera';
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
-        const idx = state.list.findIndex((u) => u.id === action.payload.id);
-        if (idx !== -1) state.list[idx] = action.payload;
-      })
-      .addCase(activateInvitedTeacher.fulfilled, (state, action) => {
         const idx = state.list.findIndex((u) => u.id === action.payload.id);
         if (idx !== -1) state.list[idx] = action.payload;
       })

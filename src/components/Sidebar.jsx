@@ -15,11 +15,9 @@ const Sidebar = () => {
           {isStudent && (
             <>
               <li><Link to="/alumno/mis-proyectos">Proyectos</Link></li>
-              <li><Link to="/carga-propuesta">Cargar Propuesta</Link></li>
               <li><Link to="/alumno/entregas">Subir Entregas</Link></li>
             </>
           )}
-          <li><Link to="#">Consultar Estado</Link></li>
           {!isStudent && (
             <>
               <li><Link to="#">Observaciones</Link></li>

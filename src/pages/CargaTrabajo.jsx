@@ -1,4 +1,4 @@
-import './CargaProyecto.css';
+import './CargaTrabajo.css';
 import BackButton from '../components/BackButton';
 
 const CargaTrabajo = () => {

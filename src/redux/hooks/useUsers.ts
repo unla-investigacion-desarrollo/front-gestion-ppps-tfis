@@ -12,8 +12,6 @@ import {
   registerStudent,
   registerProfessor,
   registerAdmin,
-  createOrInviteTeacher,
-  activateInvitedTeacher,
   toggleUserActivation,
   approveUser,
   rejectUser,
@@ -21,7 +19,6 @@ import {
   changePassword,
   resetPassword,
   User,
-  UserRole,
 } from '../features/users/asyncActions';
 
 export const useUsers = () => {
@@ -75,30 +72,6 @@ export const useUsers = () => {
       password?: string;
     }) => {
       return dispatch(registerAdmin(payload)).unwrap();
-    },
-    [dispatch]
-  );
-
-  const inviteTeacher = useCallback(
-    (payload: {
-      email: string;
-      nombre?: string;
-      apellido?: string;
-      invite?: boolean;
-      createdBy?: string;
-      password?: string;
-      dni?: string;
-      sexo?: 'F' | 'M';
-      rol?: Extract<UserRole, 'DOCENTE' | 'ADMIN'>;
-    }) => {
-      return dispatch(createOrInviteTeacher(payload)).unwrap();
-    },
-    [dispatch]
-  );
-
-  const activateTeacher = useCallback(
-    (id: string, password: string) => {
-      return dispatch(activateInvitedTeacher({ id, password })).unwrap();
     },
     [dispatch]
   );
@@ -161,8 +134,6 @@ export const useUsers = () => {
     registerStudentUser,
     registerProfessorUser,
     registerAdminUser,
-    inviteTeacher,
-    activateTeacher,
     toggleActivation,
     approveUserById,
     rejectUserById,
