@@ -448,7 +448,7 @@ const TeacherProjectsList: React.FC = () => {
           {!isTutor && (
             <div className="d-flex gap-2">
               <Link className="btn-new-project" to="/docente/proyectos/nuevo">
-                <span>+</span> Nuevo Proyecto
+                <span>+</span> Nuevo Proyecto TFI
               </Link>
             </div>
           )}

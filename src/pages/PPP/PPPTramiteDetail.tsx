@@ -21,6 +21,8 @@ import {
   PPPStatus,
   getStudentDisplayName,
   getStudentEmail,
+  normalizePPPType,
+  formatPPPDateTime,
 } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
 import {
@@ -232,6 +234,14 @@ export const PPPTramiteDetail: React.FC = () => {
     isStudent &&
     !['approved', 'disapproved', 'application_rejected', 'dropped_out'].includes(expediente.status);
 
+  const isInterna = normalizePPPType(expediente.type, expediente) === 'interna';
+  const resolvedProposalTitle =
+    expediente.proposalTitle ||
+    expediente.proposal?.title ||
+    (isInterna ? 'Práctica Profesional Supervisada' : 'Práctica Profesional Externa');
+  const resolvedDriveFolderUrl =
+    expediente.driveFolderUrl || expediente.proposal?.driveFolderUrl;
+
   return (
     <div className="ppp-page-wrapper">
       <div className="ppp-container">
@@ -244,11 +254,11 @@ export const PPPTramiteDetail: React.FC = () => {
             <div>
               <div className="d-flex align-items-center gap-2 mb-1">
                 <span className="badge bg-light text-secondary border">Expediente #{expediente.id}</span>
-                <span className={`badge ${expediente.type === 'interna' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info'}`}>
-                  Modalidad {expediente.type === 'interna' ? 'Interna' : 'Externa'}
+                <span className={`badge ${isInterna ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info'}`}>
+                  Modalidad {isInterna ? 'Interna' : 'Externa'}
                 </span>
               </div>
-              <h1 className="ppp-title">{expediente.proposalTitle || 'Práctica Profesional Supervisada'}</h1>
+              <h1 className="ppp-title">{resolvedProposalTitle}</h1>
               <p className="ppp-subtitle">
                 {isStudent
                   ? 'Seguimiento oficial de tu trámite de práctica profesional en la carrera.'
@@ -371,13 +381,13 @@ export const PPPTramiteDetail: React.FC = () => {
                 <div className="col-sm-6">
                   <span className="text-muted small d-block">Tipo de Práctica:</span>
                   <span className="fw-semibold text-dark">
-                    {expediente.type === 'interna' ? 'Práctica Interna en Proyecto UNLa' : 'Práctica Externa en Institución/Empresa'}
+                    {isInterna ? 'Práctica Interna en Proyecto UNLa' : 'Práctica Externa en Institución/Empresa'}
                   </span>
                 </div>
                 <div className="col-sm-6">
                   <span className="text-muted small d-block">Fecha de Inicio:</span>
                   <span className="fw-semibold text-dark">
-                    {expediente.createdAt ? new Date(expediente.createdAt).toLocaleDateString() : '-'}
+                    {expediente.createdAt ? new Date(expediente.createdAt).toLocaleDateString('es-AR') : '-'}
                   </span>
                 </div>
 
@@ -390,16 +400,16 @@ export const PPPTramiteDetail: React.FC = () => {
                   </div>
                 )}
 
-                {expediente.driveFolderUrl && (
+                {resolvedDriveFolderUrl && (
                   <div className="col-12">
                     <span className="text-muted small d-block">Carpeta específica de la propuesta:</span>
                     <a
-                      href={expediente.driveFolderUrl}
+                      href={resolvedDriveFolderUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary text-decoration-none fw-semibold small"
                     >
-                      {expediente.driveFolderUrl} ↗
+                      {resolvedDriveFolderUrl} ↗
                     </a>
                   </div>
                 )}
@@ -420,7 +430,7 @@ export const PPPTramiteDetail: React.FC = () => {
                 <div>
                   <span className="text-muted small d-block mb-1">Última actualización:</span>
                   <span className="small text-secondary">
-                    {expediente.updatedAt ? new Date(expediente.updatedAt).toLocaleString() : '-'}
+                    {expediente.updatedAt ? formatPPPDateTime(expediente.updatedAt) : '-'}
                   </span>
                 </div>
               </div>

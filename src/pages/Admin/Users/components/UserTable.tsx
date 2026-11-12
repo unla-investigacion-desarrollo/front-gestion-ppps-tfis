@@ -6,6 +6,7 @@ import {
   FaKey,
   FaBan,
   FaTrashCan,
+  FaCircleCheck,
 } from 'react-icons/fa6';
 
 // Interfaz que define las propiedades del componente de la tabla de usuarios

@@ -201,13 +201,15 @@ export const toggleUserActivation = createAsyncThunk<
       activo: enable,
       dni: rawUser.dni || user?.dni,
       legajo: rawUser.fileNumber || rawUser.legajo || user?.legajo,
-      yearOfAdmission: rawUser.yearOfAdmission || user?.yearOfAdmission,
-      completedCoursesWithFinal: rawUser.completedCoursesWithFinal || user?.completedCoursesWithFinal,
-      completedCoursesWithoutFinal: rawUser.completedCoursesWithoutFinal || user?.completedCoursesWithoutFinal,
+      yearOfAdmission: rawUser.yearOfAdmission ?? user?.yearOfAdmission,
+      completedCoursesWithFinal: rawUser.completedCoursesWithFinal ?? user?.completedCoursesWithFinal,
+      completedCoursesWithoutFinal: rawUser.completedCoursesWithoutFinal ?? user?.completedCoursesWithoutFinal,
       specialization: rawUser.specialization || rawUser.categoria || user?.specialization || user?.categoria,
       isTutor: rawUser.isTutor !== undefined ? !!rawUser.isTutor : !!user?.isTutor,
       createdAt: rawUser.createdAt || user?.createdAt || new Date().toISOString(),
       updatedAt: rawUser.updatedAt || new Date().toISOString(),
+      sourceCreatedAt: rawUser.createdAt || user?.sourceCreatedAt || user?.createdAt,
+      sourceUpdatedAt: rawUser.updatedAt || user?.sourceUpdatedAt || user?.updatedAt,
     };
 
     const users = loadUsers();

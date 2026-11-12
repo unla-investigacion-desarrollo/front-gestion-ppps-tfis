@@ -10,7 +10,7 @@ import {
   FaEye,
   FaArrowUpRightFromSquare,
 } from 'react-icons/fa6';
-import { pppService } from '../../../../services/pppService';
+import { pppService, normalizePPPType } from '../../../../services/pppService';
 
 export interface FormattedPPPRecord {
   id: string;
@@ -46,12 +46,8 @@ function formatFechaCreacion(dateString?: string): string {
   }
 }
 
-function mapTipo(typeRaw?: string): 'Interna' | 'Externa' {
-  const normalized = (typeRaw || '').toLowerCase().trim();
-  if (normalized === 'external' || normalized === 'externa') {
-    return 'Externa';
-  }
-  return 'Interna';
+function mapTipo(typeRaw?: string, itemRecord?: any): 'Interna' | 'Externa' {
+  return normalizePPPType(typeRaw, itemRecord) === 'interna' ? 'Interna' : 'Externa';
 }
 
 function mapSiu(itemRecord: any): 'Cargado' | 'Pendiente' {
@@ -176,7 +172,7 @@ function extractProjectInfo(
 
 function transformBackendPPPTramites(rawList: any[]): FormattedPPPRecord[] {
   return rawList.map((itemRecord: any, itemIndex: number) => {
-    const tipo = mapTipo(itemRecord.type || itemRecord.tipo);
+    const tipo = mapTipo(itemRecord.type || itemRecord.tipo, itemRecord);
     const projectInfo = extractProjectInfo(itemRecord, tipo);
     const siu = mapSiu(itemRecord);
     const statusMapping = mapStatus(
