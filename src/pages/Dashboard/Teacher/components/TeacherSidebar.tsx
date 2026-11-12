@@ -8,7 +8,6 @@ import {
   FaGraduationCap,
   FaChevronDown,
   FaFileLines,
-  FaClipboardList,
   FaFolder,
   FaCalendarCheck,
   FaStar,
@@ -121,21 +120,6 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                     >
                       <FaFileLines size={14} />
                       <span>PPP</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className={`teacher-sidebar-subitem ${activeView === 'propuestas' ? 'active' : ''}`}
-                      onClick={() => {
-                        onSelectView('propuestas');
-                        if (location.pathname !== '/admin/proposals') {
-                          navigate('/admin/proposals');
-                        }
-                      }}
-                    >
-                      <FaClipboardList size={14} />
-                      <span>Propuestas y postulantes</span>
                     </button>
                   </li>
                   <li>

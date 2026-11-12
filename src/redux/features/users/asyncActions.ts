@@ -4,7 +4,7 @@ import { userService } from '../../../services/userService';
 import { normalizeRole } from '../auth/asyncActions';
 
 export type UserRole = 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
-export type UserStatus = 'pending' | 'active' | 'rejected' | 'invited' | 'disabled' | 'papelera';
+export type UserStatus = 'pending' | 'active' | 'rejected' | 'disabled' | 'papelera';
 
 export interface User {
   id: string;
@@ -67,7 +67,7 @@ export function resolveUserStatus(u: any): { estado: UserStatus; activo: boolean
     return { estado: 'pending', activo: false };
   }
   if (rawStatus === 'invited' || rawStatus === 'invitado') {
-    return { estado: 'invited', activo: false };
+    return { estado: 'disabled', activo: false };
   }
   if (rawStatus === 'papelera' || rawStatus === 'deleted') {
     return { estado: 'papelera', activo: false };
@@ -117,24 +117,6 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
     }
   }
 );
-
-export const activateInvitedTeacher = createAsyncThunk<
-  User,
-  { id: string; password: string },
-  { rejectValue: string }
->('users/activateInvitedTeacher', async ({ id, password }, { rejectWithValue }) => {
-  await new Promise((r) => setTimeout(r, 200));
-  const users = loadUsers();
-  const idx = users.findIndex((u) => u.id === id);
-  if (idx === -1) return rejectWithValue('Usuario no encontrado');
-  const u = users[idx];
-  if (u.rol !== 'DOCENTE') return rejectWithValue('Solo docentes invitados pueden activarse');
-  if (u.estado !== 'invited') return rejectWithValue('El usuario no está en estado invitado');
-  if (!password || password.length < 4) return rejectWithValue('La contraseña debe tener al menos 4 caracteres');
-  users[idx] = { ...u, estado: 'active', password, mustChangePassword: true, updatedAt: new Date().toISOString() };
-  saveUsers(users);
-  return users[idx];
-});
 
 export const changePassword = createAsyncThunk<
   { id: string; message?: string },
@@ -405,46 +387,6 @@ export const registerAdmin = createAsyncThunk<
   } catch (error: any) {
     return rejectWithValue(error instanceof Error ? error.message : 'Error al registrar el administrador');
   }
-});
-
-export const createOrInviteTeacher = createAsyncThunk<
-  User,
-  { email: string; nombre?: string; apellido?: string; invite?: boolean; createdBy?: string; password?: string; dni?: string; sexo?: 'F' | 'M'; rol?: Extract<UserRole, 'DOCENTE' | 'ADMIN'> }
->('users/createOrInviteTeacher', async (payload) => {
-  await new Promise((r) => setTimeout(r, 300));
-  const users = loadUsers();
-  const exists = users.some((u) => u.email.toLowerCase() === payload.email.toLowerCase());
-  if (exists) {
-    throw new Error('El email ya está registrado');
-  }
-  if (payload.dni) {
-    const duplicateDni = users.some((u) => (u.dni || '') === payload.dni);
-    if (duplicateDni) {
-      throw new Error('El DNI ya se encuentra registrado');
-    }
-  }
-  const now = new Date().toISOString();
-  const user: User = {
-    id: crypto.randomUUID(),
-    email: payload.email,
-    nombre: payload.nombre,
-    apellido: payload.apellido,
-    rol: payload.rol ?? 'DOCENTE',
-    estado: payload.invite ? 'invited' : 'active',
-    dni: payload.dni,
-    createdAt: now,
-    updatedAt: now,
-    createdBy: payload.createdBy,
-  };
-  if (!payload.invite && payload.password) {
-    user.password = payload.password;
-  }
-  if (user.rol === 'ADMIN') {
-    user.mustChangePassword = true;
-  }
-  const updated = [...users, user];
-  saveUsers(updated);
-  return user;
 });
 
 export const approveUser = createAsyncThunk<User, { id: string }>('users/approve', async ({ id }) => {

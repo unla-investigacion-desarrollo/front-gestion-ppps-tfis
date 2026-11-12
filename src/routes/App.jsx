@@ -1,11 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.css'
 import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import TeacherDashboard from '../pages/Dashboard/Teacher/TeacherDashboard';
-import CargaPropuesta from '../pages/CargaPropuesta';
 import PrivateRoute from '../auth/PrivateRoute';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
 import AdminRoute from '../auth/AdminRoute';
@@ -15,9 +13,6 @@ import UsersList from '../pages/Admin/Users/UsersList';
 import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
 import Help from '../pages/Help/Help';
 import ChangePassword from '../pages/Auth/ChangePassword';
-import ProposalsList from '../pages/Admin/Proposals/ProposalsList';
-import ProposalDetail from '../pages/Admin/Proposals/ProposalDetail';
-import EstadoGeneral from '../pages/Estado/EstadoGeneral';
 import TeacherProjectsList from '../pages/Teacher/TeacherProjectsList';
 import MyProjects from '../pages/Student/MyProjects';
 import StudentDeliveries from '../pages/Student/Deliveries';
@@ -39,16 +34,6 @@ const TeacherProjectsRoute = () => {
   }
 
   return <TeacherProjectsList />;
-};
-
-const TeacherProposalsRoute = () => {
-  const { user, isProfessor, teacherType } = useUserProfile();
-
-  if (isProfessor) {
-    return <TeacherDashboard user={user} teacherType={teacherType} initialView="propuestas" />;
-  }
-
-  return <ProposalsList />;
 };
 
 const TeacherApprovalsRoute = () => {
@@ -92,23 +77,6 @@ const App = () => {
             </PrivateRoute>
           } />
 
-          <Route path="/carga-propuesta" element={
-            <PrivateRoute>
-              <AuthenticatedLayout>
-                <CargaPropuesta />
-              </AuthenticatedLayout>
-            </PrivateRoute>
-          } />
-
-
-          <Route path="/estado" element={
-            <PrivateRoute>
-              <AuthenticatedLayout>
-                <EstadoGeneral />
-              </AuthenticatedLayout>
-            </PrivateRoute>
-          } />
-
           {/* Rutas de administración */}
           <Route path="/admin/users" element={
             <PrivateRoute>
@@ -128,26 +96,6 @@ const App = () => {
               </TeacherRoute>
             </PrivateRoute>
           } />
-          <Route path="/admin/proposals" element={
-            <PrivateRoute>
-              <TeacherRoute>
-                <AuthenticatedLayout>
-                  <TeacherProposalsRoute />
-                </AuthenticatedLayout>
-              </TeacherRoute>
-            </PrivateRoute>
-          } />
-
-          <Route path="/admin/proposals/:id" element={
-            <PrivateRoute>
-              <TeacherRoute>
-                <AuthenticatedLayout>
-                  <ProposalDetail />
-                </AuthenticatedLayout>
-              </TeacherRoute>
-            </PrivateRoute>
-          } />
-
           <Route path="/docente/entregas" element={
             <PrivateRoute>
               <TeacherRoute>

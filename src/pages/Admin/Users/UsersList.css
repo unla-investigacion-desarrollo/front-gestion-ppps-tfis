@@ -32,8 +32,8 @@
   margin-top: 4px;
 }
 
-/* Botón invitar docente */
-.btn-invite-teacher {
+/* Botón de alta de usuario */
+.btn-add-user {
   background-color: var(--unla-primary);
   color: #fff;
   font-weight: 600;
@@ -43,7 +43,7 @@
   box-shadow: 0 2px 6px rgba(100, 0, 29, 0.2);
 }
 
-.btn-invite-teacher:hover {
+.btn-add-user:hover {
   background-color: var(--unla-primary-hover);
   color: #fff;
 }

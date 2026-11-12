@@ -3,7 +3,6 @@ import {
   FaEllipsisVertical,
   FaEye,
   FaPencil,
-  FaCircleCheck,
   FaKey,
   FaBan,
   FaTrashCan,
@@ -16,7 +15,6 @@ interface UserTableProps {
   canManage: (role: string, user: any) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
   onToggleSort: (key: string) => void;
-  onActivateClick: (user: any) => void; // Prop para abrir el modal de activación del docente
   onResetPassword: (user: any) => void;
   onToggleActivation: (user: any, enable: boolean) => void;
   onDeleteUser: (user: any) => void;
@@ -34,7 +32,6 @@ const UserTable: React.FC<UserTableProps> = ({
   canManage,
   sort,
   onToggleSort,
-  onActivateClick,
   onResetPassword,
   onToggleActivation,
   onDeleteUser,
@@ -97,12 +94,6 @@ const UserTable: React.FC<UserTableProps> = ({
         bgColor = '#fef3c7';
         textColor = '#b45309';
         label = 'Pendiente';
-        break;
-      case 'invited':
-        dotColor = '#0369a1';
-        bgColor = '#e0f2fe';
-        textColor = '#0369a1';
-        label = 'Invitado';
         break;
       case 'disabled':
         dotColor = '#be123c';
@@ -257,23 +248,6 @@ const UserTable: React.FC<UserTableProps> = ({
                                   Editar usuario
                                 </button>
                               </li>
-
-                              {/* Acción especial: Activar docente invitado */}
-                              {userItem.rol === 'DOCENTE' && userItem.estado === 'invited' && (
-                                <li>
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item text-success"
-                                    onClick={() => {
-                                      setOpenDropdownId(null);
-                                      onActivateClick(userItem);
-                                    }}
-                                  >
-                                    <FaCircleCheck size={14} />
-                                    Activar docente
-                                  </button>
-                                </li>
-                              )}
 
                               {/* Acción: Resetear Contraseña (solo si el usuario tiene DNI registrado) */}
                               {userItem.dni && userItem.estado !== 'papelera' && (

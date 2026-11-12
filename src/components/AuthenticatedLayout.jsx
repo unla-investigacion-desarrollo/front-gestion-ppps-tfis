@@ -35,9 +35,6 @@ const AuthenticatedLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const displayName = user
-    ? [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || user.nombre || user.apellido || user.email || ''
-    : '';
   const { isAdmin: hookIsAdmin, isProfessor: hookIsTeacher } = useUserProfile();
   const rawRoles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
   if (user?.role) rawRoles.push(user.role);
@@ -45,7 +42,6 @@ const AuthenticatedLayout = ({ children }) => {
   const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
   const isAdmin = hookIsAdmin || normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
   const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'PROFESOR', 'TUTOR', 'EVALUADOR'].includes(r)));
-  const mustChange = !!user?.mustChangePassword;
 
   // Toast handling con cola por usuario (localStorage 'userNotifications')
   const [toast, setToast] = useState(null);
@@ -149,7 +145,6 @@ const AuthenticatedLayout = ({ children }) => {
   const isTeacherDashboard =
     (location.pathname === '/dashboard' ||
       location.pathname === '/docente/proyectos' ||
-      location.pathname === '/admin/proposals' ||
       location.pathname === '/admin/approvals') &&
     isTeacher &&
     !isAdmin;
@@ -166,7 +161,6 @@ const AuthenticatedLayout = ({ children }) => {
           {(isAdmin || isTeacher) && (
             <nav className="unla-nav-links">
               <NavLink to="/dashboard">Inicio</NavLink>
-              <NavLink to="/admin/proposals">Propuestas TFI</NavLink>
               <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
               {isTeacher && !isAdmin && (
                 <NavLink to="/docente/entregas">Entregas TFI</NavLink>

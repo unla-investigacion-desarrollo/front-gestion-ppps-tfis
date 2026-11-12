@@ -1,12 +1,9 @@
-import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUsers,
   FaFileLines,
-  FaFolderOpen,
   FaClockRotateLeft,
   FaUserPlus,
-  FaFileCircleCheck,
   FaFilePen,
   FaUserXmark,
   FaChartColumn,
@@ -25,24 +22,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, role, isAdmin, isStudent, isProfessor, teacherType } = useUserProfile();
-
-  const lastProposal = useMemo(() => {
-    try {
-      const rawProposals = localStorage.getItem('proposals');
-      const proposalsList = rawProposals ? JSON.parse(rawProposals) : [];
-      const userProposals = user?.id
-        ? proposalsList.filter((proposal) => proposal.userId === user.id)
-        : proposalsList;
-      return (
-        userProposals.sort((proposalA, proposalB) =>
-          (proposalB.uploadedAt || '').localeCompare(proposalA.uploadedAt || '')
-        )[0] || null
-      );
-    } catch {
-      return null;
-    }
-  }, [user]);
+  const { user, role, isAdmin, isProfessor, teacherType } = useUserProfile();
 
   // Según la especificación del usuario:
   // if (user.role === 'admin')
@@ -57,7 +37,7 @@ const Dashboard = () => {
 
         {/* 3 Cards Row */}
         <div className="row g-3 mb-4">
-          <div className="col-md-4">
+          <div className="col-md-6">
             <MetricCard
               title="Usuarios activos"
               value="8"
@@ -68,7 +48,7 @@ const Dashboard = () => {
               icon={<FaUsers size={24} />}
             />
           </div>
-          <div className="col-md-4">
+          <div className="col-md-6">
             <MetricCard
               title="Proyectos en curso"
               value="12"
@@ -77,17 +57,6 @@ const Dashboard = () => {
               colorTheme="green"
               onClick={() => navigate('/docente/proyectos')}
               icon={<FaFileLines size={24} />}
-            />
-          </div>
-          <div className="col-md-4">
-            <MetricCard
-              title="Propuestas pendientes"
-              value="3"
-              trendText="Sin cambios"
-              trendDirection="none"
-              colorTheme="yellow"
-              onClick={() => navigate('/admin/proposals')}
-              icon={<FaFolderOpen size={24} />}
             />
           </div>
         </div>
@@ -113,15 +82,6 @@ const Dashboard = () => {
                   badgeType="activo"
                   iconTheme="purple"
                   icon={<FaUserPlus size={18} />}
-                />
-                <ActivityItem
-                  title="Propuesta aprobada"
-                  description='La propuesta "Análisis de rendimiento en servicios distribuidos" fue aprobada.'
-                  time="Hace 4 horas"
-                  badgeText="Aprobada"
-                  badgeType="aprobada"
-                  iconTheme="yellow"
-                  icon={<FaFileCircleCheck size={18} />}
                 />
                 <ActivityItem
                   title="Solicitud de proyecto recibida"
@@ -164,7 +124,6 @@ const Dashboard = () => {
               <div className="summary-list d-flex flex-column gap-1">
                 <SummaryRow label="TFI" value="7" theme="tfi" />
                 <SummaryRow label="PPP" value="5" theme="ppp" />
-                <SummaryRow label="Propuestas" value="3" theme="propuestas" />
                 <SummaryRow label="Proyectos" value="12" theme="proyectos" />
               </div>
             </div>

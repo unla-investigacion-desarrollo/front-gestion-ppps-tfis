@@ -32,8 +32,7 @@ const Help = () => {
 
         <h2 className="unla-section-title">Docentes</h2>
         <ul>
-          <li>Podés ser invitado por email o creado directamente por un administrador.</li>
-          <li>Si fuiste creado directamente, tu contraseña inicial fue definida por el administrador.</li>
+          <li>La contraseña inicial es definida por el administrador.</li>
           <li>Si no recordás tu contraseña, solicitá al administrador el <strong>reseteo</strong>.</li>
         </ul>
 

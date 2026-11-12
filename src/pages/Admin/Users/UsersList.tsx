@@ -5,11 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUsers,
   selectUsers,
-  createOrInviteTeacher,
   registerProfessor,
   registerAdmin,
   resetPassword,
-  activateInvitedTeacher,
   toggleUserActivation
 } from '../../../../redux/slices/usersSlice';
 import { selectCurrentUser, normalizeRole } from '../../../../redux/slices/authSlice';
@@ -23,7 +21,6 @@ import './UsersList.css';
 import { showToast } from '../../../utils/toast';
 import {
   FaCircleInfo,
-  FaEnvelope,
   FaUserPlus,
   FaUser,
   FaCircleCheck,
@@ -35,7 +32,6 @@ import {
 import UserFilters from './components/UserFilters';
 import UserTable from './components/UserTable';
 import Pagination from '../../../components/Pagination';
-import InviteTeacherModal from './components/InviteTeacherModal';
 import CreateTeacherModal from './components/CreateTeacherModal';
 import { userService } from '../../../services/userService';
 
@@ -43,7 +39,7 @@ import { userService } from '../../../services/userService';
 /**
  * Componente contenedor principal para la gestión de usuarios por administradores.
  * Orquesta la carga de datos, cálculo de estadísticas, filtrado de datos y visualización interactiva.
- * Incorpora modales de invitación y edición, tarjetas de estadísticas y filtros desacoplados.
+ * Incorpora creación y edición de usuarios, estadísticas y filtros desacoplados.
  */
 const UsersList: React.FC = () => {
   const dispatch = useDispatch();
@@ -94,11 +90,7 @@ const UsersList: React.FC = () => {
   const pageSize = 10;
 
   // Estados para modales de creación, edición, eliminación y detalles del usuario
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [creationRole, setCreationRole] = useState<'DOCENTE' | 'ADMIN'>('DOCENTE');
   const [editingUser, setEditingUser] = useState<any | null>(null);
-  const [activatingTeacher, setActivatingTeacher] = useState<any | null>(null);
-  const [activatePasswordVal, setActivatePasswordVal] = useState('');
   const [isCreateTeacherModalOpen, setIsCreateTeacherModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
@@ -142,11 +134,6 @@ const UsersList: React.FC = () => {
     if (valueA < valueB) return -1;
     if (valueA > valueB) return 1;
     return 0;
-  };
-
-  // Crear o Invitar
-  const handleCreateOrInvite = async (formData: any) => {
-    await dispatch<any>(createOrInviteTeacher(formData));
   };
 
   // Preparar estado del usuario para editar
@@ -265,22 +252,6 @@ const UsersList: React.FC = () => {
     } finally {
       setSelectedUserDetail(prev => prev ? prev : user); // En caso de que se retorne vacío
       setLoadingDetail(false);
-    }
-  };
-
-  // Activar docente invitado desde modal
-  const handleActivateTeacherSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!activatingTeacher) return;
-    if (activatePasswordVal.length < 4) {
-      showToast('La contraseña debe tener al menos 4 caracteres', 'error');
-      return;
-    }
-    const res = await dispatch<any>(activateInvitedTeacher({ id: activatingTeacher.id, password: activatePasswordVal }));
-    if (res && !res.error) {
-      showToast('Docente activado correctamente', 'success');
-      setActivatingTeacher(null);
-      setActivatePasswordVal('');
     }
   };
 
@@ -569,54 +540,21 @@ const UsersList: React.FC = () => {
     <div className="unla-page users-page-container">
       <div className="unla-card users-card-main">
 
-        {/* Cabecera principal con Título, Subtítulo y Botón de Invitación */}
+        {/* Cabecera principal */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
             <h1 className="m-0 users-title">Usuarios</h1>
             <p className="m-0 text-muted users-subtitle">Gestioná los usuarios del sistema</p>
           </div>
-          <div className="dropdown">
+          <div>
             <button
               type="button"
-              className="btn btn-invite-teacher d-flex align-items-center justify-content-center"
-              id="dropdownAddUser"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-              style={{ fontSize: '22px', fontWeight: 'bold', width: '42px', height: '42px', padding: 0, borderRadius: '50%' }}
-              title="Agregar usuario"
+              className="btn btn-add-user d-inline-flex align-items-center gap-2"
+              onClick={() => setIsCreateTeacherModalOpen(true)}
             >
-              +
+              <FaUserPlus size={16} />
+              Crear usuario
             </button>
-            <ul className="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropdownAddUser" style={{ marginTop: '8px', zIndex: 1010 }}>
-              <li>
-                <button
-                  type="button"
-                  className="dropdown-item d-flex align-items-center gap-2 py-2"
-                  onClick={() => {
-                    setCreationRole('DOCENTE');
-                    setIsInviteModalOpen(true);
-                  }}
-                  style={{ fontSize: '14px' }}
-                >
-                  <FaEnvelope size={16} />
-                  Invitar docente (correo)
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="dropdown-item d-flex align-items-center gap-2 py-2"
-                  onClick={() => {
-                    setCreationRole('DOCENTE');
-                    setIsCreateTeacherModalOpen(true);
-                  }}
-                  style={{ fontSize: '14px' }}
-                >
-                  <FaUserPlus size={16} />
-                  Crear usuario
-                </button>
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -681,7 +619,6 @@ const UsersList: React.FC = () => {
           canManage={canManage}
           sort={sort}
           onToggleSort={toggleSort}
-          onActivateClick={(user) => setActivatingTeacher(user)}
           onResetPassword={handleResetPassword}
           onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
@@ -700,15 +637,6 @@ const UsersList: React.FC = () => {
           onPageChange={setPage}
         />
       </div>
-
-      {/* --- MODAL PARA CREAR/INVITAR DOCENTES --- */}
-      <InviteTeacherModal
-        isOpen={isInviteModalOpen}
-        isAdmin={isAdmin}
-        initialRole={creationRole}
-        onClose={() => setIsInviteModalOpen(false)}
-        onSubmit={handleCreateOrInvite}
-      />
 
       {/* --- MODAL PARA EDITAR INFORMACIÓN DE USUARIOS --- */}
       {editingUser && (
@@ -870,71 +798,6 @@ const UsersList: React.FC = () => {
                       style={{ backgroundColor: 'var(--unla-primary)', border: 'none' }}
                     >
                       Guardar Cambios
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-          <div className="custom-modal-backdrop" />
-        </>
-      )}
-
-      {/* --- MODAL PARA ACTIVAR DOCENTES INVITADOS --- */}
-      {activatingTeacher && (
-        <>
-          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1}>
-            <div className="modal-dialog modal-md modal-dialog-centered">
-              <div className="modal-content custom-modal-content">
-                <div className="modal-header custom-modal-header">
-                  <h5 className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary)' }}>
-                    Activar Docente: {activatingTeacher.email}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => {
-                      setActivatingTeacher(null);
-                      setActivatePasswordVal('');
-                    }}
-                    aria-label="Close"
-                  />
-                </div>
-                <form onSubmit={handleActivateTeacherSubmit}>
-                  <div className="modal-body custom-modal-body d-flex flex-column gap-3">
-                    <div>
-                      <p className="text-muted small mb-3">
-                        Para activar la cuenta de este docente invitado, por favor ingresá una contraseña inicial.
-                      </p>
-                      <label className="form-label" style={{ fontWeight: 500 }}>Contraseña inicial</label>
-                      <input
-                        type="password"
-                        className="form-control"
-                        required
-                        minLength={4}
-                        autoComplete="new-password"
-                        placeholder="Mínimo 4 caracteres"
-                        value={activatePasswordVal}
-                        onChange={(e) => setActivatePasswordVal(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-footer custom-modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() => {
-                        setActivatingTeacher(null);
-                        setActivatePasswordVal('');
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn btn-success"
-                    >
-                      Activar Docente
                     </button>
                   </div>
                 </form>
