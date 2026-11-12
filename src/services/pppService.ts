@@ -543,7 +543,7 @@ export const pppService = {
    * Bandeja General de Expedientes: GET /ppp
    * Exclusivo Docentes y Administradores.
    */
-  getExpedientes: async (token: string): Promise<PPPEpidiente[]> => {
+  getExpedientes: async (token: string, useLocalFallback = true): Promise<PPPEpidiente[]> => {
     try {
       const res = await fetch(`${API_URL}/ppp`, {
         method: 'GET',
@@ -564,6 +564,7 @@ export const pppService = {
         };
       });
     } catch (error) {
+      if (!useLocalFallback) throw error;
       console.warn('pppService.getExpedientes: Usando respaldo local', error);
       return getLocalExpedientes();
     }

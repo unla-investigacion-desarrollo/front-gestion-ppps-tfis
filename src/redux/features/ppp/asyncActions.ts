@@ -120,12 +120,16 @@ export const createPPPExternal = createAsyncThunk<
   }
 });
 
-export const fetchPPPExpedientes = createAsyncThunk<PPPEpidiente[], void, { rejectValue: string }>(
+export const fetchPPPExpedientes = createAsyncThunk<
+  PPPEpidiente[],
+  { useLocalFallback?: boolean } | void,
+  { rejectValue: string }
+>(
   'ppp/fetchExpedientes',
-  async (_, { rejectWithValue, signal }) => {
+  async (options, { rejectWithValue, signal }) => {
     try {
       const token = localStorage.getItem('token') || '';
-      return await pppService.getExpedientes(token);
+      return await pppService.getExpedientes(token, options?.useLocalFallback);
     } catch (error: any) {
       if (signal?.aborted) return rejectWithValue('Petición cancelada');
       return rejectWithValue(error.message || 'Error al cargar expedientes');

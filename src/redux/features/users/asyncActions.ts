@@ -26,6 +26,8 @@ export interface User {
   mustChangePassword?: boolean;
   createdAt: string;
   updatedAt: string;
+  sourceCreatedAt?: string;
+  sourceUpdatedAt?: string;
   createdBy?: string;
   isTutor?: boolean;
   yearOfAdmission?: number;
@@ -107,6 +109,8 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
           isTutor: !!u.isTutor,
           createdAt: u.createdAt || new Date().toISOString(),
           updatedAt: u.updatedAt || new Date().toISOString(),
+          sourceCreatedAt: u.createdAt,
+          sourceUpdatedAt: u.updatedAt,
         };
       });
     } catch (error: any) {
