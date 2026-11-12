@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   FaUsers,
   FaFileLines,
-  FaClockRotateLeft,
   FaUserPlus,
   FaFilePen,
   FaUserXmark,
@@ -16,7 +15,7 @@ import './Dashboard.css';
 
 // Reusable components for Admin Dashboard
 import MetricCard from './components/MetricCard';
-import ActivityItem from './components/ActivityItem';
+import RecentActivityPanel from './components/RecentActivityPanel';
 import SummaryRow from './components/SummaryRow';
 import StudentDashboard from './StudentDashboard';
 import TeacherDashboard from './Teacher/TeacherDashboard';
@@ -333,39 +332,16 @@ const Dashboard = () => {
 
         {/* Lower Row: Activity + Summary */}
         <div className="row g-3">
-          {/* Recent Activity */}
           <div className="col-md-8">
-            <div className="dashboard-panel-card">
-              <div className="panel-card-header">
-                <h3 className="panel-card-title d-flex align-items-center gap-2">
-                  <FaClockRotateLeft size={20} color="var(--unla-primary)" />
-                  Actividad reciente
-                </h3>
-                <a href="#/" onClick={(event) => { event.preventDefault(); navigate('/admin/users'); }} className="panel-card-link">Gestionar usuarios →</a>
-              </div>
-              <div className="activity-list">
-                {latestActivities.length > 0 ? latestActivities.map((activityItem) => (
-                  <ActivityItem
-                    key={activityItem.id}
-                    title={activityItem.title}
-                    description={activityItem.description}
-                    time={formatRelativeTime(activityItem.timestamp)}
-                    badgeText={activityItem.badgeText}
-                    badgeType={activityItem.badgeType}
-                    iconTheme={activityItem.iconTheme}
-                    icon={activityItem.icon}
-                  />
-                )) : (
-                  <div className="py-4 text-center text-muted small">
-                    {hasDataError
-                      ? 'No se pudo cargar la actividad.'
-                      : allDataLoaded
-                        ? 'No hay movimientos recientes con fecha disponible.'
-                        : 'Cargando actividad...'}
-                  </div>
-                )}
-              </div>
-            </div>
+            <RecentActivityPanel
+              activities={latestActivities.map((activityItem) => ({
+                ...activityItem,
+                time: formatRelativeTime(activityItem.timestamp),
+              }))}
+              isLoading={!allDataLoaded && !hasDataError}
+              hasError={hasDataError}
+              onManageUsers={() => navigate('/admin/users')}
+            />
           </div>
 
           {/* Right Panel: Summary + Status */}
