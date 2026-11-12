@@ -83,6 +83,36 @@ export const projectService = {
   },
 
   /**
+   * Obtiene la vista general de proyectos con alumnos, docentes, estado del proyecto
+   * e información de la última revisión del trabajo (GET /project/overview).
+   */
+  getProjectsOverview: async (token: string, signal?: AbortSignal) => {
+    const res = await fetch(`${API_URL}/project/overview`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      signal,
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      throw new Error(parsedError?.message || text || `Error ${res.status}: Falló la obtención del resumen de proyectos`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
    * Obtiene los tipos de proyectos existentes en el sistema.
    */
   getProjectTypes: async (token: string, signal?: AbortSignal): Promise<ProjectTypeDTO[]> => {

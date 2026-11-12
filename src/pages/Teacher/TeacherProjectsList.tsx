@@ -76,7 +76,7 @@ const TeacherProjectsList: React.FC = () => {
     dispatch(fetchUsers());
 
     const token = localStorage.getItem('token') || '';
-    if (token) {
+    if (token && isTutor) {
       projectService
         .getMyRequests(token)
         .then((data) => setMyRequests(Array.isArray(data) ? data : []))
@@ -87,7 +87,7 @@ const TeacherProjectsList: React.FC = () => {
         .then((data) => setMyActiveProjects(Array.isArray(data) ? data : []))
         .catch(() => {});
     }
-  }, [dispatch]);
+  }, [dispatch, isTutor]);
 
   const pendingProjectIds = useMemo(() => {
     return new Set(myRequests.map((req) => String(req.project?.id || req.id)));

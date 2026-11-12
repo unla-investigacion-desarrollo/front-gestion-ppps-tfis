@@ -925,7 +925,7 @@ const Trabajo: React.FC = () => {
 
                     <div className="trabajo-action-cards-list">
                       {/* Marcar con Observaciones (Docente evaluador / Admin) */}
-                      {(isTeacher || isAdmin) && (
+                      {((isTeacher && !isTutor) || isAdmin) && (
                         <button
                           type="button"
                           className="trabajo-action-card"
@@ -1040,8 +1040,8 @@ const Trabajo: React.FC = () => {
                         </button>
                       )}
 
-                      {/* Confirmar Tutoría (Tutor o Admin si fue solicitada) */}
-                      {(isTeacher || isAdmin) && work.tutoringRequested && (
+                      {/* Confirmar Tutoría (Tutor o Admin) */}
+                      {(isTutor || ((isTeacher || isAdmin) && work.tutoringRequested)) && (
                         <button
                           type="button"
                           className="trabajo-action-card"
@@ -1055,7 +1055,8 @@ const Trabajo: React.FC = () => {
                               actionType: 'mark_tutored',
                             })
                           }
-                          disabled={actionLoading}
+                          disabled={actionLoading || !work.tutoringRequested}
+                          title={!work.tutoringRequested ? 'No hay solicitud de tutoría pendiente para este proyecto' : undefined}
                         >
                           <div className="trabajo-action-icon-circle sky">
                             <FaGraduationCap size={16} />
@@ -1063,7 +1064,9 @@ const Trabajo: React.FC = () => {
                           <div className="trabajo-action-card-text">
                             <div className="trabajo-action-card-title">Confirmar tutoría</div>
                             <div className="trabajo-action-card-desc">
-                              Registrar la atención de la tutoría solicitada.
+                              {work.tutoringRequested
+                                ? 'Registrar la atención de la tutoría solicitada.'
+                                : 'No hay solicitud de tutoría pendiente actualmente.'}
                             </div>
                           </div>
                           <FaChevronRight className="trabajo-action-chevron" />
@@ -1122,21 +1125,23 @@ const Trabajo: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Regla de Evaluación Institucional (Mockup) */}
-                    <div className="trabajo-eval-rules-box">
-                      <div className="trabajo-eval-rules-header">
-                        <FaCircleInfo size={14} />
-                        <span>Regla de evaluación institucional:</span>
+                    {/* Regla de Evaluación Institucional (No visible para Tutor) */}
+                    {!isTutor && (
+                      <div className="trabajo-eval-rules-box">
+                        <div className="trabajo-eval-rules-header">
+                          <FaCircleInfo size={14} />
+                          <span>Regla de evaluación institucional:</span>
+                        </div>
+                        <p className="trabajo-eval-rules-sub">
+                          El estado de la calificación se asigna según la escala definida:
+                        </p>
+                        <div className="trabajo-eval-badges">
+                          <span className="eval-badge absent">0 = ausente</span>
+                          <span className="eval-badge disapproved">1-3 = desaprobada</span>
+                          <span className="eval-badge approved">4+ = aprobada</span>
+                        </div>
                       </div>
-                      <p className="trabajo-eval-rules-sub">
-                        El estado de la calificación se asigna según la escala definida:
-                      </p>
-                      <div className="trabajo-eval-badges">
-                        <span className="eval-badge absent">0 = ausente</span>
-                        <span className="eval-badge disapproved">1-3 = desaprobada</span>
-                        <span className="eval-badge approved">4+ = aprobada</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>

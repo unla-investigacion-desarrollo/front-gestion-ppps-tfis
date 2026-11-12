@@ -27,6 +27,24 @@ export interface ActiveProfessorRelation {
   };
 }
 
+export interface ProjectStudentWorkOverview {
+  id: number;
+  status: string;
+  lastReviewedAt?: string | null;
+  lastReviewedBy?: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+  } | null;
+  tutoringRequested?: boolean;
+  lastTutoredAt?: string | null;
+  lastTutoredBy?: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+  } | null;
+}
+
 export interface Project {
   id: string;
   teacherId?: string;
@@ -40,8 +58,13 @@ export interface Project {
   updatedAt: string;
   students: string[];
   coTeachers?: string[];
-  activeStudents?: ActiveStudentRelation[];
-  activeProfessors?: ActiveProfessorRelation[];
+  activeStudents?: any[];
+  activeProfessors?: any[];
+  studentWork?: ProjectStudentWorkOverview | null;
+  lastReviewedByName?: string | null;
+  lastReviewedAt?: string | null;
+  lastTutoredByName?: string | null;
+  lastTutoredAt?: string | null;
   raw?: any;
 }
 
@@ -61,19 +84,27 @@ export function normalizeBackendProject(p: any): Project {
   const students = rawStudents
     .filter((as: any) => as && as.active !== false)
     .map((as: any) => {
+      if (typeof as === 'string' || typeof as === 'number') return String(as);
       const studentObj = as.student?.user || as.user || as.student || as;
       return String(studentObj.id || as.student?.id_user || as.student?.id || as.id_user || as.id || '');
     })
     .filter(Boolean);
 
+  const normalizedActiveStudents =
+    Array.isArray(p.activeStudents) && p.activeStudents.length > 0
+      ? p.activeStudents
+      : Array.isArray(p.students) && p.students.some((s: any) => s && typeof s === 'object')
+      ? p.students
+      : [];
+
   // Normalize professors / teachers
   const rawProfessors =
     Array.isArray(p.activeProfessors) && p.activeProfessors.length > 0
       ? p.activeProfessors
-      : Array.isArray(p.coTeachers) && p.coTeachers.length > 0
-      ? p.coTeachers
       : Array.isArray(p.professors) && p.professors.length > 0
       ? p.professors
+      : Array.isArray(p.coTeachers) && p.coTeachers.length > 0
+      ? p.coTeachers
       : Array.isArray(p.teachers) && p.teachers.length > 0
       ? p.teachers
       : [];
@@ -81,10 +112,18 @@ export function normalizeBackendProject(p: any): Project {
   const coTeachers = rawProfessors
     .filter((ap: any) => ap && ap.active !== false)
     .map((ap: any) => {
+      if (typeof ap === 'string' || typeof ap === 'number') return String(ap);
       const profObj = ap.professor?.user || ap.user || ap.professor || ap;
       return String(profObj.id || ap.professor?.id_user || ap.professor?.id || ap.id_user || ap.id || '');
     })
     .filter(Boolean);
+
+  const normalizedActiveProfessors =
+    Array.isArray(p.activeProfessors) && p.activeProfessors.length > 0
+      ? p.activeProfessors
+      : Array.isArray(p.professors) && p.professors.some((prof: any) => prof && typeof prof === 'object')
+      ? p.professors
+      : [];
 
   const mainTeacherId = p.teacherId
     ? String(p.teacherId)
@@ -94,12 +133,48 @@ export function normalizeBackendProject(p: any): Project {
     ? String(p.tutor.id)
     : coTeachers[0] || '';
 
+  const reviewer = p.studentWork?.lastReviewedBy || p.lastReviewedBy || null;
+  const lastReviewedByName = reviewer
+    ? typeof reviewer === 'string'
+      ? reviewer
+      : [
+          reviewer.firstName || reviewer.nombre || reviewer.user?.firstName || reviewer.user?.nombre,
+          reviewer.lastName || reviewer.apellido || reviewer.user?.lastName || reviewer.user?.apellido,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .trim() ||
+        reviewer.name ||
+        reviewer.email ||
+        (reviewer.id ? `Usuario #${reviewer.id}` : null)
+    : null;
+
+  const lastReviewedAt = p.studentWork?.lastReviewedAt || p.lastReviewedAt || null;
+
+  const tutorReviewer = p.studentWork?.lastTutoredBy || p.lastTutoredBy || null;
+  const lastTutoredByName = tutorReviewer
+    ? typeof tutorReviewer === 'string'
+      ? tutorReviewer
+      : [
+          tutorReviewer.firstName || tutorReviewer.nombre || tutorReviewer.user?.firstName || tutorReviewer.user?.nombre,
+          tutorReviewer.lastName || tutorReviewer.apellido || tutorReviewer.user?.lastName || tutorReviewer.user?.apellido,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .trim() ||
+        tutorReviewer.name ||
+        tutorReviewer.email ||
+        (tutorReviewer.id ? `Usuario #${tutorReviewer.id}` : null)
+    : null;
+
+  const lastTutoredAt = p.studentWork?.lastTutoredAt || p.lastTutoredAt || null;
+
   return {
     id: String(p.id),
     teacherId: mainTeacherId,
     titulo: p.title || p.titulo || 'Sin título',
     descripcion: p.description || p.descripcion || '',
-    categoria: p.projectType?.name || p.categoria || 'Other',
+    categoria: p.category || p.projectType?.name || p.categoria || 'Other',
     projectType: p.projectType,
     projectTypeId: p.projectType?.id,
     estado: p.status || p.estado || 'pending',
@@ -107,18 +182,35 @@ export function normalizeBackendProject(p: any): Project {
     updatedAt: p.updatedAt || new Date().toISOString(),
     students,
     coTeachers,
-    activeStudents: p.activeStudents || [],
-    activeProfessors: p.activeProfessors || [],
+    activeStudents: normalizedActiveStudents,
+    activeProfessors: normalizedActiveProfessors,
+    studentWork: p.studentWork || null,
+    lastReviewedByName,
+    lastReviewedAt,
+    lastTutoredByName,
+    lastTutoredAt,
     raw: p,
   };
 }
 
 export const fetchProjects = createAsyncThunk<Project[], void, { rejectValue: string }>(
   'projects/fetch',
-  async (_, { rejectWithValue, signal }) => {
+  async (_, { rejectWithValue, signal, getState }) => {
     try {
       const token = localStorage.getItem('token') || '';
-      const data = await projectService.getProjects(token, signal);
+      const state = getState() as any;
+      let isTutor = Boolean(state?.auth?.user?.isTutor);
+      if (state?.auth?.user?.isTutor === undefined) {
+        try {
+          const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+          isTutor = Boolean(storedUser?.isTutor);
+        } catch {}
+      }
+
+      const data = isTutor
+        ? await projectService.getProjects(token, signal)
+        : await projectService.getProjectsOverview(token, signal);
+
       if (!Array.isArray(data)) {
         return [];
       }

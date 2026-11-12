@@ -231,6 +231,77 @@
   color: #4b5563;
 }
 
+/* Pills de Estado del Proyecto */
+.teacher-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.teacher-status-pill .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.teacher-status-pill.revision {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.teacher-status-pill.revision .status-dot {
+  background-color: #f59e0b;
+}
+
+.teacher-status-pill.curso,
+.teacher-status-pill.aprobada {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.teacher-status-pill.curso .status-dot,
+.teacher-status-pill.aprobada .status-dot {
+  background-color: #16a34a;
+}
+
+.teacher-status-pill.observaciones {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+.teacher-status-pill.observaciones .status-dot {
+  background-color: #f97316;
+}
+
+.teacher-status-pill.sin-entrega {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.teacher-status-pill.sin-entrega .status-dot {
+  background-color: #ef4444;
+}
+
+.teacher-status-pill.finalizado {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.teacher-status-pill.finalizado .status-dot {
+  background-color: #94a3b8;
+}
+
 /* Listas internas de estudiantes y co-docentes */
 .inline-member-list {
   list-style: none;

@@ -44,7 +44,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     try {
       const u = JSON.parse(localStorage.getItem('user') || '{}');
       return Boolean(u.isTutor);
-    } catch {}
+    } catch { }
     return false;
   }, [isTutor]);
 
@@ -227,7 +227,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       let localUser: any = null;
       try {
         localUser = JSON.parse(localStorage.getItem('user') || '{}');
-      } catch {}
+      } catch { }
       const curId = String(localUser?.id || localUser?.id_user || '');
       if (curId && !seenIds.has(curId)) {
         seenIds.add(curId);
@@ -274,7 +274,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     );
   };
 
-  // Formatea la fecha de creación del proyecto
+  // Formatea la fecha de creación o revisión del proyecto
   const formatCreationDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
@@ -289,21 +289,76 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     }
   };
 
+  // Obtiene la etiqueta y clase visual para el estado de la entrega (studentWork.status)
+  const getStudentWorkStatusInfo = (project: Project): { label: string; pillClass: string } => {
+    const work = project.studentWork || (project as any).raw?.studentWork || null;
+    if (!work || !work.status) {
+      return { label: 'Sin entrega', pillClass: 'finalizado' };
+    }
+
+    const rawStatus = String(work.status).toLowerCase().trim();
+    switch (rawStatus) {
+      case 'pending_review':
+        return { label: 'Pendiente de revisión', pillClass: 'revision' };
+      case 'observed':
+        return { label: 'Con observaciones', pillClass: 'observaciones' };
+      case 'approved':
+        return { label: 'Aprobada', pillClass: 'aprobada' };
+      case 'disapproved':
+        return { label: 'Desaprobada', pillClass: 'sin-entrega' };
+      case 'absent':
+        return { label: 'Ausente', pillClass: 'finalizado' };
+      default:
+        return { label: work.status, pillClass: 'revision' };
+    }
+  };
+
+  // Obtiene el nombre completo del último evaluador que revisó el trabajo
+  const getLastReviewerName = (project: Project): string | null => {
+    if (project.lastReviewedByName) return project.lastReviewedByName;
+    const reviewer =
+      project.studentWork?.lastReviewedBy ||
+      (project as any).raw?.studentWork?.lastReviewedBy ||
+      (project as any).raw?.lastReviewedBy ||
+      null;
+    if (!reviewer) return null;
+    if (typeof reviewer === 'string') return reviewer;
+    const resolved = getMemberName(reviewer);
+    return resolved || null;
+  };
+
+  // Obtiene el nombre completo del último tutor que revisó / tutorizó el trabajo
+  const getLastTutoredByName = (project: Project): string | null => {
+    if (project.lastTutoredByName) return project.lastTutoredByName;
+    const tutor =
+      project.studentWork?.lastTutoredBy ||
+      (project as any).raw?.studentWork?.lastTutoredBy ||
+      (project as any).raw?.lastTutoredBy ||
+      null;
+    if (!tutor) return null;
+    if (typeof tutor === 'string') return tutor;
+    const resolved = getMemberName(tutor);
+    return resolved || null;
+  };
+
   return (
     <div className="projects-table-wrapper">
       <table className="table table-striped table-hover m-0 align-middle">
         <thead className="table-dark">
           <tr>
-            <th style={{ width: '45%', padding: '12px 16px' }}>Proyecto</th>
-            <th style={{ width: '22%', padding: '12px 16px' }}>Alumnos Asignados</th>
-            <th style={{ width: '18%', padding: '12px 16px' }}>Docentes</th>
-            <th style={{ width: '15%', padding: '12px 16px', textAlign: 'center' }}>Acciones</th>
+            <th style={{ width: '25%', padding: '12px 16px' }}>Proyecto</th>
+            <th style={{ width: '16%', padding: '12px 16px' }}>Alumnos Asignados</th>
+            <th style={{ width: '15%', padding: '12px 16px' }}>Docentes</th>
+            <th style={{ width: '10%', padding: '12px 16px' }}>Estado</th>
+            <th style={{ width: '13%', padding: '12px 16px' }}>Última revisión Evaluador</th>
+            <th style={{ width: '13%', padding: '12px 16px' }}>Última revisión Tutor</th>
+            <th style={{ width: '8%', padding: '12px 16px', textAlign: 'center' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {projects.length === 0 ? (
             <tr>
-              <td colSpan={4} className="text-center py-5 text-muted">
+              <td colSpan={7} className="text-center py-5 text-muted">
                 No se encontraron proyectos activos con los filtros indicados.
               </td>
             </tr>
@@ -326,7 +381,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </Link>
                     );
                   })()}
-                  <p className="project-description-text">{project.descripcion}</p>
+                  {project.descripcion && (
+                    <p className="project-description-text">{project.descripcion}</p>
+                  )}
 
                   {project.createdAt && (
                     <div className="project-date-text">
@@ -406,6 +463,77 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   })()}
                 </td>
 
+                {/* Columna: Estado de la entrega (studentWork.status) */}
+                <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                  {(() => {
+                    const { label, pillClass } = getStudentWorkStatusInfo(project);
+                    return (
+                      <span className={`teacher-status-pill ${pillClass}`}>
+                        <span className="status-dot" />
+                        <span>{label}</span>
+                      </span>
+                    );
+                  })()}
+                </td>
+
+                {/* Columna: Última revisión por Evaluador */}
+                <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                  {(() => {
+                    const reviewerName = getLastReviewerName(project);
+                    const reviewedAt =
+                      project.lastReviewedAt ||
+                      project.studentWork?.lastReviewedAt ||
+                      (project as any).raw?.studentWork?.lastReviewedAt ||
+                      null;
+
+                    if (!reviewerName) {
+                      return <span className="text-muted small">Sin revisiones</span>;
+                    }
+
+                    return (
+                      <div>
+                        <div className="fw-medium text-dark" style={{ fontSize: '13.5px' }}>
+                          {reviewerName}
+                        </div>
+                        {reviewedAt && (
+                          <div className="text-muted" style={{ fontSize: '11.5px' }}>
+                            {formatCreationDate(reviewedAt)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </td>
+
+                {/* Columna: Última revisión Tutor */}
+                <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                  {(() => {
+                    const tutorName = getLastTutoredByName(project);
+                    const tutoredAt =
+                      project.lastTutoredAt ||
+                      project.studentWork?.lastTutoredAt ||
+                      (project as any).raw?.studentWork?.lastTutoredAt ||
+                      null;
+
+                    if (!tutorName) {
+                      return <span className="text-muted small">Sin revisiones</span>;
+                    }
+
+                    return (
+                      <div>
+                        <div className="fw-medium text-dark" style={{ fontSize: '13.5px' }}>
+                          {tutorName}
+                        </div>
+                        {tutoredAt && (
+                          <div className="text-muted" style={{ fontSize: '11.5px' }}>
+                            {formatCreationDate(tutoredAt)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </td>
+
                 {/* Columna: Acciones (Menú Dropdown ⋮ / Lápiz) */}
                 <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                   <div className="d-inline-flex align-items-center justify-content-center">
@@ -453,8 +581,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   {activeProjectIds?.has(String(project.id))
                                     ? '✓ Ya sos miembro'
                                     : pendingProjectIds?.has(String(project.id))
-                                    ? '⏳ Solicitud pendiente'
-                                    : '+ Solicitar unirse'}
+                                      ? '⏳ Solicitud pendiente'
+                                      : '+ Solicitar unirse'}
                                 </button>
                               </>
                             )}

@@ -6,10 +6,7 @@ import {
   FaFileLines,
   FaUserPlus,
   FaFilePen,
-  FaUserXmark,
   FaChartColumn,
-  FaCircleInfo,
-  FaCalendarDays,
 } from 'react-icons/fa6';
 import './Dashboard.css';
 
@@ -344,8 +341,8 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Right Panel: Summary + Status */}
-          <div className="col-md-4 d-flex flex-column justify-content-between">
+          {/* Right Panel: Summary */}
+          <div className="col-md-4 d-flex flex-column">
             <div className="dashboard-panel-card">
               <h3 className="panel-card-title mb-3 d-flex align-items-center gap-2">
                 <FaChartColumn size={20} color="var(--unla-primary)" />
@@ -359,21 +356,6 @@ const Dashboard = () => {
                   value={allDataLoaded ? projectCount : '—'}
                   theme="proyectos"
                 />
-              </div>
-            </div>
-
-            {/* System Status Alert Card */}
-            <div className="system-status-card">
-              <div className="system-status-title d-flex align-items-center gap-2">
-                <FaCircleInfo size={18} />
-                {hasDataError ? 'Actualización incompleta' : allDataLoaded ? 'Información sincronizada' : 'Consultando información'}
-              </div>
-              <span className="system-status-desc">Última consulta al sistema</span>
-              <div className="system-status-time d-flex align-items-center gap-1.5">
-                <FaCalendarDays size={14} />
-                {lastDataSync
-                  ? lastDataSync.toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })
-                  : 'A la espera de respuesta'}
               </div>
             </div>
           </div>
