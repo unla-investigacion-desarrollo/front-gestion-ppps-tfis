@@ -8,7 +8,7 @@ import {
   createPPPExternal,
   selectPPPExpedientes,
 } from '../../../redux/slices/pppSlice';
-import { PPPEpidiente } from '../../services/pppService';
+import { PPPEpidiente, PPPStatus, normalizePPPType } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
 import './PPP.css';
 
@@ -92,6 +92,29 @@ export const PPPStudentMyTramite: React.FC = () => {
     }
   };
 
+  const getStatusLabel = (statusKey: PPPStatus | string) => {
+    switch (statusKey) {
+      case 'pending_application':
+        return 'Postulación Pendiente de Revisión';
+      case 'application_rejected':
+        return 'Postulación Desestimada';
+      case 'pending_documentation':
+        return 'Documentación Pendiente';
+      case 'in_review':
+        return 'En Revisión Académica';
+      case 'observed':
+        return 'Con Observaciones';
+      case 'approved':
+        return 'Práctica Aprobada';
+      case 'disapproved':
+        return 'Práctica No Aprobada';
+      case 'dropped_out':
+        return 'Trámite Dado de Baja';
+      default:
+        return statusKey;
+    }
+  };
+
   const handleConsultSubmit = (formSubmitEvent: React.FormEvent) => {
     formSubmitEvent.preventDefault();
     const cleanId = consultIdInput.trim().replace(/^#/, '');
@@ -172,7 +195,9 @@ export const PPPStudentMyTramite: React.FC = () => {
           </div>
         ) : (
           <div className="d-flex flex-column gap-3">
-            {myExpedientes.map((expedienteItem) => (
+            {myExpedientes.map((expedienteItem) => {
+              const isInterna = normalizePPPType(expedienteItem.type, expedienteItem) === 'interna';
+              return (
               <div
                 key={expedienteItem.id}
                 className="bg-white rounded-3 border p-4 shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3"
@@ -184,27 +209,25 @@ export const PPPStudentMyTramite: React.FC = () => {
                     </span>
                     <span
                       className={`badge ${
-                        expedienteItem.type === 'interna'
+                        isInterna
                           ? 'bg-primary-subtle text-primary'
                           : 'bg-info-subtle text-info'
                       }`}
                     >
-                      {expedienteItem.type === 'interna' ? 'Práctica Interna' : 'Práctica Externa'}
+                      {isInterna ? 'Práctica Interna' : 'Práctica Externa'}
                     </span>
                     <span className={`ppp-status-badge ppp-status-${expedienteItem.status}`}>
                       <span className="ppp-status-dot" />
-                      {expedienteItem.status === 'pending_application'
-                        ? 'Postulación Pendiente de Revisión'
-                        : expedienteItem.status}
+                      {getStatusLabel(expedienteItem.status)}
                     </span>
                   </div>
                   <h5 className="fw-bold text-dark m-0">
-                    {expedienteItem.proposalTitle || 'Práctica Profesional Supervisada'}
+                    {expedienteItem.proposalTitle || expedienteItem.proposal?.title || 'Práctica Profesional Supervisada'}
                   </h5>
                   <div className="text-muted small mt-1">
                     Iniciado el:{' '}
                     {expedienteItem.createdAt
-                      ? new Date(expedienteItem.createdAt).toLocaleDateString()
+                      ? new Date(expedienteItem.createdAt).toLocaleDateString('es-AR')
                       : '-'}
                   </div>
                 </div>
@@ -221,7 +244,8 @@ export const PPPStudentMyTramite: React.FC = () => {
                   </Link>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

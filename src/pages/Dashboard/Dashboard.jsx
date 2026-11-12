@@ -192,8 +192,12 @@ const Dashboard = () => {
       const createdAt = parseTimestamp(expedienteItem.createdAt);
       const updatedAt = parseTimestamp(expedienteItem.updatedAt);
       const studentName = expedienteItem.studentName || 'Estudiante';
+      const isExternalPpp =
+        String(expedienteItem.type || '').toLowerCase() === 'externa' ||
+        String(expedienteItem.type || '').toLowerCase() === 'external';
       const expedienteTitle = expedienteItem.proposalTitle ||
-        (expedienteItem.type === 'externa' ? 'Práctica externa' : 'Práctica interna');
+        expedienteItem.proposal?.title ||
+        (isExternalPpp ? 'Práctica externa' : 'Práctica interna');
       const status = String(expedienteItem.status || '').toLowerCase();
       const statusLabels = {
         pending_application: 'En evaluación',

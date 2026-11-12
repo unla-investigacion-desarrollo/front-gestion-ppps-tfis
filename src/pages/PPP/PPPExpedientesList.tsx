@@ -13,6 +13,7 @@ import {
   PPPStatus,
   getStudentDisplayName,
   getStudentEmail,
+  normalizePPPType,
 } from '../../services/pppService';
 import './PPP.css';
 
@@ -38,7 +39,7 @@ export const PPPExpedientesList: React.FC = () => {
     let list = [...expedientes];
 
     if (filterType !== 'ALL') {
-      list = list.filter((e) => e.type === filterType);
+      list = list.filter((e) => normalizePPPType(e.type, e) === filterType);
     }
 
     if (filterStatus !== 'ALL') {
@@ -198,15 +199,17 @@ export const PPPExpedientesList: React.FC = () => {
                     <td>
                       <span
                         className={`badge ${
-                          exp.type === 'interna' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info'
+                          normalizePPPType(exp.type, exp) === 'interna'
+                            ? 'bg-primary-subtle text-primary'
+                            : 'bg-info-subtle text-info'
                         } px-2.5 py-1 rounded`}
                       >
-                        {exp.type === 'interna' ? 'Interna (Cátedra)' : 'Externa'}
+                        {normalizePPPType(exp.type, exp) === 'interna' ? 'Interna (Cátedra)' : 'Externa'}
                       </span>
                     </td>
                     <td>
                       <div className="text-dark fw-medium" style={{ maxWidth: '280px' }}>
-                        {exp.proposalTitle || 'Práctica Profesional Supervisada'}
+                        {exp.proposalTitle || exp.proposal?.title || 'Práctica Profesional Supervisada'}
                       </div>
                     </td>
                     <td>

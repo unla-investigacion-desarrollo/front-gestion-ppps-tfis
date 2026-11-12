@@ -42,7 +42,7 @@ export interface PPPProposal {
 
 export interface PPPEpidiente {
   id: number | string;
-  type: 'interna' | 'externa';
+  type: 'interna' | 'externa' | 'internal' | 'external';
   status: PPPStatus;
   isSiuLoaded: boolean;
   studentId?: number | string;
@@ -517,7 +517,22 @@ export const pppService = {
       },
       body: JSON.stringify({}),
     });
-    return await handleResponse(res, 'Error al iniciar trámite externo de PPP');
+    const data = await handleResponse(res, 'Error al iniciar trámite externo de PPP');
+    const nowIso = new Date().toISOString();
+    return {
+      ...data,
+      id: data?.id,
+      type: 'externa',
+      status: data?.status || 'pending_documentation',
+      isSiuLoaded: Boolean(data?.isSiuLoaded),
+      studentId: data?.studentId ?? _studentInfo?.id,
+      studentName: data?.studentName || _studentInfo?.name || 'Estudiante',
+      studentEmail: data?.studentEmail || _studentInfo?.email || '',
+      proposalTitle: data?.proposalTitle || 'Práctica Profesional Externa',
+      generalDriveUrl: data?.generalDriveUrl,
+      createdAt: data?.createdAt ? normalizeBackendPppDate(data.createdAt) : nowIso,
+      updatedAt: data?.updatedAt ? normalizeBackendPppDate(data.updatedAt) : nowIso,
+    };
   },
 
   /**
@@ -536,7 +551,7 @@ export const pppService = {
     const rawList = Array.isArray(data)
       ? data
       : data?.ppps || data?.expedientes || data?.items || data?.data || [];
-    return rawList;
+    return rawList.map((item: any) => normalizeBackendExpediente(item));
   },
 
   /**
@@ -554,15 +569,7 @@ export const pppService = {
       });
       const data = await handleResponse(res, 'Error al obtener expedientes');
       const rawList = Array.isArray(data) ? data : data?.expedientes || data?.items || [];
-      return rawList.map((item: any) => {
-        const resolvedName = getStudentDisplayName(item);
-        const resolvedEmail = getStudentEmail(item);
-        return {
-          ...item,
-          studentName: resolvedName !== 'Estudiante' ? resolvedName : item.studentName || resolvedName,
-          studentEmail: resolvedEmail || item.studentEmail || '',
-        };
-      });
+      return rawList.map((item: any) => normalizeBackendExpediente(item));
     } catch (error) {
       if (!useLocalFallback) throw error;
       console.warn('pppService.getExpedientes: Usando respaldo local', error);
@@ -584,13 +591,7 @@ export const pppService = {
       });
       const data = await handleResponse(res, 'Error al obtener detalle del trámite');
       if (!data) return null;
-      const resolvedName = getStudentDisplayName(data);
-      const resolvedEmail = getStudentEmail(data);
-      return {
-        ...data,
-        studentName: resolvedName !== 'Estudiante' ? resolvedName : data.studentName || resolvedName,
-        studentEmail: resolvedEmail || data.studentEmail || '',
-      };
+      return normalizeBackendExpediente(data);
     } catch (error) {
       console.warn('pppService.getExpedienteById: Usando respaldo local', error);
       const list = getLocalExpedientes();
@@ -878,6 +879,83 @@ export function formatNameFromEmail(email: string): string {
   return email;
 }
 
+export function normalizePPPType(rawType?: any, item?: any): 'interna' | 'externa' {
+  const normalized = String(rawType ?? item?.type ?? item?.tipo ?? '')
+    .toLowerCase()
+    .trim();
+  if (normalized === 'interna' || normalized === 'internal') {
+    return 'interna';
+  }
+  if (normalized === 'externa' || normalized === 'external') {
+    return 'externa';
+  }
+  if (item?.proposal || item?.proposalId || item?.proposal_id) {
+    return 'interna';
+  }
+  return 'externa';
+}
+
+/**
+ * Corrige el desfasaje horario (+3 h en UTC-3) de las columnas @CreateDateColumn / @UpdateDateColumn
+ * generadas por MySQL (UTC) y leídas sin timezone:'Z' por el driver mysql2 del backend.
+ */
+export function normalizeBackendPppDate(rawDate?: any): string | undefined {
+  if (!rawDate) return undefined;
+  const parsed = new Date(rawDate);
+  if (isNaN(parsed.getTime())) return String(rawDate);
+  const offsetMs = parsed.getTimezoneOffset() * 60 * 1000;
+  return new Date(parsed.getTime() - offsetMs).toISOString();
+}
+
+export function formatPPPDateTime(rawDate?: string | Date): string {
+  if (!rawDate) return '-';
+  const date = new Date(rawDate);
+  if (isNaN(date.getTime())) return String(rawDate);
+  const datePart = date.toLocaleDateString('es-AR');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const period = date.getHours() >= 12 ? 'pm' : 'am';
+  return `${datePart}, ${hours}:${minutes}:${seconds} ${period}`;
+}
+
+export function normalizeBackendExpediente(item: any): PPPEpidiente {
+  const normalizedType = normalizePPPType(item?.type ?? item?.tipo, item);
+  const resolvedName = getStudentDisplayName(item);
+  const resolvedEmail = getStudentEmail(item);
+  const proposalObj = item?.proposal || item?.convocatoria || item?.propuesta || null;
+  const proposalId = item?.proposalId ?? item?.proposal_id ?? proposalObj?.id;
+  const proposalTitle =
+    item?.proposalTitle ||
+    proposalObj?.title ||
+    proposalObj?.titulo ||
+    (normalizedType === 'externa'
+      ? 'Práctica Profesional Externa'
+      : 'Práctica Profesional Supervisada');
+  const driveFolderUrl = item?.driveFolderUrl || proposalObj?.driveFolderUrl;
+  const studentId =
+    item?.studentId ??
+    item?.studentUserId ??
+    item?.student?.id ??
+    item?.student?.id_user ??
+    item?.student?.user?.id ??
+    item?.userId;
+
+  return {
+    ...item,
+    type: normalizedType,
+    isSiuLoaded: Boolean(item?.isSiuLoaded ?? item?.loadedInSiu ?? item?.siuLoaded),
+    studentId,
+    studentName: resolvedName !== 'Estudiante' ? resolvedName : item?.studentName || resolvedName,
+    studentEmail: resolvedEmail || item?.studentEmail || '',
+    proposalId,
+    proposalTitle,
+    driveFolderUrl,
+    createdAt: normalizeBackendPppDate(item?.createdAt) || item?.createdAt,
+    updatedAt: normalizeBackendPppDate(item?.updatedAt) || item?.updatedAt,
+  };
+}
+
 export function getStudentDisplayName(exp: any, users?: any[]): string {
   if (!exp) return 'Estudiante';
 
@@ -904,6 +982,14 @@ export function getStudentDisplayName(exp: any, users?: any[]): string {
   if (nested) {
     if (typeof nested === 'string' && nested.trim() && nested.trim().toLowerCase() !== 'estudiante') {
       return nested.trim();
+    }
+    if (
+      nested.fullName &&
+      typeof nested.fullName === 'string' &&
+      nested.fullName.trim() &&
+      nested.fullName.trim().toLowerCase() !== 'estudiante'
+    ) {
+      return nested.fullName.trim();
     }
     const nestedFull = [
       nested.nombre || nested.firstName || nested.name,
