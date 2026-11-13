@@ -24,6 +24,7 @@ export const normalizeRole = (role: any): string => {
     : (role.authority || role.name || String(role || ''));
 
   roleStr = roleStr.toUpperCase().trim();
+  roleStr = roleStr.replace(/[\s-]+/g, '_');
   if (roleStr.startsWith('ROLE_')) {
     roleStr = roleStr.substring(5);
   }
@@ -37,9 +38,11 @@ export const normalizeRole = (role: any): string => {
     case 'TEACHER':
     case 'PROFESSOR':
       return 'DOCENTE';
+    case 'SUPERADMIN':
+    case 'SUPER_ADMIN':
+      return 'SUPERADMIN';
     case 'ADMIN':
     case 'ADMINISTRADOR':
-    case 'SUPER_ADMIN':
       return 'ADMIN';
     case 'DOCENTE':
     case 'ESTUDIANTE':
@@ -114,13 +117,34 @@ export const loginUser = createAsyncThunk<
         }
       }
 
-      const role = dbProfile?.role
-        ? String(dbProfile.role).toLowerCase()
-        : data.role
-        ? String(data.role).toLowerCase()
-        : decoded.role
-        ? String(decoded.role).toLowerCase()
-        : 'student';
+      const profileRoles = Array.isArray(dbProfile?.roles) ? dbProfile.roles : [];
+      const responseRoles = [
+        ...(Array.isArray(data.roles) ? data.roles : []),
+        ...(Array.isArray(data.user?.roles) ? data.user.roles : []),
+      ];
+      const tokenRoles = [
+        ...(Array.isArray(decoded.roles) ? decoded.roles : []),
+        ...(Array.isArray(decoded.authorities) ? decoded.authorities : []),
+      ];
+      const roleCandidate =
+        dbProfile?.role ||
+        dbProfile?.rol ||
+        profileRoles[0] ||
+        data.role ||
+        data.rol ||
+        data.user?.role ||
+        responseRoles[0] ||
+        decoded.role ||
+        decoded.rol ||
+        tokenRoles[0] ||
+        'student';
+      const role = normalizeRole(roleCandidate).toLowerCase();
+      const roles = normalizeRoles([
+        ...profileRoles,
+        ...responseRoles,
+        ...tokenRoles,
+        roleCandidate,
+      ]);
 
       const isTutor = dbProfile?.isTutor !== undefined
         ? Boolean(dbProfile.isTutor)
@@ -162,7 +186,7 @@ export const loginUser = createAsyncThunk<
         firstName: firstName,
         lastName: lastName,
         role: role,
-        roles: normalizeRoles([role]),
+        roles,
         mustChangePassword: !!(decoded.mustChangePassword || data.mustChangePassword),
         isTutor: isTutor,
       };

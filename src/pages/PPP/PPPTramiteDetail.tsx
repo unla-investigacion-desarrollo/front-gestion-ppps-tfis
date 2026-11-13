@@ -53,7 +53,9 @@ export const PPPTramiteDetail: React.FC = () => {
     return rawRoles.map((r: any) => String(r).toUpperCase().trim());
   }, [currentUser]);
 
-  const isAdmin = roles.includes('ADMIN') || roles.includes('ADMINISTRADOR');
+  const isAdmin = roles.some((roleName: string) =>
+    ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)
+  );
   const isTeacher = roles.some((r: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(r));
   const isStudent = !isAdmin && !isTeacher;
 

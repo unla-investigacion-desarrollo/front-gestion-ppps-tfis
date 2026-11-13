@@ -3,6 +3,7 @@ import './TeacherProjectCreate.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { createProject, fetchProjectTypes, selectProjectTypes, ProjectType } from '../../../redux/slices/projectsSlice';
+import { createPPPProposal } from '../../../redux/slices/pppSlice';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../../utils/toast';
 import {
@@ -38,6 +39,7 @@ const TeacherProjectCreate: React.FC = () => {
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const isPPPSelection = form.categoria.trim().toUpperCase() === 'PPP';
 
   useEffect(() => {
     dispatch(fetchProjectTypes());
@@ -69,6 +71,19 @@ const TeacherProjectCreate: React.FC = () => {
     }
     setSubmitting(true);
     try {
+      if (isPPPSelection) {
+        await dispatch(
+          createPPPProposal({
+            title: form.titulo,
+            description: form.descripcion,
+          })
+        ).unwrap();
+        showToast('Convocatoria PPP creada exitosamente', 'success');
+        setForm({ titulo: '', descripcion: '', projectTypeId: '', categoria: '' });
+        navigate('/ppp/convocatorias');
+        return;
+      }
+
       await dispatch(
         createProject({
           teacherId: user.id,
@@ -106,7 +121,9 @@ const TeacherProjectCreate: React.FC = () => {
               Volver a proyectos
             </a>
 
-            <h1 className="project-create-title">Crear Proyecto</h1>
+            <h1 className="project-create-title">
+              {isPPPSelection ? 'Crear Convocatoria PPP' : 'Crear Proyecto'}
+            </h1>
             <p className="project-create-subtitle">Completa la información para dar de alta un nuevo proyecto.</p>
 
             <form onSubmit={handleSubmit} noValidate>
@@ -193,7 +210,7 @@ const TeacherProjectCreate: React.FC = () => {
                     'Creando…'
                   ) : (
                     <>
-                      Crear Proyecto
+                      {isPPPSelection ? 'Crear Convocatoria PPP' : 'Crear Proyecto'}
                     </>
                   )}
                 </button>

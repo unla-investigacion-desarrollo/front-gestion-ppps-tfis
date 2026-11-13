@@ -68,8 +68,9 @@ const UsersList: React.FC = () => {
   const isAdmin =
     userRolesList.length === 0 ||
     userRolesList.some((roleName) =>
-      ['admin', 'administrador', 'super_admin', 'role_admin'].includes(roleName)
+      ['admin', 'administrador', 'superadmin', 'super_admin', 'role_admin', 'role_superadmin', 'role_super_admin'].includes(roleName)
     );
+  const isSuperAdmin = userRolesList.some((roleName) => normalizeRole(roleName) === 'SUPERADMIN');
 
   // En la vista de gestión de usuarios del administrador, la columna de acciones siempre
   // debe estar visible para que el administrador pueda ver detalles completos (modal Ver usuario), editar y gestionar.
@@ -78,10 +79,18 @@ const UsersList: React.FC = () => {
   const canManage = (targetRole?: string, _targetUser?: any) => {
     if (targetRole) {
       const normalizedRole = String(targetRole).toUpperCase().trim();
-      return ['DOCENTE', 'ADMIN', 'ESTUDIANTE', 'TEACHER', 'PROFESSOR', 'STUDENT'].includes(normalizedRole);
+      return ['SUPERADMIN', 'ADMIN', 'DOCENTE', 'ESTUDIANTE', 'TEACHER', 'PROFESSOR', 'STUDENT'].includes(normalizedRole);
     }
     return true;
   };
+
+  const canDeleteUser = (targetUser: any) => {
+    const targetRole = normalizeRole(targetUser?.role || targetUser?.rol);
+    return targetRole !== 'SUPERADMIN' && (targetRole !== 'ADMIN' || isSuperAdmin);
+  };
+
+  const canDeactivateUser = (targetUser: any) =>
+    normalizeRole(targetUser?.role || targetUser?.rol) !== 'SUPERADMIN';
 
   // --- ESTADO LOCAL ---
   const [filters, setFilters] = useState({ q: '', rol: 'ALL', estado: 'ALL' });
@@ -341,6 +350,10 @@ const UsersList: React.FC = () => {
   // Habilitar/Deshabilitar cuenta
   const handleToggleActivation = async (user: any, enable: boolean) => {
     const id = user.id;
+    if (!enable && !canDeactivateUser(user)) {
+      showToast('No se puede desactivar la cuenta del superadmin.', 'error');
+      return;
+    }
     if (String(id) === String(currentUser?.id)) {
       showToast('No podés desactivar tu propia cuenta.', 'error');
       return;
@@ -358,6 +371,10 @@ const UsersList: React.FC = () => {
 
   // Iniciar proceso de eliminación (abrir modal de confirmación)
   const handleDeleteUser = (user: any) => {
+    if (!canDeleteUser(user)) {
+      showToast('Solo el superadmin puede eliminar cuentas de administrador.', 'error');
+      return;
+    }
     if (isCurrentUser(user)) {
       showToast('No podés eliminar tu propia cuenta.', 'error');
       return;
@@ -367,6 +384,11 @@ const UsersList: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
+    if (!canDeleteUser(userToDelete)) {
+      showToast('Solo el superadmin puede eliminar cuentas de administrador.', 'error');
+      setUserToDelete(null);
+      return;
+    }
     if (isCurrentUser(userToDelete)) {
       showToast('No podés eliminar tu propia cuenta.', 'error');
       setUserToDelete(null);
@@ -617,6 +639,8 @@ const UsersList: React.FC = () => {
           users={paginatedUsers}
           showActionsColumn={showActionsColumn}
           canManage={canManage}
+          canDeleteUser={canDeleteUser}
+          canDeactivateUser={canDeactivateUser}
           sort={sort}
           onToggleSort={toggleSort}
           onResetPassword={handleResetPassword}

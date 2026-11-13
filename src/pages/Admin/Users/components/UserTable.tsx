@@ -13,6 +13,8 @@ interface UserTableProps {
   users: any[];
   showActionsColumn: boolean;
   canManage: (role: string, user: any) => boolean;
+  canDeleteUser: (user: any) => boolean;
+  canDeactivateUser: (user: any) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
   onToggleSort: (key: string) => void;
   onResetPassword: (user: any) => void;
@@ -30,6 +32,8 @@ const UserTable: React.FC<UserTableProps> = ({
   users,
   showActionsColumn,
   canManage,
+  canDeleteUser,
+  canDeactivateUser,
   sort,
   onToggleSort,
   onResetPassword,
@@ -61,7 +65,7 @@ const UserTable: React.FC<UserTableProps> = ({
       styles = { backgroundColor: '#fae8ff', color: '#a21caf' }; // Rosa/Morado
     } else if (rol === 'DOCENTE') {
       styles = { backgroundColor: '#e0f2fe', color: '#0369a1' }; // Azul
-    } else if (rol === 'ADMIN') {
+    } else if (rol === 'ADMIN' || rol === 'SUPERADMIN') {
       styles = { backgroundColor: '#dcfce7', color: '#15803d' }; // Verde
     }
 
@@ -267,7 +271,7 @@ const UserTable: React.FC<UserTableProps> = ({
                               )}
 
                               {/* Acción: Desactivar o Activar cuenta (toggle estado active/disabled) */}
-                              {userItem.estado === 'active' && (
+                              {userItem.estado === 'active' && canDeactivateUser(userItem) && (
                                 <li>
                                   <button
                                     type="button"
@@ -299,20 +303,24 @@ const UserTable: React.FC<UserTableProps> = ({
                               )}
 
                               {/* Division y Acciones de eliminación */}
-                              <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                              <li>
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item text-danger"
-                                  onClick={() => {
-                                    setOpenDropdownId(null);
-                                    onDeleteUser(userItem);
-                                  }}
-                                >
-                                  <FaTrashCan size={14} />
-                                  Eliminar
-                                </button>
-                              </li>
+                              {canDeleteUser(userItem) && (
+                                <>
+                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                  <li>
+                                    <button
+                                      type="button"
+                                      className="custom-dropdown-item text-danger"
+                                      onClick={() => {
+                                        setOpenDropdownId(null);
+                                        onDeleteUser(userItem);
+                                      }}
+                                    >
+                                      <FaTrashCan size={14} />
+                                      Eliminar
+                                    </button>
+                                  </li>
+                                </>
+                              )}
                             </ul>
                           </>
                         )}

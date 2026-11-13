@@ -115,7 +115,10 @@ const Trabajo: React.FC = () => {
     return rawRoles.map((roleItem: any) => String(roleItem).toUpperCase().trim());
   }, [currentUser]);
 
-  const isAdmin = useMemo(() => roles.includes('ADMIN') || roles.includes('ADMINISTRADOR'), [roles]);
+  const isAdmin = useMemo(
+    () => roles.some((roleName: string) => ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)),
+    [roles]
+  );
   const isTeacher = useMemo(
     () => roles.some((roleName: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)),
     [roles]
