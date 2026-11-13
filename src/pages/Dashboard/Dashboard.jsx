@@ -67,9 +67,27 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!isAdminDashboard) return;
-    dispatch(fetchUsers());
-    dispatch(fetchProjects());
-    dispatch(fetchPPPExpedientes({ useLocalFallback: false }));
+
+    const refreshDashboardData = () => {
+      dispatch(fetchUsers());
+      dispatch(fetchProjects());
+      dispatch(fetchPPPExpedientes({ useLocalFallback: false }));
+    };
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refreshDashboardData();
+    };
+
+    refreshDashboardData();
+    const refreshInterval = window.setInterval(refreshWhenVisible, 60000);
+    window.addEventListener('focus', refreshDashboardData);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+
+    return () => {
+      window.clearInterval(refreshInterval);
+      window.removeEventListener('focus', refreshDashboardData);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
   }, [dispatch, isAdminDashboard]);
 
   useEffect(() => {
