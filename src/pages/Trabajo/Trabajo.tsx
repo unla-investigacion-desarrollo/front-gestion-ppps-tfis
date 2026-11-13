@@ -115,7 +115,10 @@ const Trabajo: React.FC = () => {
     return rawRoles.map((roleItem: any) => String(roleItem).toUpperCase().trim());
   }, [currentUser]);
 
-  const isAdmin = useMemo(() => roles.includes('ADMIN') || roles.includes('ADMINISTRADOR'), [roles]);
+  const isAdmin = useMemo(
+    () => roles.some((roleName: string) => ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)),
+    [roles]
+  );
   const isTeacher = useMemo(
     () => roles.some((roleName: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)),
     [roles]
@@ -265,8 +268,10 @@ const Trabajo: React.FC = () => {
   };
 
   // Calificar entrega
-  const handleOpenQualifyModal = () => {
-    setQualificationInput(work?.qualification !== null && work?.qualification !== undefined ? String(work.qualification) : '');
+  const handleOpenQualifyModal = (initialScore?: number) => {
+    const currentScore = work?.qualification;
+    const scoreToShow = initialScore ?? (currentScore !== null && currentScore !== undefined ? currentScore : '');
+    setQualificationInput(String(scoreToShow));
     setShowQualifyModal(true);
   };
 
@@ -274,8 +279,8 @@ const Trabajo: React.FC = () => {
     formSubmitEvent.preventDefault();
     if (!work?.id || !token) return;
 
-    const parsedScore = parseInt(qualificationInput, 10);
-    if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 10) {
+    const parsedScore = Number(qualificationInput);
+    if (!qualificationInput.trim() || !Number.isInteger(parsedScore) || parsedScore < 0 || parsedScore > 10) {
       showToast('La calificación debe ser un número entero entre 0 y 10.', 'error');
       return;
     }
@@ -959,14 +964,11 @@ const Trabajo: React.FC = () => {
                         <button
                           type="button"
                           className="trabajo-action-card approve"
-                          onClick={() => {
-                            setQualificationInput(
-                              work.qualification !== null && work.qualification !== undefined && work.qualification >= 4
-                                ? String(work.qualification)
-                                : '7'
-                            );
-                            setShowQualifyModal(true);
-                          }}
+                          onClick={() => handleOpenQualifyModal(
+                            work.qualification !== null && work.qualification !== undefined && work.qualification >= 4
+                              ? work.qualification
+                              : 7
+                          )}
                           disabled={actionLoading}
                         >
                           <div className="trabajo-action-icon-circle green">
@@ -987,14 +989,11 @@ const Trabajo: React.FC = () => {
                         <button
                           type="button"
                           className="trabajo-action-card disapprove"
-                          onClick={() => {
-                            setQualificationInput(
-                              work.qualification !== null && work.qualification !== undefined && work.qualification > 0 && work.qualification <= 3
-                                ? String(work.qualification)
-                                : '2'
-                            );
-                            setShowQualifyModal(true);
-                          }}
+                          onClick={() => handleOpenQualifyModal(
+                            work.qualification !== null && work.qualification !== undefined && work.qualification > 0 && work.qualification <= 3
+                              ? work.qualification
+                              : 2
+                          )}
                           disabled={actionLoading}
                         >
                           <div className="trabajo-action-icon-circle red">
@@ -1150,12 +1149,12 @@ const Trabajo: React.FC = () => {
         </div>
       </div>
 
-      {/* MODAL 1: Calificar Entrega */}
+      {/* Modal único para registrar o modificar la calificación */}
       {showQualifyModal && (
         <div className="trabajo-modal-backdrop">
           <div className="trabajo-modal-content">
             <div className="trabajo-modal-header">
-              <h3>Calificar Entrega</h3>
+              <h3>Calificación</h3>
               <button
                 type="button"
                 className="trabajo-modal-close"
@@ -1221,7 +1220,7 @@ const Trabajo: React.FC = () => {
                   className="btn-trabajo-primary"
                   disabled={actionLoading || !qualificationHelper || qualificationHelper.status === 'invalid'}
                 >
-                  {actionLoading ? 'Guardando...' : 'Asignar Calificación'}
+                  {actionLoading ? 'Guardando...' : 'Guardar calificación'}
                 </button>
               </div>
             </form>

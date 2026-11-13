@@ -3,7 +3,7 @@ import { authService } from '../../../services/authService';
 import { userService } from '../../../services/userService';
 import { normalizeRole } from '../auth/asyncActions';
 
-export type UserRole = 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
+export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'DOCENTE' | 'ESTUDIANTE';
 export type UserStatus = 'pending' | 'active' | 'rejected' | 'disabled' | 'papelera';
 
 export interface User {

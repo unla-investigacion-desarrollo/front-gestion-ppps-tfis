@@ -3,13 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   FaArrowLeft,
   FaFileLines,
-  FaClock,
   FaUsers,
   FaTableCellsLarge,
   FaArrowTrendUp,
   FaFolder,
-  FaCheck,
-  FaXmark,
   FaBullhorn,
 } from 'react-icons/fa6';
 import { pppService } from '../../../../services/pppService';
@@ -109,7 +106,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
       {/* Fila de 3 Tarjetas Superiores con Desglose */}
       <div className="row g-3 mb-4">
         {/* Tarjeta 1: PPP pendientes de revisión */}
-        <div className="col-lg-4 col-md-6">
+        <div className="col-lg-6 col-md-6">
           <div className="teacher-card teacher-breakdown-card">
             <div className="teacher-breakdown-header">
               <div className="teacher-breakdown-title-wrap">
@@ -162,55 +159,8 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
           </div>
         </div>
 
-        {/* Tarjeta 2: Entregas pendientes */}
-        <div className="col-lg-4 col-md-6">
-          <div className="teacher-card teacher-breakdown-card">
-            <div className="teacher-breakdown-header">
-              <div className="teacher-breakdown-title-wrap">
-                <div className="teacher-card-icon-box amber">
-                  <FaClock size={18} />
-                </div>
-                <h3 className="teacher-breakdown-title">Entregas pendientes</h3>
-              </div>
-              <span className="teacher-counter-badge">7</span>
-            </div>
-
-            <ul className="teacher-breakdown-list">
-              <li className="teacher-breakdown-item">
-                <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
-                  <span>Para revisar</span>
-                </div>
-                <span className="teacher-breakdown-count">3</span>
-              </li>
-              <li className="teacher-breakdown-item">
-                <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
-                  <span>Observadas</span>
-                </div>
-                <span className="teacher-breakdown-count">2</span>
-              </li>
-              <li className="teacher-breakdown-item">
-                <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
-                  <span>Sin calificar</span>
-                </div>
-                <span className="teacher-breakdown-count">2</span>
-              </li>
-            </ul>
-
-            <button
-              type="button"
-              className="teacher-card-action-link bg-transparent border-0 p-0 text-start"
-              onClick={() => navigate('/docente/entregas')}
-            >
-              Ver todas →
-            </button>
-          </div>
-        </div>
-
-        {/* Tarjeta 3: Solicitudes de proyectos */}
-        <div className="col-lg-4 col-md-6">
+        {/* Tarjeta 2: Solicitudes de proyectos */}
+        <div className="col-lg-6 col-md-6">
           <div className="teacher-card teacher-breakdown-card">
             <div className="teacher-breakdown-header">
               <div className="teacher-breakdown-title-wrap">
@@ -264,7 +214,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
           <h2 className="teacher-section-title">Resumen general</h2>
         </div>
 
-        <div className="teacher-metrics-5grid">
+        <div className="teacher-metrics-grid">
           <div className="teacher-submetric-card">
             <div className="teacher-submetric-title">
               <FaArrowTrendUp size={13} />
@@ -279,22 +229,6 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
               <span>Proyectos en curso</span>
             </div>
             <div className="teacher-submetric-num">8</div>
-          </div>
-
-          <div className="teacher-submetric-card">
-            <div className="teacher-submetric-title">
-              <FaCheck size={13} />
-              <span>Entregas aprobadas</span>
-            </div>
-            <div className="teacher-submetric-num">23</div>
-          </div>
-
-          <div className="teacher-submetric-card">
-            <div className="teacher-submetric-title">
-              <FaXmark size={13} />
-              <span>Entregas desaprobadas</span>
-            </div>
-            <div className="teacher-submetric-num">4</div>
           </div>
 
           <div className="teacher-submetric-card">

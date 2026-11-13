@@ -31,7 +31,12 @@ export const usePPPProposals = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const currentUser = useSelector(selectCurrentUser) as any;
-  const { user: userProfile, isTutor: profileIsTutor } = useUserProfile();
+  const {
+    user: userProfile,
+    isTutor: profileIsTutor,
+    isAdmin: profileIsAdmin,
+    isProfessor: profileIsProfessor,
+  } = useUserProfile();
 
   // Determinar roles del usuario
   const userRoles = useMemo(() => {
@@ -45,9 +50,8 @@ export const usePPPProposals = () => {
     );
   }, [currentUser]);
 
-  const isAdmin =
-    userRoles.includes('ADMIN') || userRoles.includes('ADMINISTRADOR');
-  const isTeacher = userRoles.some((roleName: string) =>
+  const isAdmin = profileIsAdmin || userRoles.includes('ADMIN') || userRoles.includes('ADMINISTRADOR') || userRoles.includes('SUPERADMIN');
+  const isTeacher = profileIsProfessor || userRoles.some((roleName: string) =>
     ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)
   );
   const isTutor = Boolean(

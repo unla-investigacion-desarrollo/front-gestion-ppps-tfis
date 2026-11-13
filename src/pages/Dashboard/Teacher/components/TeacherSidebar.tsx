@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import logo from '../../../../assets/Campus-Virtual-UNLa.png';
 
 // Iconos de FontAwesome vía react-icons
@@ -9,8 +9,6 @@ import {
   FaChevronDown,
   FaFileLines,
   FaFolder,
-  FaCalendarCheck,
-  FaStar,
   FaGear,
   FaUser,
   FaBullhorn,
@@ -34,13 +32,11 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
   onSelectView,
 }) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Secciones desplegables en menú Evaluador
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     ppp: true,
     proyectos: true,
-    entregas: true,
   });
 
   const toggleSection = (section: string) => {
@@ -176,52 +172,6 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                     >
                       <FaFolder size={14} />
                       <span>Proyectos</span>
-                    </button>
-                  </li>
-                </ul>
-              )}
-            </div>
-
-            {/* Entregas y calificaciones */}
-            <div>
-              <button
-                type="button"
-                className="teacher-sidebar-item justify-content-between"
-                onClick={() => toggleSection('entregas')}
-              >
-                <div className="d-flex align-items-center gap-2">
-                  <FaCalendarCheck size={16} />
-                  <span>Entregas y calificaciones</span>
-                </div>
-                <FaChevronDown
-                  size={12}
-                  style={{
-                    transform: openSections.entregas ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.15s ease',
-                  }}
-                />
-              </button>
-
-              {openSections.entregas && (
-                <ul className="teacher-sidebar-sublist">
-                  <li>
-                    <button
-                      type="button"
-                      className="teacher-sidebar-subitem"
-                      onClick={() => navigate('/docente/entregas')}
-                    >
-                      <FaCalendarCheck size={14} />
-                      <span>Entregas y calificaciones</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="teacher-sidebar-subitem"
-                      onClick={() => navigate('/docente/entregas')}
-                    >
-                      <FaStar size={14} />
-                      <span>Calificaciones</span>
                     </button>
                   </li>
                 </ul>

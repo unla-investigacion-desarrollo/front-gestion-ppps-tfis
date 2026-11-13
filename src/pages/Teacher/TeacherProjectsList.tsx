@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 // Redux Actions & Selectors
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
+import { normalizeRole } from '../../redux/features/auth/asyncActions';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import {
   fetchProjects,
@@ -147,14 +148,14 @@ const TeacherProjectsList: React.FC = () => {
   // Obtener todos los docentes en el sistema
   const allTeachers = useMemo(() => {
     return users.filter((user) => {
-      const rolesArray = Array.isArray((user as any).roles)
-        ? (user as any).roles
-        : (user as any).rol
-          ? [(user as any).rol]
-          : [];
-      const normalizedRoles = rolesArray.map((role: any) => String(role).toUpperCase().trim());
+      const rolesArray = [
+        ...((Array.isArray((user as any).roles) ? (user as any).roles : []) as any[]),
+        (user as any).role,
+        (user as any).rol,
+      ].filter(Boolean);
+      const normalizedRoles = rolesArray.map(normalizeRole);
       return normalizedRoles.some((role: string) =>
-        ['DOCENTE', 'TEACHER', 'PROFESSOR', 'ADMIN', 'ADMINISTRADOR'].includes(role)
+        ['DOCENTE', 'PROFESSOR', 'ADMIN', 'SUPERADMIN'].includes(role)
       );
     });
   }, [users]);

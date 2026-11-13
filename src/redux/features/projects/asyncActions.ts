@@ -1,4 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { normalizeRoles } from '../auth/asyncActions';
 import {
   projectService,
   PendingRequestsResponse,
@@ -199,17 +200,44 @@ export const fetchProjects = createAsyncThunk<Project[], void, { rejectValue: st
     try {
       const token = localStorage.getItem('token') || '';
       const state = getState() as any;
-      let isTutor = Boolean(state?.auth?.user?.isTutor);
-      if (state?.auth?.user?.isTutor === undefined) {
-        try {
-          const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-          isTutor = Boolean(storedUser?.isTutor);
-        } catch {}
-      }
+      let storedUser: any = {};
+      try {
+        storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      } catch {}
+      const user = state?.auth?.user || storedUser;
+      const roles = normalizeRoles([
+        ...(Array.isArray(user?.roles) ? user.roles : user?.roles ? [user.roles] : []),
+        user?.role,
+        user?.rol,
+      ]);
+      const isAdmin = roles.includes('ADMIN') || roles.includes('SUPERADMIN');
+      const isSuperAdmin = roles.includes('SUPERADMIN');
+      const isTutor = !isAdmin && Boolean(user?.isTutor);
 
-      const data = isTutor
-        ? await projectService.getProjects(token, signal)
-        : await projectService.getProjectsOverview(token, signal);
+      let data: any;
+      if (isSuperAdmin) {
+        const responses = await Promise.allSettled([
+          projectService.getProjects(token, signal),
+          projectService.getProjectsOverview(token, signal),
+        ]);
+        const projectsById = new Map<string, any>();
+        responses.forEach((response) => {
+          if (response.status !== 'fulfilled' || !Array.isArray(response.value)) return;
+          response.value.forEach((project: any) => {
+            if (project?.id === undefined || project?.id === null) return;
+            const projectId = String(project.id);
+            projectsById.set(projectId, {
+              ...projectsById.get(projectId),
+              ...project,
+            });
+          });
+        });
+        data = Array.from(projectsById.values());
+      } else {
+        data = isTutor
+          ? await projectService.getProjects(token, signal)
+          : await projectService.getProjectsOverview(token, signal);
+      }
 
       if (!Array.isArray(data)) {
         return [];

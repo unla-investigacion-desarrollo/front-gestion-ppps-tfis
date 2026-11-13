@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCurrentUser, updateUserProfile } from '../redux/features/auth';
+import { normalizeRole } from '../redux/features/auth/asyncActions';
 import { userService } from '../services/userService';
 
 export interface UserProfileData {
@@ -70,27 +71,28 @@ export const useUserProfile = () => {
   // Normalizar todos los roles posibles sin harcodeos
   const allRoles = useMemo(() => {
     const list: string[] = [];
-    if (user?.role) list.push(String(user.role).toLowerCase().trim());
-    if (user?.rol) list.push(String(user.rol).toLowerCase().trim());
+    if (user?.role) list.push(normalizeRole(user.role));
+    if (user?.rol) list.push(normalizeRole(user.rol));
     if (Array.isArray(user?.roles)) {
       user.roles.forEach((r: any) => {
         if (r) {
           const s = typeof r === 'string' ? r : r.authority || r.name || '';
-          list.push(String(s).toLowerCase().trim());
+          list.push(normalizeRole(s));
         }
       });
     }
     return list;
   }, [user?.role, user?.rol, user?.roles]);
 
-  const isAdmin = allRoles.some((r) =>
-    r === 'admin' || r === 'administrador' || r === 'role_admin'
+  const isSuperAdmin = allRoles.includes('SUPERADMIN');
+  const isAdmin = isSuperAdmin || allRoles.some((r) =>
+    r === 'ADMIN' || r === 'ADMINISTRADOR'
   );
   const isProfessor = !isAdmin && allRoles.some((r) =>
-    r === 'professor' || r === 'docente' || r === 'teacher' || r === 'profesor' || r === 'role_professor' || r === 'role_teacher' || r === 'role_docente'
+    r === 'PROFESSOR' || r === 'DOCENTE' || r === 'TEACHER' || r === 'PROFESOR'
   );
   const isStudent = !isAdmin && !isProfessor && allRoles.some((r) =>
-    r === 'student' || r === 'estudiante' || r === 'alumno' || r === 'alumna' || r === 'role_student'
+    r === 'STUDENT' || r === 'ESTUDIANTE' || r === 'ALUMNO' || r === 'ALUMNA'
   );
 
   const role = isAdmin ? 'admin' : isProfessor ? 'professor' : 'student';
@@ -107,6 +109,7 @@ export const useUserProfile = () => {
     role,
     isTutor,
     isAdmin,
+    isSuperAdmin,
     isStudent,
     isProfessor,
     teacherType,

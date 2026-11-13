@@ -162,9 +162,6 @@ const AuthenticatedLayout = ({ children }) => {
             <nav className="unla-nav-links">
               <NavLink to="/dashboard">Inicio</NavLink>
               <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
-              {isTeacher && !isAdmin && (
-                <NavLink to="/docente/entregas">Entregas TFI</NavLink>
-              )}
               <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
               <NavLink to="/ppp/expedientes">Expedientes PPP</NavLink>
               <NavLink to="/admin/approvals">Solicitudes</NavLink>

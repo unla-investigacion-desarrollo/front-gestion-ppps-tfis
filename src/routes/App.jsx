@@ -17,7 +17,6 @@ import TeacherProjectsList from '../pages/Teacher/TeacherProjectsList';
 import MyProjects from '../pages/Student/MyProjects';
 import StudentDeliveries from '../pages/Student/Deliveries';
 import TeacherProjectCreate from '../pages/Teacher/TeacherProjectCreate';
-import DeliveriesReview from '../pages/Teacher/DeliveriesReview';
 import Trabajo from '../pages/Trabajo/Trabajo';
 import PPPProposalsCatalog from '../pages/PPP/PPPProposalsCatalog';
 import PPPExpedientesList from '../pages/PPP/PPPExpedientesList';
@@ -96,16 +95,6 @@ const App = () => {
               </TeacherRoute>
             </PrivateRoute>
           } />
-          <Route path="/docente/entregas" element={
-            <PrivateRoute>
-              <TeacherRoute>
-                <AuthenticatedLayout>
-                  <DeliveriesReview />
-                </AuthenticatedLayout>
-              </TeacherRoute>
-            </PrivateRoute>
-          } />
-
           {/* Rutas Proyectos - accesibles para cualquier usuario autenticado */}
           <Route path="/docente/proyectos" element={
             <PrivateRoute>
