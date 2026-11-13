@@ -211,33 +211,11 @@ export const fetchProjects = createAsyncThunk<Project[], void, { rejectValue: st
         user?.rol,
       ]);
       const isAdmin = roles.includes('ADMIN') || roles.includes('SUPERADMIN');
-      const isSuperAdmin = roles.includes('SUPERADMIN');
       const isTutor = !isAdmin && Boolean(user?.isTutor);
 
-      let data: any;
-      if (isSuperAdmin) {
-        const responses = await Promise.allSettled([
-          projectService.getProjects(token, signal),
-          projectService.getProjectsOverview(token, signal),
-        ]);
-        const projectsById = new Map<string, any>();
-        responses.forEach((response) => {
-          if (response.status !== 'fulfilled' || !Array.isArray(response.value)) return;
-          response.value.forEach((project: any) => {
-            if (project?.id === undefined || project?.id === null) return;
-            const projectId = String(project.id);
-            projectsById.set(projectId, {
-              ...projectsById.get(projectId),
-              ...project,
-            });
-          });
-        });
-        data = Array.from(projectsById.values());
-      } else {
-        data = isTutor
-          ? await projectService.getProjects(token, signal)
-          : await projectService.getProjectsOverview(token, signal);
-      }
+      const data = isTutor
+        ? await projectService.getProjects(token, signal)
+        : await projectService.getProjectsOverview(token, signal);
 
       if (!Array.isArray(data)) {
         return [];

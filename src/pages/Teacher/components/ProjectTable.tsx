@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCalendarDays, FaPencil } from 'react-icons/fa6';
+import { FaCalendarDays, FaPencil, FaTrashCan } from 'react-icons/fa6';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
 // Propiedades recibidas por el componente ProjectTable
@@ -8,10 +8,12 @@ interface ProjectTableProps {
   projects: Project[];
   users: any[];
   isTutor?: boolean;
+  canDeleteProject?: boolean;
   onRemoveStudent: (projectId: string, studentId: string) => void;
   onRemoveCoTeacher: (projectId: string, teacherId: string) => void;
   onActivityClick: (project: Project) => void;
   onEditClick: (project: Project) => void;
+  onDeleteClick?: (project: Project) => void;
   onViewProjectClick?: (project: Project) => void;
   onRequestJoinClick?: (project: Project) => void;
   pendingProjectIds?: Set<string>;
@@ -27,10 +29,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
   users,
   isTutor = false,
+  canDeleteProject = false,
   onRemoveStudent,
   onRemoveCoTeacher,
   onActivityClick,
   onEditClick,
+  onDeleteClick,
   onViewProjectClick,
   onRequestJoinClick,
   pendingProjectIds,
@@ -614,6 +618,24 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   }}
                                 >
                                   Editar Proyecto
+                                </button>
+                              </>
+                            )}
+
+                            {/* Acción exclusiva para Admin / Superadmin: Eliminar Proyecto */}
+                            {canDeleteProject && onDeleteClick && (
+                              <>
+                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item text-danger d-flex align-items-center gap-2"
+                                  onClick={() => {
+                                    setActiveDropdownProjectId(null);
+                                    onDeleteClick(project);
+                                  }}
+                                >
+                                  <FaTrashCan size={13} />
+                                  <span>Eliminar Proyecto</span>
                                 </button>
                               </>
                             )}

@@ -4,12 +4,13 @@ import { Link } from 'react-router-dom';
 
 // Redux Actions & Selectors
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
-import { normalizeRole } from '../../redux/features/auth/asyncActions';
+import { normalizeRole, normalizeRoles } from '../../redux/features/auth/asyncActions';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import {
   fetchProjects,
   fetchProjectTypes,
   updateProject,
+  deleteProject,
   removeStudentFromProject,
   removeCoTeacher,
   selectProjects,
@@ -56,6 +57,20 @@ const TeacherProjectsList: React.FC = () => {
   // Determinar si el usuario actual tiene rol de Tutor desde la BD
   const { isTutor: userIsTutor } = useUserProfile();
   const isTutor = Boolean(currentUser?.isTutor ?? userIsTutor);
+
+  // Determinar si el usuario actual es ADMIN o SUPERADMIN
+  const isAdminOrSuperAdmin = useMemo(() => {
+    const roles = normalizeRoles([
+      ...(Array.isArray(currentUser?.roles)
+        ? currentUser.roles
+        : currentUser?.roles
+          ? [currentUser.roles]
+          : []),
+      (currentUser as any)?.role,
+      (currentUser as any)?.rol,
+    ]);
+    return roles.includes('ADMIN') || roles.includes('SUPERADMIN');
+  }, [currentUser]);
 
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
   const [filters, setFilters] = useState<ProjectFiltersState>({ q: '', categoria: 'ALL', alumnos: 'ALL' });
@@ -423,6 +438,35 @@ const TeacherProjectsList: React.FC = () => {
     }
   };
 
+  // Eliminar proyecto (solo ADMIN y SUPERADMIN)
+  const handleDeleteProject = async (project: Project) => {
+    if (!window.confirm(`¿Seguro que querés eliminar el proyecto "${project.titulo}"?`)) {
+      return;
+    }
+
+    const response = await dispatch(deleteProject({ projectId: String(project.id) }));
+    if (!(response as any).error) {
+      try {
+        window.dispatchEvent(
+          new CustomEvent('toast', {
+            detail: { message: 'Proyecto eliminado exitosamente', type: 'success' },
+          })
+        );
+      } catch { }
+    } else {
+      try {
+        window.dispatchEvent(
+          new CustomEvent('toast', {
+            detail: {
+              message: (response as any).payload || 'Error al eliminar el proyecto',
+              type: 'error',
+            },
+          })
+        );
+      } catch { }
+    }
+  };
+
 
 
   // Restablecer filtros a su estado inicial
@@ -468,10 +512,12 @@ const TeacherProjectsList: React.FC = () => {
           projects={paginatedProjects}
           users={users}
           isTutor={isTutor}
+          canDeleteProject={isAdminOrSuperAdmin}
           onRemoveStudent={handleRemoveStudent}
           onRemoveCoTeacher={handleRemoveCoTeacher}
           onActivityClick={(project) => setActiveActivityProject(project)}
           onEditClick={(project) => setActiveEditProject(project)}
+          onDeleteClick={isAdminOrSuperAdmin ? handleDeleteProject : undefined}
           onRequestJoinClick={isTutor ? handleRequestJoin : undefined}
           pendingProjectIds={pendingProjectIds}
           activeProjectIds={activeProjectIds}
