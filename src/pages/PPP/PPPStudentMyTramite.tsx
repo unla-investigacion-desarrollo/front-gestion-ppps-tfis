@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaIdCard, FaSquarePlus, FaMagnifyingGlass } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
-  fetchPPPExpedientes,
+  fetchMyPPPApplications,
   createPPPExternal,
   selectPPPExpedientes,
 } from '../../../redux/slices/pppSlice';
@@ -16,61 +16,21 @@ export const PPPStudentMyTramite: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const currentUser = useSelector(selectCurrentUser) as any;
-  const expedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
+  const myExpedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
 
   const [consultIdInput, setConsultIdInput] = useState<string>('');
 
   useEffect(() => {
-    dispatch(fetchPPPExpedientes());
-  }, [dispatch]);
-
-  // Leer postulaciones conservadas localmente por el estudiante
-  const studentStorageKey = `ppp_student_applications_${currentUser?.id || 'me'}`;
-  const storedApplications = useMemo(() => {
+    // Limpiar posibles datos cacheados antiguos en localStorage
     try {
-      const storedData = localStorage.getItem(studentStorageKey);
-      return storedData ? JSON.parse(storedData) : [];
-    } catch (readError) {
-      return [];
-    }
-  }, [studentStorageKey]);
+      localStorage.removeItem(`ppp_student_applications_${currentUser?.id || 'me'}`);
+      localStorage.removeItem('ppp_student_applications_me');
+      localStorage.removeItem('ppp_proposals_mock');
+      localStorage.removeItem('ppp_expedientes_mock');
+    } catch {}
 
-  // Buscar trámites del alumno actual combinando expedientes y postulaciones registradas
-  const myExpedientes = useMemo(() => {
-    const rawList = [...expedientes];
-
-    // Filtrar expedientes del usuario
-    let filteredList = rawList.filter((expedienteItem) => {
-      const matchesUserId =
-        currentUser?.id && String(expedienteItem.studentId) === String(currentUser.id);
-      const matchesUserEmail =
-        expedienteItem.studentEmail &&
-        currentUser?.email &&
-        expedienteItem.studentEmail.toLowerCase() === currentUser.email.toLowerCase();
-      const matchesMe = expedienteItem.studentId === 'me';
-      return matchesUserId || matchesUserEmail || matchesMe;
-    });
-
-    // Añadir postulaciones guardadas localmente si no están ya en la lista
-    storedApplications.forEach((storedApp: any) => {
-      const alreadyIncluded = filteredList.some(
-        (existingItem) => String(existingItem.id) === String(storedApp.id)
-      );
-      if (!alreadyIncluded) {
-        filteredList.unshift({
-          id: storedApp.id,
-          type: 'interna',
-          status: storedApp.status || 'pending_application',
-          isSiuLoaded: false,
-          proposalId: storedApp.proposalId,
-          proposalTitle: storedApp.proposalTitle || 'Convocatoria PPP',
-          createdAt: storedApp.appliedAt || new Date().toISOString(),
-        } as PPPEpidiente);
-      }
-    });
-
-    return filteredList;
-  }, [expedientes, currentUser, storedApplications]);
+    dispatch(fetchMyPPPApplications());
+  }, [dispatch, currentUser?.id]);
 
   const handleCreateExternal = async () => {
     try {
@@ -95,7 +55,7 @@ export const PPPStudentMyTramite: React.FC = () => {
   const getStatusLabel = (statusKey: PPPStatus | string) => {
     switch (statusKey) {
       case 'pending_application':
-        return 'Postulación Pendiente de Revisión';
+        return 'Postulación en Evaluación';
       case 'application_rejected':
         return 'Postulación Desestimada';
       case 'pending_documentation':

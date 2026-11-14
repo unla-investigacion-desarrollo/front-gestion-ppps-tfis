@@ -331,23 +331,25 @@ export const PPPApplicantsModal: React.FC<ApplicantsModalProps> = ({
                       applicantItem.id ||
                       applicantIndex + 1;
                     const applicantTargetId =
-                      applicantItem.student?.id ||
-                      applicantItem.studentId ||
-                      applicantItem.applicationId ||
-                      applicantItem.id ||
+                      applicantItem.student?.id_user ??
+                      applicantItem.student?.id ??
+                      applicantItem.studentId ??
+                      applicantItem.applicationId ??
+                      applicantItem.id ??
                       applicantIndex + 1;
 
-                    const normalizedStatus = (applicantItem.status || '').toLowerCase();
+                    const normalizedStatus = (applicantItem.status || '').toLowerCase().trim();
                     const isPending =
                       normalizedStatus === 'pending' ||
                       normalizedStatus === 'pending_application' ||
                       !normalizedStatus;
-                    const isAccepted =
-                      normalizedStatus === 'accepted' ||
-                      normalizedStatus === 'approved';
                     const isRejected =
                       normalizedStatus === 'rejected' ||
-                      normalizedStatus === 'application_rejected';
+                      normalizedStatus === 'application_rejected' ||
+                      normalizedStatus === 'rechazada' ||
+                      normalizedStatus === 'cancelled' ||
+                      normalizedStatus === 'dropped_out';
+                    const isAccepted = !isPending && !isRejected;
 
                     return (
                       <div

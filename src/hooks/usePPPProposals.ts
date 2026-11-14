@@ -224,33 +224,8 @@ export const usePPPProposals = () => {
         })
       ).unwrap();
 
-      const createdApplicationId = applyResponse?.id || Date.now();
+      const createdApplicationId = applyResponse?.id;
       const applicationStatus = applyResponse?.status || 'pending_application';
-
-      // Persistir localmente para que el estudiante conserve el ID de su postulación
-      try {
-        const studentStorageKey = `ppp_student_applications_${currentUser?.id || 'me'}`;
-        const existingApplications = JSON.parse(
-          localStorage.getItem(studentStorageKey) || '[]'
-        );
-        const newRecord = {
-          id: createdApplicationId,
-          proposalId,
-          proposalTitle,
-          status: applicationStatus,
-          appliedAt: new Date().toISOString(),
-        };
-        const updatedList = [
-          newRecord,
-          ...existingApplications.filter(
-            (applicationItem: any) =>
-              String(applicationItem.proposalId) !== String(proposalId)
-          ),
-        ];
-        localStorage.setItem(studentStorageKey, JSON.stringify(updatedList));
-      } catch (storageError) {
-        console.warn('Error al guardar postulación localmente', storageError);
-      }
 
       setAppliedFeedback({
         id: createdApplicationId,

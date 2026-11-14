@@ -8,6 +8,7 @@ import {
   updatePPPProposalStatus,
   fetchPPPGeneralDrive,
   updatePPPGeneralDrive,
+  fetchMyPPPApplications,
   fetchPPPExpedientes,
   fetchPPPExpedienteById,
   fetchPPPProposalById,
@@ -80,6 +81,16 @@ export const pppSlice = createSlice({
       })
       .addCase(updatePPPGeneralDrive.fulfilled, (state, action: PayloadAction<string>) => {
         state.generalDriveUrl = action.payload;
+      })
+      .addCase(fetchMyPPPApplications.pending, (state) => {
+        state.expedientesStatus = 'loading';
+      })
+      .addCase(fetchMyPPPApplications.fulfilled, (state, action: PayloadAction<PPPEpidiente[]>) => {
+        state.expedientesStatus = 'succeeded';
+        state.expedientes = action.payload;
+      })
+      .addCase(fetchMyPPPApplications.rejected, (state) => {
+        state.expedientesStatus = 'failed';
       })
       .addCase(fetchPPPExpedientes.pending, (state) => {
         state.expedientesStatus = 'loading';

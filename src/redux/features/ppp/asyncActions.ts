@@ -75,6 +75,7 @@ export const applyToPPPProposal = createAsyncThunk<
     const token = localStorage.getItem('token') || '';
     const res = await pppService.applyToProposal(proposalId, previousKnowledge, token, studentInfo);
     dispatch(fetchPPPProposals({ isStudent: true }));
+    dispatch(fetchMyPPPApplications());
     return res;
   } catch (error: any) {
     return rejectWithValue(error.message || 'Error al postularse a la convocatoria');
@@ -117,6 +118,20 @@ export const createPPPExternal = createAsyncThunk<
     return await pppService.createExternalPPP(token, params?.studentInfo);
   } catch (error: any) {
     return rejectWithValue(error.message || 'Error al iniciar trámite externo');
+  }
+});
+
+export const fetchMyPPPApplications = createAsyncThunk<
+  PPPEpidiente[],
+  void,
+  { rejectValue: string }
+>('ppp/fetchMyApplications', async (_, { rejectWithValue, signal }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    return await pppService.getMyApplications(token);
+  } catch (error: any) {
+    if (signal?.aborted) return rejectWithValue('Petición cancelada');
+    return rejectWithValue(error.message || 'Error al cargar tus trámites de PPP');
   }
 });
 
@@ -256,7 +271,7 @@ export const notifyPPPDocSent = createAsyncThunk<
     const token = localStorage.getItem('token') || '';
     await pppService.notifySent(id, token);
     dispatch(fetchPPPExpedienteById(id));
-    dispatch(fetchPPPExpedientes());
+    dispatch(fetchMyPPPApplications());
     return id;
   } catch (error: any) {
     return rejectWithValue(error.message || 'Error al notificar envío de documentación');
@@ -272,7 +287,7 @@ export const abandonPPPExpediente = createAsyncThunk<
     const token = localStorage.getItem('token') || '';
     await pppService.abandonExpediente(id, token);
     dispatch(fetchPPPExpedienteById(id));
-    dispatch(fetchPPPExpedientes());
+    dispatch(fetchMyPPPApplications());
     return id;
   } catch (error: any) {
     return rejectWithValue(error.message || 'Error al dar de baja el trámite');

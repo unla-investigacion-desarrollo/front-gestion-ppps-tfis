@@ -80,6 +80,29 @@ export const PPPProposalApplicantsPage: React.FC = () => {
     return currentProposal?.applicants || [];
   }, [currentProposal]);
 
+  const classifyApplicantStatus = (rawStatus?: string): 'pending' | 'accepted' | 'rejected' => {
+    const normalizedStatus = (rawStatus || '').toLowerCase().trim();
+    if (
+      normalizedStatus === 'pending' ||
+      normalizedStatus === 'pending_application' ||
+      !normalizedStatus
+    ) {
+      return 'pending';
+    }
+    if (
+      normalizedStatus === 'rejected' ||
+      normalizedStatus === 'application_rejected' ||
+      normalizedStatus === 'rechazada' ||
+      normalizedStatus === 'cancelled' ||
+      normalizedStatus === 'dropped_out'
+    ) {
+      return 'rejected';
+    }
+    // Estados posteriores a aceptar una postulación en el backend:
+    // 'accepted', 'pending_documentation', 'in_review', 'observed', 'approved', 'disapproved', etc.
+    return 'accepted';
+  };
+
   // Métricas de postulantes
   const metrics = useMemo(() => {
     const totalCount = applicantsList.length;
@@ -88,18 +111,10 @@ export const PPPProposalApplicantsPage: React.FC = () => {
     let rejectedCount = 0;
 
     applicantsList.forEach((applicantRecord) => {
-      const normalizedStatus = (applicantRecord.status || '').toLowerCase();
-      if (
-        normalizedStatus === 'accepted' ||
-        normalizedStatus === 'aprobada' ||
-        normalizedStatus === 'approved'
-      ) {
+      const category = classifyApplicantStatus(applicantRecord.status);
+      if (category === 'accepted') {
         acceptedCount += 1;
-      } else if (
-        normalizedStatus === 'rejected' ||
-        normalizedStatus === 'application_rejected' ||
-        normalizedStatus === 'rechazada'
-      ) {
+      } else if (category === 'rejected') {
         rejectedCount += 1;
       } else {
         pendingCount += 1;
@@ -121,27 +136,11 @@ export const PPPProposalApplicantsPage: React.FC = () => {
         applicantRecord.student?.email ||
         applicantRecord.studentEmail ||
         '';
-      const normalizedStatus = (applicantRecord.status || '').toLowerCase();
+      const category = classifyApplicantStatus(applicantRecord.status);
 
       // Filtro por estado
-      if (statusFilter === 'pending') {
-        const isPending =
-          normalizedStatus === 'pending' ||
-          normalizedStatus === 'pending_application' ||
-          !normalizedStatus;
-        if (!isPending) return false;
-      } else if (statusFilter === 'accepted') {
-        const isAccepted =
-          normalizedStatus === 'accepted' ||
-          normalizedStatus === 'approved' ||
-          normalizedStatus === 'aprobada';
-        if (!isAccepted) return false;
-      } else if (statusFilter === 'rejected') {
-        const isRejected =
-          normalizedStatus === 'rejected' ||
-          normalizedStatus === 'application_rejected' ||
-          normalizedStatus === 'rechazada';
-        if (!isRejected) return false;
+      if (statusFilter !== 'all' && category !== statusFilter) {
+        return false;
       }
 
       // Filtro por texto
@@ -167,9 +166,10 @@ export const PPPProposalApplicantsPage: React.FC = () => {
     if (!routeProposalId) return;
 
     const targetStudentId =
-      applicantRecord.student?.id ||
-      applicantRecord.studentId ||
-      applicantRecord.applicationId ||
+      applicantRecord.student?.id_user ??
+      applicantRecord.student?.id ??
+      applicantRecord.studentId ??
+      applicantRecord.applicationId ??
       applicantRecord.id;
 
     if (!targetStudentId) {
@@ -485,23 +485,16 @@ export const PPPProposalApplicantsPage: React.FC = () => {
                     applicantRecord.applicationId ||
                     applicantRecord.id ||
                     applicantIndex + 1;
-                  const normalizedStatus = (applicantRecord.status || '').toLowerCase();
-                  const isPending =
-                    normalizedStatus === 'pending' ||
-                    normalizedStatus === 'pending_application' ||
-                    !normalizedStatus;
-                  const isAccepted =
-                    normalizedStatus === 'accepted' ||
-                    normalizedStatus === 'approved' ||
-                    normalizedStatus === 'aprobada';
-                  const isRejected =
-                    normalizedStatus === 'rejected' ||
-                    normalizedStatus === 'application_rejected' ||
-                    normalizedStatus === 'rechazada';
+                  const statusCategory = classifyApplicantStatus(applicantRecord.status);
+                  const isPending = statusCategory === 'pending';
+                  const isAccepted = statusCategory === 'accepted';
+                  const isRejected = statusCategory === 'rejected';
 
                   const itemActionLoading =
                     actionLoadingId === applicantRecord.applicationId ||
-                    actionLoadingId === applicantRecord.id;
+                    actionLoadingId === applicantRecord.id ||
+                    actionLoadingId === applicantRecord.student?.id_user ||
+                    actionLoadingId === applicantRecord.studentId;
 
                   // Iniciales para avatar
                   const initials = applicantName

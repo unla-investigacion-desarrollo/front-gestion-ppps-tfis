@@ -107,211 +107,95 @@ const handleResponse = async (res: Response, defaultErrorMessage: string) => {
   }
 };
 
-// Claves para persistencia local de respaldo
-const STORAGE_PROPOSALS = 'ppp_proposals_mock';
-const STORAGE_EXPEDIENTES = 'ppp_expedientes_mock';
-const STORAGE_DRIVE = 'ppp_general_drive_mock';
-
-function getLocalProposals(): PPPProposal[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_PROPOSALS);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  const initial: PPPProposal[] = [
-    {
-      id: '1',
-      title: 'Desarrollo de Módulo de Gestión de Inventario para Cooperativas',
-      description: 'Práctica profesional orientada al relevamiento de requerimientos y desarrollo de microservicios para gestión comunitaria.',
-      driveFolderUrl: 'https://drive.google.com/drive/folders/ejemplo-convocatoria-1',
-      internalNotes: 'Se priorizarán alumnos con materias de bases de datos e ingeniería de software aprobadas.',
-      isOpen: true,
-      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-      applicants: [
-        {
-          studentId: '101',
-          studentName: 'Lucas Benítez',
-          studentEmail: 'lucas.benitez@alumnos.unla.edu.ar',
-          previousKnowledge: 'Experiencia en React y Node.js en proyectos académicos.',
-          appliedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-          status: 'pending',
-        },
-      ],
-    },
-    {
-      id: '2',
-      title: 'Auditoría de Redes y Seguridad en Laboratorios UNLa',
-      description: 'Implementación de políticas de control de acceso y testing de penetración en entornos controlados.',
-      driveFolderUrl: 'https://drive.google.com/drive/folders/ejemplo-convocatoria-2',
-      internalNotes: 'Contacto de soporte técnico interno: Prof. Martínez.',
-      isOpen: true,
-      createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
-      applicants: [],
-    },
-    {
-      id: '3',
-      title: 'Modernización del Portal Institucional',
-      description: 'Migración de componentes legacy a arquitectura moderna accesible.',
-      driveFolderUrl: '',
-      internalNotes: 'Convocatoria cerrada del ciclo lectivo anterior.',
-      isOpen: false,
-      createdAt: new Date(Date.now() - 86400000 * 30).toISOString(),
-      applicants: [],
-    },
-  ];
-  localStorage.setItem(STORAGE_PROPOSALS, JSON.stringify(initial));
-  return initial;
-}
-
-function saveLocalProposals(list: PPPProposal[]) {
-  localStorage.setItem(STORAGE_PROPOSALS, JSON.stringify(list));
-}
-
-function getLocalExpedientes(): PPPEpidiente[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_EXPEDIENTES);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  const initial: PPPEpidiente[] = [
-    {
-      id: '101',
-      type: 'interna',
-      status: 'in_review',
-      isSiuLoaded: false,
-      studentId: '101',
-      studentName: 'Lucas Benítez',
-      studentEmail: 'lucas.benitez@alumnos.unla.edu.ar',
-      proposalId: '1',
-      proposalTitle: 'Desarrollo de Módulo de Gestión de Inventario para Cooperativas',
-      previousKnowledge: 'Experiencia en React y Node.js en proyectos académicos.',
-      driveFolderUrl: 'https://drive.google.com/drive/folders/ejemplo-convocatoria-1',
-      generalDriveUrl: 'https://drive.google.com/drive/folders/unla-convenios-ppp-oficiales',
-      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    },
-    {
-      id: '102',
-      type: 'externa',
-      status: 'pending_documentation',
-      isSiuLoaded: false,
-      studentId: '102',
-      studentName: 'Carla Morales',
-      studentEmail: 'carla.morales@alumnos.unla.edu.ar',
-      proposalTitle: 'Práctica Externa en Empresa de Software',
-      previousKnowledge: '',
-      generalDriveUrl: 'https://drive.google.com/drive/folders/unla-convenios-ppp-oficiales',
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    },
-  ];
-  localStorage.setItem(STORAGE_EXPEDIENTES, JSON.stringify(initial));
-  return initial;
-}
-
-function saveLocalExpedientes(list: PPPEpidiente[]) {
-  localStorage.setItem(STORAGE_EXPEDIENTES, JSON.stringify(list));
-}
-
-function getLocalGeneralDrive(): string {
-  try {
-    const stored = localStorage.getItem(STORAGE_DRIVE);
-    if (stored) return stored;
-  } catch {}
-  const fallback = 'https://drive.google.com/drive/folders/unla-convenios-ppp-oficiales';
-  localStorage.setItem(STORAGE_DRIVE, fallback);
-  return fallback;
-}
-
-function saveLocalGeneralDrive(url: string) {
-  localStorage.setItem(STORAGE_DRIVE, url);
-}
-
 export const pppService = {
   /**
    * Catálogo de Convocatorias: GET /ppp/proposals
    * Estudiantes ven solo abiertas. Docentes/Admins ven todas.
    */
   getProposals: async (token: string, isStudent = false): Promise<PPPProposal[]> => {
-    try {
-      const response = await fetch(`${API_URL}/ppp/proposals`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await handleResponse(response, 'Error al obtener propuestas');
-      const rawList = Array.isArray(data) ? data : data?.proposals || [];
-      const normalizedList = rawList.map((proposalItem: any) => {
-        const rawApplicants =
-          proposalItem.applicants ||
-          proposalItem.applications ||
-          proposalItem.postulantes ||
-          [];
-        const applicantsCount =
-          proposalItem.applicantsCount ??
-          proposalItem.applicationsCount ??
-          proposalItem._count?.applications ??
-          proposalItem._count?.applicants ??
-          rawApplicants.length;
-        return {
-          ...proposalItem,
-          applicants: rawApplicants,
-          applications: rawApplicants,
-          applicantsCount,
-        };
-      });
+    const response = await fetch(`${API_URL}/ppp/proposals`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(response, 'Error al obtener propuestas');
+    const rawList = Array.isArray(data) ? data : data?.proposals || [];
+    const normalizedList = rawList.map((proposalItem: any) => {
+      const rawApplicants =
+        proposalItem.applicants ||
+        proposalItem.applications ||
+        proposalItem.postulantes ||
+        [];
+      const applicantsCount =
+        proposalItem.applicantsCount ??
+        proposalItem.applicationsCount ??
+        proposalItem._count?.applications ??
+        proposalItem._count?.applicants ??
+        rawApplicants.length;
+      return {
+        ...proposalItem,
+        applicants: rawApplicants,
+        applications: rawApplicants,
+        applicantsCount,
+      };
+    });
 
-      const filteredList = isStudent
-        ? normalizedList.filter((proposalItem: PPPProposal) => proposalItem.isOpen)
-        : normalizedList;
+    const filteredList = isStudent
+      ? normalizedList.filter((proposalItem: PPPProposal) => proposalItem.isOpen)
+      : normalizedList;
 
-      // Si es evaluador o admin, enriquecemos en paralelo con GET /ppp/proposals/:id para reflejar el conteo real
-      if (!isStudent && token && filteredList.length > 0) {
-        try {
-          const enrichedList = await Promise.all(
-            filteredList.map(async (proposalItem: PPPProposal) => {
-              try {
-                const detailResponse = await fetch(`${API_URL}/ppp/proposals/${proposalItem.id}`, {
-                  method: 'GET',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                  },
-                });
-                if (!detailResponse.ok) return proposalItem;
-                const detailData = await detailResponse.json();
-                const detailApplicants =
-                  detailData?.applicants ||
-                  detailData?.applications ||
-                  detailData?.postulantes ||
-                  [];
+    // Si es evaluador o admin, enriquecemos en paralelo con GET /ppp/proposals/:id para reflejar el conteo real
+    if (!isStudent && token && filteredList.length > 0) {
+      try {
+        const enrichedList = await Promise.all(
+          filteredList.map(async (proposalItem: PPPProposal) => {
+            try {
+              const detailResponse = await fetch(`${API_URL}/ppp/proposals/${proposalItem.id}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+              if (!detailResponse.ok) return proposalItem;
+              const detailData = await detailResponse.json();
+              const detailApplicants = (
+                detailData?.applicants ||
+                detailData?.applications ||
+                detailData?.postulantes ||
+                []
+              ).map((app: any) => {
+                const sId = app?.student?.id_user ?? app?.student?.id ?? app?.studentId;
                 return {
-                  ...proposalItem,
-                  ...detailData,
-                  applicants: detailApplicants,
-                  applications: detailApplicants,
-                  applicantsCount: detailApplicants.length,
+                  ...app,
+                  studentId: sId,
+                  student: app?.student
+                    ? { ...app.student, id: sId, id_user: sId }
+                    : undefined,
                 };
-              } catch (detailError) {
-                return proposalItem;
-              }
-            })
-          );
-          return enrichedList;
-        } catch (enrichListError) {
-          console.warn('Error al enriquecer convocatorias con postulantes', enrichListError);
-          return filteredList;
-        }
+              });
+              return {
+                ...proposalItem,
+                ...detailData,
+                applicants: detailApplicants,
+                applications: detailApplicants,
+                applicantsCount: detailApplicants.length,
+              };
+            } catch {
+              return proposalItem;
+            }
+          })
+        );
+        return enrichedList;
+      } catch (enrichListError) {
+        console.warn('Error al enriquecer convocatorias con postulantes', enrichListError);
+        return filteredList;
       }
-
-      return filteredList;
-    } catch (fetchError) {
-      console.warn('pppService.getProposals: Usando persistencia local como respaldo', fetchError);
-      const proposalList = getLocalProposals();
-      return isStudent
-        ? proposalList.filter((proposalItem) => proposalItem.isOpen)
-        : proposalList;
     }
+
+    return filteredList;
   },
 
   /**
@@ -322,49 +206,44 @@ export const pppService = {
     proposalId: number | string,
     token: string
   ): Promise<PPPProposal> => {
-    try {
-      const response = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await handleResponse(
-        response,
-        'Error al obtener la convocatoria y postulantes'
-      );
-      const applicants =
-        data?.applicants ||
-        data?.applications ||
-        data?.postulantes ||
-        [];
-      const applicantsCount =
-        data?.applicantsCount ??
-        data?._count?.applications ??
-        data?._count?.applicants ??
-        applicants.length;
-
+    const response = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(
+      response,
+      'Error al obtener la convocatoria y postulantes'
+    );
+    const applicants = (
+      data?.applicants ||
+      data?.applications ||
+      data?.postulantes ||
+      []
+    ).map((app: any) => {
+      const sId = app?.student?.id_user ?? app?.student?.id ?? app?.studentId;
       return {
-        ...data,
-        applicants,
-        applications: applicants,
-        applicantsCount,
+        ...app,
+        studentId: sId,
+        student: app?.student
+          ? { ...app.student, id: sId, id_user: sId }
+          : undefined,
       };
-    } catch (fetchError) {
-      console.warn(
-        'pppService.getProposalById: Usando persistencia local como respaldo',
-        fetchError
-      );
-      const proposalList = getLocalProposals();
-      const matchedProposal = proposalList.find(
-        (proposalItem) => String(proposalItem.id) === String(proposalId)
-      );
-      if (matchedProposal) {
-        return matchedProposal;
-      }
-      throw fetchError;
-    }
+    });
+    const applicantsCount =
+      data?.applicantsCount ??
+      data?._count?.applications ??
+      data?._count?.applicants ??
+      applicants.length;
+
+    return {
+      ...data,
+      applicants,
+      applications: applicants,
+      applicantsCount,
+    };
   },
 
   /**
@@ -372,7 +251,6 @@ export const pppService = {
    * Exclusivo Docente / Administrador.
    */
   createProposal: async (payload: CreateProposalDTO, token: string): Promise<PPPProposal> => {
-    // Garantizar aislamiento de claves técnicas
     const sanitizedBody = {
       title: payload.title.trim(),
       description: payload.description.trim(),
@@ -380,34 +258,15 @@ export const pppService = {
       internalNotes: payload.internalNotes?.trim() || undefined,
     };
 
-    try {
-      const res = await fetch(`${API_URL}/ppp/proposals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(sanitizedBody),
-      });
-      return await handleResponse(res, 'Error al crear la propuesta de PPP');
-    } catch (error) {
-      console.warn('pppService.createProposal: Usando respaldo local', error);
-      const list = getLocalProposals();
-      const newProp: PPPProposal = {
-        id: String(Date.now()),
-        title: sanitizedBody.title,
-        description: sanitizedBody.description,
-        driveFolderUrl: sanitizedBody.driveFolderUrl,
-        internalNotes: sanitizedBody.internalNotes,
-        isOpen: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        applicants: [],
-      };
-      list.unshift(newProp);
-      saveLocalProposals(list);
-      return newProp;
-    }
+    const res = await fetch(`${API_URL}/ppp/proposals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(sanitizedBody),
+    });
+    return await handleResponse(res, 'Error al crear la propuesta de PPP');
   },
 
   /**
@@ -415,27 +274,15 @@ export const pppService = {
    * Exclusivo Docente / Administrador.
    */
   updateProposalStatus: async (id: number | string, isOpen: boolean, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/proposals/${id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ isOpen }),
-      });
-      return await handleResponse(res, 'Error al actualizar estado de convocatoria');
-    } catch (error) {
-      console.warn('pppService.updateProposalStatus: Usando respaldo local', error);
-      const list = getLocalProposals();
-      const item = list.find((p) => String(p.id) === String(id));
-      if (item) {
-        item.isOpen = isOpen;
-        item.updatedAt = new Date().toISOString();
-        saveLocalProposals(list);
-      }
-      return { success: true, isOpen };
-    }
+    const res = await fetch(`${API_URL}/ppp/proposals/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ isOpen }),
+    });
+    return await handleResponse(res, 'Error al actualizar estado de convocatoria');
   },
 
   /**
@@ -463,20 +310,15 @@ export const pppService = {
    * Consultar Drive General de la Carrera: GET /ppp/general-drive
    */
   getGeneralDrive: async (token: string): Promise<string> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/general-drive`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await handleResponse(res, 'Error al consultar Drive general');
-      return data?.generalDriveUrl || data?.url || getLocalGeneralDrive();
-    } catch (error) {
-      console.warn('pppService.getGeneralDrive: Usando respaldo local', error);
-      return getLocalGeneralDrive();
-    }
+    const res = await fetch(`${API_URL}/ppp/general-drive`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(res, 'Error al consultar Drive general');
+    return data?.generalDriveUrl || data?.url || '';
   },
 
   /**
@@ -484,21 +326,15 @@ export const pppService = {
    * Exclusivo Docente / Administrador.
    */
   updateGeneralDrive: async (generalDriveUrl: string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/general-drive`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ generalDriveUrl }),
-      });
-      return await handleResponse(res, 'Error al configurar Drive general');
-    } catch (error) {
-      console.warn('pppService.updateGeneralDrive: Usando respaldo local', error);
-      saveLocalGeneralDrive(generalDriveUrl);
-      return { generalDriveUrl };
-    }
+    const res = await fetch(`${API_URL}/ppp/general-drive`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ generalDriveUrl }),
+    });
+    return await handleResponse(res, 'Error al configurar Drive general');
   },
 
   /**
@@ -518,21 +354,33 @@ export const pppService = {
       body: JSON.stringify({}),
     });
     const data = await handleResponse(res, 'Error al iniciar trámite externo de PPP');
-    const nowIso = new Date().toISOString();
-    return {
+    return normalizeBackendExpediente({
       ...data,
-      id: data?.id,
-      type: 'externa',
+      type: data?.type || 'externa',
       status: data?.status || 'pending_documentation',
-      isSiuLoaded: Boolean(data?.isSiuLoaded),
       studentId: data?.studentId ?? _studentInfo?.id,
       studentName: data?.studentName || _studentInfo?.name || 'Estudiante',
       studentEmail: data?.studentEmail || _studentInfo?.email || '',
-      proposalTitle: data?.proposalTitle || 'Práctica Profesional Externa',
-      generalDriveUrl: data?.generalDriveUrl,
-      createdAt: data?.createdAt ? normalizeBackendPppDate(data.createdAt) : nowIso,
-      updatedAt: data?.updatedAt ? normalizeBackendPppDate(data.updatedAt) : nowIso,
-    };
+    });
+  },
+
+  /**
+   * Mis Postulaciones / Trámites de Estudiante: GET /ppp/my-applications
+   * Exclusivo Estudiante.
+   */
+  getMyApplications: async (token: string): Promise<PPPEpidiente[]> => {
+    const response = await fetch(`${API_URL}/ppp/my-applications`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(response, 'Error al obtener tus trámites de PPP');
+    const rawList = Array.isArray(data)
+      ? data
+      : data?.applications || data?.ppps || data?.expedientes || data?.items || data?.data || [];
+    return rawList.map((item: any) => normalizeBackendExpediente(item));
   },
 
   /**
@@ -558,45 +406,33 @@ export const pppService = {
    * Bandeja General de Expedientes: GET /ppp
    * Exclusivo Docentes y Administradores.
    */
-  getExpedientes: async (token: string, useLocalFallback = true): Promise<PPPEpidiente[]> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await handleResponse(res, 'Error al obtener expedientes');
-      const rawList = Array.isArray(data) ? data : data?.expedientes || data?.items || [];
-      return rawList.map((item: any) => normalizeBackendExpediente(item));
-    } catch (error) {
-      if (!useLocalFallback) throw error;
-      console.warn('pppService.getExpedientes: Usando respaldo local', error);
-      return getLocalExpedientes();
-    }
+  getExpedientes: async (token: string, _useLocalFallback = false): Promise<PPPEpidiente[]> => {
+    const res = await fetch(`${API_URL}/ppp`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(res, 'Error al obtener expedientes');
+    const rawList = Array.isArray(data) ? data : data?.expedientes || data?.items || [];
+    return rawList.map((item: any) => normalizeBackendExpediente(item));
   },
 
   /**
    * Detalle de Trámite PPP: GET /ppp/:id
    */
   getExpedienteById: async (id: number | string, token: string): Promise<PPPEpidiente | null> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await handleResponse(res, 'Error al obtener detalle del trámite');
-      if (!data) return null;
-      return normalizeBackendExpediente(data);
-    } catch (error) {
-      console.warn('pppService.getExpedienteById: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      return list.find((e) => String(e.id) === String(id)) || null;
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await handleResponse(res, 'Error al obtener detalle del trámite');
+    if (!data) return null;
+    return normalizeBackendExpediente(data);
   },
 
   /**
@@ -607,51 +443,15 @@ export const pppService = {
     studentId: number | string,
     token: string
   ): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}/students/${studentId}/accept`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al aceptar al postulante');
-    } catch (error) {
-      console.warn('pppService.acceptProposalApplicant: Usando respaldo local', error);
-      const list = getLocalProposals();
-      const prop = list.find((p) => String(p.id) === String(proposalId));
-      if (prop?.applicants) {
-        const app = prop.applicants.find((a) => String(a.studentId) === String(studentId));
-        if (app) app.status = 'accepted';
-        saveLocalProposals(list);
-      }
-      // Actualizar expediente si existe o crearlo en pending_documentation
-      const expedientes = getLocalExpedientes();
-      let exp = expedientes.find(
-        (e) => String(e.proposalId) === String(proposalId) && String(e.studentId) === String(studentId)
-      );
-      if (exp) {
-        exp.status = 'pending_documentation';
-        exp.updatedAt = new Date().toISOString();
-      } else {
-        expedientes.unshift({
-          id: String(Date.now()),
-          type: 'interna',
-          status: 'pending_documentation',
-          isSiuLoaded: false,
-          studentId,
-          proposalId,
-          proposalTitle: prop?.title || 'Convocatoria PPP',
-          driveFolderUrl: prop?.driveFolderUrl,
-          generalDriveUrl: getLocalGeneralDrive(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-      }
-      saveLocalExpedientes(expedientes);
-      return { success: true };
-    }
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}/students/${studentId}/accept`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al aceptar al postulante');
   },
 
   /**
@@ -662,144 +462,75 @@ export const pppService = {
     studentId: number | string,
     token: string
   ): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}/students/${studentId}/reject`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al rechazar al postulante');
-    } catch (error) {
-      console.warn('pppService.rejectProposalApplicant: Usando respaldo local', error);
-      const list = getLocalProposals();
-      const prop = list.find((p) => String(p.id) === String(proposalId));
-      if (prop?.applicants) {
-        const app = prop.applicants.find((a) => String(a.studentId) === String(studentId));
-        if (app) app.status = 'rejected';
-        saveLocalProposals(list);
-      }
-      const expedientes = getLocalExpedientes();
-      const exp = expedientes.find(
-        (e) => String(e.proposalId) === String(proposalId) && String(e.studentId) === String(studentId)
-      );
-      if (exp) {
-        exp.status = 'application_rejected';
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(expedientes);
-      }
-      return { success: true };
-    }
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}/students/${studentId}/reject`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al rechazar al postulante');
   },
 
   /**
    * Observar Trámite: PATCH /ppp/:id/observe (cuerpo vacío {})
    */
   observeExpediente: async (id: number | string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}/observe`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al observar expediente');
-    } catch (error) {
-      console.warn('pppService.observeExpediente: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      const exp = list.find((e) => String(e.id) === String(id));
-      if (exp) {
-        exp.status = 'observed';
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(list);
-      }
-      return { success: true, status: 'observed' };
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}/observe`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al observar expediente');
   },
 
   /**
    * Aprobar Trámite: PATCH /ppp/:id/approve (cuerpo vacío {})
    */
   approveExpediente: async (id: number | string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}/approve`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al aprobar expediente');
-    } catch (error) {
-      console.warn('pppService.approveExpediente: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      const exp = list.find((e) => String(e.id) === String(id));
-      if (exp) {
-        exp.status = 'approved';
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(list);
-      }
-      return { success: true, status: 'approved' };
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}/approve`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al aprobar expediente');
   },
 
   /**
    * Desaprobar Trámite: PATCH /ppp/:id/disapprove (cuerpo vacío {})
    */
   disapproveExpediente: async (id: number | string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}/disapprove`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al desaprobar expediente');
-    } catch (error) {
-      console.warn('pppService.disapproveExpediente: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      const exp = list.find((e) => String(e.id) === String(id));
-      if (exp) {
-        exp.status = 'disapproved';
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(list);
-      }
-      return { success: true, status: 'disapproved' };
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}/disapprove`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al desaprobar expediente');
   },
 
   /**
    * Confirmar Carga en SIU Guaraní: PATCH /ppp/:id/siu-load (cuerpo vacío {})
    */
   loadSiuExpediente: async (id: number | string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}/siu-load`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al registrar carga en SIU Guaraní');
-    } catch (error) {
-      console.warn('pppService.loadSiuExpediente: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      const exp = list.find((e) => String(e.id) === String(id));
-      if (exp) {
-        exp.isSiuLoaded = true;
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(list);
-      }
-      return { success: true, isSiuLoaded: true };
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}/siu-load`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al registrar carga en SIU Guaraní');
   },
 
   /**
@@ -807,27 +538,15 @@ export const pppService = {
    * Exclusivo Estudiante.
    */
   notifySent: async (id: number | string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}/notify-sent`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al notificar entrega de documentación');
-    } catch (error) {
-      console.warn('pppService.notifySent: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      const exp = list.find((e) => String(e.id) === String(id));
-      if (exp) {
-        exp.status = 'in_review';
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(list);
-      }
-      return { success: true, status: 'in_review' };
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}/notify-sent`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al notificar entrega de documentación');
   },
 
   /**
@@ -835,27 +554,15 @@ export const pppService = {
    * Exclusivo Estudiante.
    */
   abandonExpediente: async (id: number | string, token: string): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/ppp/${id}/abandon`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      return await handleResponse(res, 'Error al dar de baja el trámite');
-    } catch (error) {
-      console.warn('pppService.abandonExpediente: Usando respaldo local', error);
-      const list = getLocalExpedientes();
-      const exp = list.find((e) => String(e.id) === String(id));
-      if (exp) {
-        exp.status = 'dropped_out';
-        exp.updatedAt = new Date().toISOString();
-        saveLocalExpedientes(list);
-      }
-      return { success: true, status: 'dropped_out' };
-    }
+    const res = await fetch(`${API_URL}/ppp/${id}/abandon`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return await handleResponse(res, 'Error al dar de baja el trámite');
   },
 };
 

@@ -277,33 +277,49 @@
   margin-top: 2px;
 }
 
+.activity-time {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
 .activity-badge {
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  padding: 5px 12px;
+  border-radius: 999px;
   text-transform: capitalize;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .activity-badge-activo,
 .activity-badge-aprobada {
   background-color: #dcfce7;
-  color: #15803d;
+  color: #166534 !important;
+  border: 1px solid #86efac;
 }
 
 .activity-badge-pendiente {
   background-color: #fef3c7;
-  color: #b45309;
+  color: #92400e !important;
+  border: 1px solid #fcd34d;
 }
 
 .activity-badge-curso {
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #dbeafe;
+  color: #1e40af !important;
+  border: 1px solid #93c5fd;
 }
 
 .activity-badge-inactivo {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: #e5e7eb;
+  color: #374151 !important;
+  border: 1px solid #d1d5db;
 }
 
 .border-bottom-custom {

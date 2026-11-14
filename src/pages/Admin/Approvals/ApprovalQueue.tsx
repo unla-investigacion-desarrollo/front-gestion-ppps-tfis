@@ -177,7 +177,7 @@ const ApprovalQueue: React.FC = () => {
               type="button"
               className="approvals-tab-button active"
             >
-              <span>Solicitudes a Proyectos</span>
+              <span>Solicitudes a Proyectos TFI</span>
               <span className="approvals-tab-counter">
                 {pendingProjectRequests.length}
               </span>

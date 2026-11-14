@@ -15,9 +15,9 @@ const ActivityItem = ({ title, description, time, badgeText, badgeType, icon, ic
         </div>
       </div>
       <div className="activity-meta d-flex align-items-center gap-3 text-end">
-        <span className="activity-time text-muted small">{time}</span>
+        <span className="activity-time">{time}</span>
         {badgeText && (
-          <span className={`badge activity-badge ${badgeClass}`}>
+          <span className={`activity-badge ${badgeClass}`}>
             {badgeText}
           </span>
         )}

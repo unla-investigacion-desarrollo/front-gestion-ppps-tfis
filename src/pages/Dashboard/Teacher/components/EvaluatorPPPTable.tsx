@@ -210,7 +210,7 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const [filterEstado, setFilterEstado] = useState<string>('todos');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const loadPPPTramites = useCallback(async () => {
     setLoading(true);
@@ -338,7 +338,7 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
   };
 
   return (
-    <div>
+    <div className="evaluator-ppp-view">
       {/* Breadcrumb para regresar al Inicio */}
       <button
         type="button"
@@ -492,18 +492,18 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
       )}
 
       {/* Tabla con Bootstrap */}
-      <div className="teacher-table-card">
-        <div className="table-responsive">
-          <table className="table table-hover align-middle teacher-bootstrap-table">
+      <div className="teacher-table-card teacher-table-card-full">
+        <div className="table-responsive flex-grow-1 w-100">
+          <table className="table table-hover align-middle teacher-bootstrap-table w-100">
             <thead>
               <tr>
-                <th scope="col" style={{ width: '10%' }}>TRÁMITE</th>
-                <th scope="col" style={{ width: '12%' }}>TIPO</th>
-                <th scope="col" style={{ width: '34%' }}>CONVOCATORIA / PROPUESTA</th>
-                <th scope="col" style={{ width: '18%' }}>ESTADO</th>
+                <th scope="col" style={{ width: '9%' }}>TRÁMITE</th>
+                <th scope="col" style={{ width: '11%' }}>TIPO</th>
+                <th scope="col" style={{ width: '32%' }}>CONVOCATORIA / PROPUESTA</th>
+                <th scope="col" style={{ width: '16%' }}>ESTADO</th>
                 <th scope="col" style={{ width: '14%' }}>FECHA DE CREACIÓN</th>
-                <th scope="col" style={{ width: '8%' }}>SIU</th>
-                <th scope="col" style={{ width: '4%', textAlign: 'right' }}>ACCIONES</th>
+                <th scope="col" style={{ width: '9%' }}>SIU</th>
+                <th scope="col" style={{ width: '9%', textAlign: 'right' }}>ACCIONES</th>
               </tr>
             </thead>
             <tbody>
@@ -635,10 +635,28 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
 
         {/* Footer de Paginación */}
         <div className="teacher-table-pagination-footer">
-          <span>
-            Mostrando {totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
-            {Math.min(currentPage * pageSize, totalItems)} de {totalItems} registros
-          </span>
+          <div className="d-flex align-items-center gap-3 flex-wrap">
+            <span>
+              Mostrando {totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
+              {Math.min(currentPage * pageSize, totalItems)} de {totalItems} registros
+            </span>
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted small">Filas por página:</span>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: '72px' }}
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+          </div>
 
           <div className="teacher-pagination-nav">
             <button

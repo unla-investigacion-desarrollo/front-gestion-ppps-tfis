@@ -269,26 +269,20 @@ export const PPPTramiteDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="ppp-header-actions">
-            {!isStudent ? (
-              <>
-                <Link to="/ppp/expedientes" className="btn-unla-outline">
-                  ← Volver a expedientes
-                </Link>
-                <button
-                  type="button"
-                  className="btn-unla-outline"
-                  onClick={() => setShowDriveModal(true)}
-                >
-                  Configurar Drive oficial
-                </button>
-              </>
-            ) : (
-              <Link to="/ppp/convocatorias" className="btn-unla-outline">
-                ← Catálogo de convocatorias
+          {!isStudent && (
+            <div className="ppp-header-actions">
+              <Link to="/ppp/expedientes" className="btn-unla-outline">
+                ← Volver a expedientes
               </Link>
-            )}
-          </div>
+              <button
+                type="button"
+                className="btn-unla-outline"
+                onClick={() => setShowDriveModal(true)}
+              >
+                Configurar Drive oficial
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Stepper del Ciclo de Vida del Trámite */}
