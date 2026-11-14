@@ -12,6 +12,7 @@ import { RegisterTutoringModal } from './components/RegisterTutoringModal';
 import { ActivityDetailModal } from './components/ActivityDetailModal';
 import TeacherProjectsList from '../../Teacher/TeacherProjectsList';
 import ApprovalQueue from '../../Admin/Approvals/ApprovalQueue';
+import PPPProposalsCatalog from '../../PPP/PPPProposalsCatalog';
 import { studentWorkService } from '../../../services/studentWorkService';
 import './TeacherDashboard.css';
 
@@ -19,12 +20,14 @@ interface TeacherDashboardProps {
   user?: any;
   teacherType?: 'evaluador' | 'tutor';
   initialView?: string;
+  children?: React.ReactNode;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   user: propUser,
   teacherType,
   initialView,
+  children,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,12 +81,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   // Vista activa dentro del perfil
   const [activeView, setActiveView] = useState<string>(() => {
     if (location.pathname === '/admin/approvals') return 'solicitudes';
+    if (location.pathname === '/ppp/convocatorias') return 'convocatorias-ppp';
     return initialView || location.state?.initialView || 'inicio';
   });
 
   useEffect(() => {
     if (location.pathname === '/admin/approvals') {
       setActiveView('solicitudes');
+    } else if (location.pathname === '/ppp/convocatorias') {
+      setActiveView('convocatorias-ppp');
     } else if (initialView) {
       setActiveView(initialView);
     } else if (location.state?.initialView) {
@@ -108,6 +114,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     } else if (view === 'ppp') {
       if (location.pathname !== '/dashboard') {
         navigate('/dashboard', { state: { initialView: 'ppp' } });
+      }
+    } else if (view === 'convocatorias-ppp') {
+      if (location.pathname !== '/ppp/convocatorias') {
+        navigate('/ppp/convocatorias');
       }
     } else if (view === 'solicitudes') {
       if (location.pathname !== '/admin/approvals') {
@@ -363,63 +373,73 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
         {/* Scrollable Main Content */}
         <main className="teacher-main-scrollable">
-          {/* =============================================================
-              VISTAS DEL PROFESOR EVALUADOR
-              ============================================================= */}
-          {roleProfile === 'evaluador' && (
+          {children ? (
+            children
+          ) : (
             <>
-              {activeView === 'inicio' && (
-                <EvaluatorDashboard
-                  userName={teacherFirstName}
-                  onGoToPPP={() => handleSelectView('ppp')}
-                  onViewActivity={(act) => setSelectedActivity(act)}
-                />
+              {/* =============================================================
+                  VISTAS DEL PROFESOR EVALUADOR
+                  ============================================================= */}
+              {roleProfile === 'evaluador' && (
+                <>
+                  {activeView === 'inicio' && (
+                    <EvaluatorDashboard
+                      userName={teacherFirstName}
+                      onGoToPPP={() => handleSelectView('ppp')}
+                      onViewActivity={(act) => setSelectedActivity(act)}
+                    />
+                  )}
+
+                  {activeView === 'ppp' && (
+                    <EvaluatorPPPTable
+                      onBackToInicio={() => handleSelectView('inicio')}
+                    />
+                  )}
+
+                  {activeView === 'convocatorias-ppp' && (
+                    <PPPProposalsCatalog />
+                  )}
+
+                  {(activeView === 'convocatoria-tfi' || activeView === 'proyectos') && (
+                    <TeacherProjectsList />
+                  )}
+
+                  {activeView === 'solicitudes' && (
+                    <ApprovalQueue />
+                  )}
+                </>
               )}
 
-              {activeView === 'ppp' && (
-                <EvaluatorPPPTable
-                  onBackToInicio={() => handleSelectView('inicio')}
-                />
-              )}
+              {/* =============================================================
+                  VISTAS DEL PROFESOR TUTOR
+                  ============================================================= */}
+              {roleProfile === 'tutor' && (
+                <>
+                  {activeView === 'inicio' && (
+                    <TutorDashboard
+                      userName={teacherFirstName}
+                      onGoToProjects={() => handleSelectView('proyectos')}
+                      onViewActivity={(act) => setSelectedActivity(act)}
+                      onGoToApprovals={() => handleSelectView('solicitudes')}
+                    />
+                  )}
 
-              {(activeView === 'convocatoria-tfi' || activeView === 'proyectos') && (
-                <TeacherProjectsList />
-              )}
+                  {activeView === 'proyectos' && (
+                    <TutorProjectsTable
+                      onBackToInicio={() => handleSelectView('inicio')}
+                      onOpenRegisterTutoring={(project) => setTutoringModalProject(project)}
+                      refreshTrigger={projectsRefreshTrigger}
+                    />
+                  )}
 
-              {activeView === 'solicitudes' && (
-                <ApprovalQueue />
-              )}
-            </>
-          )}
+                  {activeView === 'convocatoria-tfi' && (
+                    <TeacherProjectsList />
+                  )}
 
-          {/* =============================================================
-              VISTAS DEL PROFESOR TUTOR
-              ============================================================= */}
-          {roleProfile === 'tutor' && (
-            <>
-              {activeView === 'inicio' && (
-                <TutorDashboard
-                  userName={teacherFirstName}
-                  onGoToProjects={() => handleSelectView('proyectos')}
-                  onViewActivity={(act) => setSelectedActivity(act)}
-                  onGoToApprovals={() => handleSelectView('solicitudes')}
-                />
-              )}
-
-              {activeView === 'proyectos' && (
-                <TutorProjectsTable
-                  onBackToInicio={() => handleSelectView('inicio')}
-                  onOpenRegisterTutoring={(project) => setTutoringModalProject(project)}
-                  refreshTrigger={projectsRefreshTrigger}
-                />
-              )}
-
-              {activeView === 'convocatoria-tfi' && (
-                <TeacherProjectsList />
-              )}
-
-              {activeView === 'solicitudes' && (
-                <ApprovalQueue />
+                  {activeView === 'solicitudes' && (
+                    <ApprovalQueue />
+                  )}
+                </>
               )}
             </>
           )}

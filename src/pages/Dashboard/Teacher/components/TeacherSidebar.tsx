@@ -121,7 +121,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className={`teacher-sidebar-subitem ${location.pathname === '/ppp/convocatorias' ? 'active' : ''}`}
+                      className={`teacher-sidebar-subitem ${activeView === 'convocatorias-ppp' || location.pathname === '/ppp/convocatorias' ? 'active' : ''}`}
                       onClick={() => {
                         onSelectView('convocatorias-ppp');
                         if (location.pathname !== '/ppp/convocatorias') {

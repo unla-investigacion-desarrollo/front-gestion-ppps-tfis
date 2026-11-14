@@ -45,6 +45,30 @@ const TeacherApprovalsRoute = () => {
   return <ApprovalQueue />;
 };
 
+const TeacherPPPProposalsRoute = () => {
+  const { user, isProfessor, teacherType } = useUserProfile();
+
+  if (isProfessor) {
+    return <TeacherDashboard user={user} teacherType={teacherType} initialView="convocatorias-ppp" />;
+  }
+
+  return <PPPProposalsCatalog />;
+};
+
+const TeacherPPPLayoutRoute = ({ view = 'ppp', children }) => {
+  const { user, isProfessor, teacherType } = useUserProfile();
+
+  if (isProfessor) {
+    return (
+      <TeacherDashboard user={user} teacherType={teacherType} initialView={view}>
+        {children}
+      </TeacherDashboard>
+    );
+  }
+
+  return children;
+};
+
 const App = () => {
 
 
@@ -143,7 +167,7 @@ const App = () => {
           <Route path="/ppp/convocatorias" element={
             <PrivateRoute>
               <AuthenticatedLayout>
-                <PPPProposalsCatalog />
+                <TeacherPPPProposalsRoute />
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
@@ -151,7 +175,9 @@ const App = () => {
             <PrivateRoute>
               <TeacherRoute>
                 <AuthenticatedLayout>
-                  <PPPProposalApplicantsPage />
+                  <TeacherPPPLayoutRoute view="convocatorias-ppp">
+                    <PPPProposalApplicantsPage />
+                  </TeacherPPPLayoutRoute>
                 </AuthenticatedLayout>
               </TeacherRoute>
             </PrivateRoute>
@@ -160,7 +186,9 @@ const App = () => {
             <PrivateRoute>
               <TeacherRoute>
                 <AuthenticatedLayout>
-                  <PPPProposalApplicantsPage />
+                  <TeacherPPPLayoutRoute view="convocatorias-ppp">
+                    <PPPProposalApplicantsPage />
+                  </TeacherPPPLayoutRoute>
                 </AuthenticatedLayout>
               </TeacherRoute>
             </PrivateRoute>
@@ -169,7 +197,9 @@ const App = () => {
             <PrivateRoute>
               <TeacherRoute>
                 <AuthenticatedLayout>
-                  <PPPExpedientesList />
+                  <TeacherPPPLayoutRoute view="ppp">
+                    <PPPExpedientesList />
+                  </TeacherPPPLayoutRoute>
                 </AuthenticatedLayout>
               </TeacherRoute>
             </PrivateRoute>
@@ -178,7 +208,9 @@ const App = () => {
             <PrivateRoute>
               <TeacherRoute>
                 <AuthenticatedLayout>
-                  <PPPExpedientesList />
+                  <TeacherPPPLayoutRoute view="ppp">
+                    <PPPExpedientesList />
+                  </TeacherPPPLayoutRoute>
                 </AuthenticatedLayout>
               </TeacherRoute>
             </PrivateRoute>
@@ -186,7 +218,9 @@ const App = () => {
           <Route path="/ppp/:id" element={
             <PrivateRoute>
               <AuthenticatedLayout>
-                <PPPTramiteDetail />
+                <TeacherPPPLayoutRoute view="ppp">
+                  <PPPTramiteDetail />
+                </TeacherPPPLayoutRoute>
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
