@@ -466,48 +466,15 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
                     </td>
 
                     {/* Acciones */}
-                    <td style={{ textAlign: 'right', position: 'relative' }}>
-                      <div className="d-inline-flex align-items-center gap-1">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                          title="Ver detalle del expediente"
-                          style={{ fontSize: '12px', padding: '3px 8px' }}
-                          onClick={() => handleNavigateToDetail(rowRecord.id)}
-                        >
-                          <FaEye size={12} />
-                          <span>Ver</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="teacher-btn-more-actions"
-                          title="Más opciones"
-                          onClick={() => {
-                            setOpenDropdownId(openDropdownId === rowRecord.id ? null : rowRecord.id);
-                          }}
-                        >
-                          <FaEllipsisVertical />
-                        </button>
-                      </div>
-
-                      {openDropdownId === rowRecord.id && (
-                        <div
-                          className="position-absolute end-0 bg-white border rounded shadow-sm py-1 z-3"
-                          style={{ minWidth: '160px', top: '100%', right: '10px' }}
-                        >
-                          <button
-                            type="button"
-                            className="dropdown-item px-3 py-2 small d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent"
-                            onClick={() => {
-                              setOpenDropdownId(null);
-                              handleNavigateToDetail(rowRecord.id);
-                            }}
-                          >
-                            <FaArrowUpRightFromSquare size={12} />
-                            <span>Abrir expediente</span>
-                          </button>
-                        </div>
-                      )}
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        type="button"
+                        className="teacher-btn-more-actions d-inline-flex align-items-center justify-content-center"
+                        title="Ver detalle del expediente"
+                        onClick={() => handleNavigateToDetail(rowRecord.id)}
+                      >
+                        <FaEye size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))
