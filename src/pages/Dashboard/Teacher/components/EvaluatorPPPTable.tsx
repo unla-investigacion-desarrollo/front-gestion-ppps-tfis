@@ -205,7 +205,6 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const [filterEstado, setFilterEstado] = useState<string>('todos');
@@ -234,61 +233,9 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
     loadPPPTramites();
   }, [loadPPPTramites]);
 
-  // Contadores dinámicos calculados a partir de los datos reales del backend
-  const tabCounts = useMemo(() => {
-    let revisionCount = 0;
-    let observacionesCount = 0;
-    let documentacionCount = 0;
-    let siuCount = 0;
-    let aprobadasCount = 0;
-
-    for (const recordItem of records) {
-      if (recordItem.tabKey === 'revision') {
-        revisionCount += 1;
-      }
-      if (recordItem.tabKey === 'observaciones') {
-        observacionesCount += 1;
-      }
-      if (recordItem.tabKey === 'documentacion') {
-        documentacionCount += 1;
-      }
-      if (
-        recordItem.tabKey === 'siu' ||
-        (recordItem.estado === 'Aprobada' && recordItem.siu === 'Pendiente')
-      ) {
-        siuCount += 1;
-      }
-      if (recordItem.tabKey === 'aprobadas') {
-        aprobadasCount += 1;
-      }
-    }
-
-    return {
-      todos: records.length,
-      revision: revisionCount,
-      observaciones: observacionesCount,
-      documentacion: documentacionCount,
-      siu: siuCount,
-      aprobadas: aprobadasCount,
-    };
-  }, [records]);
-
   // Filtrado de registros
   const filteredRecords = useMemo(() => {
     return records.filter((itemRecord) => {
-      // Filtro por pestaña
-      if (activeTab === 'revision' && itemRecord.tabKey !== 'revision') return false;
-      if (activeTab === 'observaciones' && itemRecord.tabKey !== 'observaciones') return false;
-      if (activeTab === 'documentacion' && itemRecord.tabKey !== 'documentacion') return false;
-      if (
-        activeTab === 'siu' &&
-        itemRecord.tabKey !== 'siu' &&
-        !(itemRecord.estado === 'Aprobada' && itemRecord.siu === 'Pendiente')
-      ) {
-        return false;
-      }
-      if (activeTab === 'aprobadas' && itemRecord.tabKey !== 'aprobadas') return false;
-
       // Filtro por Tipo select
       if (filterTipo !== 'todos' && itemRecord.tipo.toLowerCase() !== filterTipo.toLowerCase()) {
         return false;
@@ -315,7 +262,7 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
 
       return true;
     });
-  }, [records, activeTab, filterTipo, filterEstado, searchQuery]);
+  }, [records, filterTipo, filterEstado, searchQuery]);
 
   // Paginación
   const totalItems = filteredRecords.length;
@@ -326,7 +273,6 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
   }, [filteredRecords, currentPage, pageSize]);
 
   const handleClearFilters = () => {
-    setActiveTab('todos');
     setSearchQuery('');
     setFilterTipo('todos');
     setFilterEstado('todos');
@@ -354,70 +300,6 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
       <p className="teacher-page-subtitle">
         Revisa, aprueba y gestiona los trámites de Prácticas Profesionales y Pasantías registrados en el sistema.
       </p>
-
-      {/* Pestañas de Estado con contadores dinámicos */}
-      <div className="teacher-filter-tabs">
-        <button
-          type="button"
-          className={`teacher-filter-tab ${activeTab === 'todos' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('todos');
-            setCurrentPage(1);
-          }}
-        >
-          Todos ({tabCounts.todos})
-        </button>
-        <button
-          type="button"
-          className={`teacher-filter-tab ${activeTab === 'revision' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('revision');
-            setCurrentPage(1);
-          }}
-        >
-          En revisión ({tabCounts.revision})
-        </button>
-        <button
-          type="button"
-          className={`teacher-filter-tab ${activeTab === 'observaciones' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('observaciones');
-            setCurrentPage(1);
-          }}
-        >
-          Con observaciones ({tabCounts.observaciones})
-        </button>
-        <button
-          type="button"
-          className={`teacher-filter-tab ${activeTab === 'documentacion' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('documentacion');
-            setCurrentPage(1);
-          }}
-        >
-          Pend. documentación ({tabCounts.documentacion})
-        </button>
-        <button
-          type="button"
-          className={`teacher-filter-tab ${activeTab === 'siu' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('siu');
-            setCurrentPage(1);
-          }}
-        >
-          Pend. carga SIU ({tabCounts.siu})
-        </button>
-        <button
-          type="button"
-          className={`teacher-filter-tab ${activeTab === 'aprobadas' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('aprobadas');
-            setCurrentPage(1);
-          }}
-        >
-          Aprobadas ({tabCounts.aprobadas})
-        </button>
-      </div>
 
       {/* Barra de Búsqueda y Filtros */}
       <div className="teacher-filters-bar">
