@@ -102,8 +102,21 @@ export const pppSlice = createSlice({
       .addCase(fetchPPPExpedientes.rejected, (state) => {
         state.expedientesStatus = 'failed';
       })
+      .addCase(fetchPPPExpedienteById.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.currentExpediente = null;
+      })
       .addCase(fetchPPPExpedienteById.fulfilled, (state, action: PayloadAction<PPPEpidiente | null>) => {
+        state.status = 'succeeded';
         state.currentExpediente = action.payload;
+      })
+      .addCase(fetchPPPExpedienteById.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error =
+          (action.payload as string) ||
+          action.error.message ||
+          'No se pudo obtener el detalle de la PPP';
       })
       .addCase(fetchPPPProposalById.fulfilled, (state, action: PayloadAction<PPPProposal>) => {
         state.currentProposal = action.payload;

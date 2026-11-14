@@ -181,8 +181,15 @@ export const PPPStudentMyTramite: React.FC = () => {
                       {getStatusLabel(expedienteItem.status)}
                     </span>
                   </div>
-                  <h5 className="fw-bold text-dark m-0">
-                    {expedienteItem.proposalTitle || expedienteItem.proposal?.title || 'Práctica Profesional Supervisada'}
+                  <h5 className="fw-bold m-0">
+                    <Link
+                      to={`/ppp/${expedienteItem.id}`}
+                      className="text-decoration-none"
+                      style={{ color: 'var(--unla-primary, #64001d)' }}
+                      title="Ver detalle completo de la PPP"
+                    >
+                      {expedienteItem.proposalTitle || expedienteItem.proposal?.title || 'Práctica Profesional Supervisada'}
+                    </Link>
                   </h5>
                   <div className="text-muted small mt-1">
                     Iniciado el:{' '}

@@ -539,14 +539,15 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
 
                     {/* Convocatoria / Propuesta / Empresa */}
                     <td>
-                      <div
-                        className="fw-semibold text-dark"
-                        style={{ cursor: 'pointer' }}
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 text-start fw-semibold text-decoration-none"
+                        style={{ color: 'var(--unla-primary, #64001d)' }}
                         onClick={() => handleNavigateToDetail(rowRecord.id)}
-                        title="Ver detalle del expediente"
+                        title="Ver toda la información de la PPP"
                       >
                         {rowRecord.proyecto}
-                      </div>
+                      </button>
                       {rowRecord.empresa && (
                         <div className="text-secondary small">{rowRecord.empresa}</div>
                       )}

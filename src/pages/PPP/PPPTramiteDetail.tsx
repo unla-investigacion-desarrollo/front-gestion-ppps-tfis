@@ -15,6 +15,7 @@ import {
   selectCurrentPPPExpediente,
   selectPPPGeneralDrive,
   selectPPPStatus,
+  selectPPPError,
 } from '../../../redux/slices/pppSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 import {
@@ -59,30 +60,68 @@ export const PPPTramiteDetail: React.FC = () => {
     ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)
   );
   const isTeacher = roles.some((r: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(r));
+  const isTutor = !isAdmin && isTeacher && Boolean(currentUser?.isTutor);
   const isStudent = !isAdmin && !isTeacher;
 
   // Redux state
   const expediente = useSelector(selectCurrentPPPExpediente);
   const generalDriveUrl = useSelector(selectPPPGeneralDrive);
   const status = useSelector(selectPPPStatus);
+  const pppError = useSelector(selectPPPError);
 
   const [actionLoading, setActionLoading] = useState(false);
   const [showDriveModal, setShowDriveModal] = useState(false);
   const [driveInput, setDriveInput] = useState('');
 
   useEffect(() => {
-    if (id) {
+    if (id && !isTutor) {
       dispatch(fetchPPPExpedienteById(id));
       dispatch(fetchPPPGeneralDrive());
-      dispatch(fetchUsers());
+      if (!isStudent) {
+        dispatch(fetchUsers());
+      }
     }
-  }, [dispatch, id]);
+  }, [dispatch, id, isTutor, isStudent]);
 
   useEffect(() => {
     if (generalDriveUrl) {
       setDriveInput(generalDriveUrl);
     }
   }, [generalDriveUrl]);
+
+  if (isTutor) {
+    return (
+      <div className="ppp-page-wrapper d-flex align-items-center justify-content-center">
+        <div className="text-center p-5 bg-white rounded-3 border shadow-sm" style={{ maxWidth: '520px' }}>
+          <FaCircleExclamation size={42} className="text-danger mb-3" />
+          <h5 className="fw-bold text-dark">Acceso restringido</h5>
+          <p className="text-muted small mb-4">
+            Los docentes tutores no tienen acceso a la consulta de expedientes de Prácticas Profesionales Supervisadas (PPP).
+          </p>
+          <button type="button" className="btn-unla-primary" onClick={() => navigate(-1)}>
+            ← Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'failed' && !expediente) {
+    return (
+      <div className="ppp-page-wrapper d-flex align-items-center justify-content-center">
+        <div className="text-center p-5 bg-white rounded-3 border shadow-sm" style={{ maxWidth: '520px' }}>
+          <FaCircleExclamation size={42} className="text-danger mb-3" />
+          <h5 className="fw-bold text-dark">No se pudo cargar el expediente #{id}</h5>
+          <p className="text-muted small mb-4">
+            {pppError || 'No tenés permisos para consultar esta PPP o el expediente no existe.'}
+          </p>
+          <button type="button" className="btn-unla-primary" onClick={() => navigate(-1)}>
+            ← Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!expediente) {
     return (
@@ -360,56 +399,139 @@ export const PPPTramiteDetail: React.FC = () => {
           </a>
         </div>
 
-        {/* Panel de Datos del Expediente */}
+        {/* Panel de Datos del Expediente (GET /ppp/:id) */}
         <div className="row g-4 mb-4">
           <div className="col-md-8">
-            <div className="bg-white rounded-3 border p-4 shadow-sm h-100">
-              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Detalles del Expediente</h6>
-              <div className="row g-3">
-                <div className="col-sm-6">
-                  <span className="text-muted small d-block">Estudiante:</span>
-                  <span className="fw-semibold text-dark">{getStudentDisplayName(expediente, allUsers)}</span>
-                </div>
-                <div className="col-sm-6">
-                  <span className="text-muted small d-block">Email de contacto:</span>
-                  <span className="fw-semibold text-dark">{getStudentEmail(expediente, allUsers) || '-'}</span>
-                </div>
-                <div className="col-sm-6">
-                  <span className="text-muted small d-block">Tipo de Práctica:</span>
-                  <span className="fw-semibold text-dark">
-                    {isInterna ? 'Práctica Interna en Proyecto UNLa' : 'Práctica Externa en Institución/Empresa'}
-                  </span>
-                </div>
-                <div className="col-sm-6">
-                  <span className="text-muted small d-block">Fecha de Inicio:</span>
-                  <span className="fw-semibold text-dark">
-                    {expediente.createdAt ? new Date(expediente.createdAt).toLocaleDateString('es-AR') : '-'}
-                  </span>
-                </div>
+            <div className="bg-white rounded-3 border p-4 shadow-sm h-100 d-flex flex-column gap-4">
+              {/* Datos del Estudiante y del Trámite */}
+              <div>
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">
+                  Datos del Estudiante y Trámite
+                </h6>
+                <div className="row g-3">
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">Estudiante:</span>
+                    <span className="fw-semibold text-dark">
+                      {getStudentDisplayName(expediente, allUsers)}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">DNI:</span>
+                    <span className="fw-semibold text-dark">
+                      {expediente.student?.user?.dni || expediente.student?.dni || expediente.dni || '-'}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">Email de contacto:</span>
+                    <span className="fw-semibold text-dark">
+                      {getStudentEmail(expediente, allUsers) || '-'}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">ID Estudiante:</span>
+                    <span className="fw-semibold text-dark">
+                      {expediente.student?.id_user ??
+                        expediente.student?.user?.id ??
+                        expediente.studentId ??
+                        '-'}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">Tipo de Práctica:</span>
+                    <span className="fw-semibold text-dark">
+                      {isInterna
+                        ? 'Práctica Interna en Proyecto UNLa'
+                        : 'Práctica Externa en Institución/Empresa'}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">Estado del Trámite:</span>
+                    <span className="fw-semibold text-dark">
+                      {getStatusLabel(expediente.status)}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">Fecha de Inicio / Creación:</span>
+                    <span className="fw-semibold text-dark">
+                      {expediente.createdAt ? formatPPPDateTime(expediente.createdAt) : '-'}
+                    </span>
+                  </div>
+                  <div className="col-sm-6">
+                    <span className="text-muted small d-block">Última actualización:</span>
+                    <span className="fw-semibold text-dark">
+                      {expediente.updatedAt ? formatPPPDateTime(expediente.updatedAt) : '-'}
+                    </span>
+                  </div>
 
-                {expediente.previousKnowledge && (
-                  <div className="col-12">
-                    <span className="text-muted small d-block">Conocimientos previos informados:</span>
-                    <div className="p-3 bg-light rounded mt-1 small text-secondary">
-                      {expediente.previousKnowledge}
+                  {expediente.previousKnowledge && (
+                    <div className="col-12">
+                      <span className="text-muted small d-block">
+                        Conocimientos previos / Motivación informados:
+                      </span>
+                      <div className="p-3 bg-light rounded mt-1 small text-secondary">
+                        {expediente.previousKnowledge}
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {resolvedDriveFolderUrl && (
-                  <div className="col-12">
-                    <span className="text-muted small d-block">Carpeta específica de la propuesta:</span>
-                    <a
-                      href={resolvedDriveFolderUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary text-decoration-none fw-semibold small"
-                    >
-                      {resolvedDriveFolderUrl} ↗
-                    </a>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+
+              {/* Información de la Propuesta (si corresponde) */}
+              {(expediente.proposal || isInterna) && (
+                <div>
+                  <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">
+                    Información de la Propuesta
+                  </h6>
+                  <div className="row g-3">
+                    {(expediente.proposal?.id ?? expediente.proposalId) && (
+                      <div className="col-sm-4">
+                        <span className="text-muted small d-block">ID de Propuesta:</span>
+                        <span className="fw-semibold text-dark">
+                          #{expediente.proposal?.id ?? expediente.proposalId}
+                        </span>
+                      </div>
+                    )}
+                    <div className="col-sm-8">
+                      <span className="text-muted small d-block">Título de la Propuesta:</span>
+                      <span className="fw-semibold text-dark">{resolvedProposalTitle}</span>
+                    </div>
+
+                    {expediente.proposal?.description && (
+                      <div className="col-12">
+                        <span className="text-muted small d-block">Descripción de la Propuesta:</span>
+                        <div className="p-3 bg-light rounded mt-1 small text-secondary">
+                          {expediente.proposal.description}
+                        </div>
+                      </div>
+                    )}
+
+                    {expediente.proposal?.internalNotes && (
+                      <div className="col-12">
+                        <span className="text-muted small d-block">Notas internas de la cátedra:</span>
+                        <div className="p-3 bg-light rounded mt-1 small text-secondary">
+                          {expediente.proposal.internalNotes}
+                        </div>
+                      </div>
+                    )}
+
+                    {resolvedDriveFolderUrl && (
+                      <div className="col-12">
+                        <span className="text-muted small d-block">
+                          Carpeta específica de la propuesta:
+                        </span>
+                        <a
+                          href={resolvedDriveFolderUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary text-decoration-none fw-semibold small"
+                        >
+                          {resolvedDriveFolderUrl} ↗
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -421,6 +543,12 @@ export const PPPTramiteDetail: React.FC = () => {
                   <span className="text-muted small d-block mb-1">Carga en SIU Guaraní:</span>
                   <span className={`ppp-siu-badge ${expediente.isSiuLoaded ? 'loaded' : 'pending'}`}>
                     {expediente.isSiuLoaded ? '✓ Asentado en SIU Guaraní' : '○ Pendiente de carga institucional'}
+                  </span>
+                </div>
+                <div className="mb-3">
+                  <span className="text-muted small d-block mb-1">Fecha de creación:</span>
+                  <span className="small text-secondary">
+                    {expediente.createdAt ? formatPPPDateTime(expediente.createdAt) : '-'}
                   </span>
                 </div>
                 <div>

@@ -208,9 +208,14 @@ export const PPPExpedientesList: React.FC = () => {
                       </span>
                     </td>
                     <td>
-                      <div className="text-dark fw-medium" style={{ maxWidth: '280px' }}>
+                      <Link
+                        to={`/ppp/${exp.id}`}
+                        className="project-title-link fw-semibold text-decoration-none d-inline-block"
+                        style={{ maxWidth: '280px', color: 'var(--unla-primary, #64001d)' }}
+                        title="Ver toda la información de la PPP"
+                      >
                         {exp.proposalTitle || exp.proposal?.title || 'Práctica Profesional Supervisada'}
-                      </div>
+                      </Link>
                     </td>
                     <td>
                       <span className={`ppp-status-badge ppp-status-${exp.status}`}>
