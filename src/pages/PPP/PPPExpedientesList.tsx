@@ -217,14 +217,8 @@ export const PPPExpedientesList: React.FC = () => {
                         ) : null}
                       </td>
                       <td>
-                        <span
-                          className={`badge ${
-                            normalizePPPType(exp.type, exp) === 'interna'
-                              ? 'bg-primary-subtle text-primary'
-                              : 'bg-info-subtle text-info'
-                          } px-2.5 py-1 rounded`}
-                        >
-                          {normalizePPPType(exp.type, exp) === 'interna' ? 'Interna (Cátedra)' : 'Externa'}
+                        <span className="text-secondary fw-medium">
+                          {normalizePPPType(exp.type, exp) === 'interna' ? 'Interna (Catedra)' : 'Externa'}
                         </span>
                       </td>
                       <td>

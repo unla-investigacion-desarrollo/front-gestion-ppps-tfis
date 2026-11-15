@@ -9,7 +9,6 @@ import {
   FaChevronDown,
   FaFileLines,
   FaFolder,
-  FaGear,
   FaUser,
   FaBullhorn,
   FaUserClock,
@@ -194,20 +193,6 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             </div>
 
             <div className="teacher-sidebar-divider" />
-
-            {/* Configuración del Drive */}
-            <button
-              type="button"
-              className="teacher-sidebar-item"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent('toast', { detail: { message: 'Configuración del Drive sincronizada correctamente', type: 'info' } })
-                );
-              }}
-            >
-              <FaGear size={16} />
-              <span>Configuración del Drive</span>
-            </button>
 
             {/* Mi perfil */}
             <button
