@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FaCloudArrowUp,
   FaFileLines,
@@ -25,6 +25,7 @@ import { showToast } from '../../utils/toast';
 import '../Trabajo/Trabajo.css';
 
 const StudentDeliveries: React.FC = () => {
+  const navigate = useNavigate();
   const token = localStorage.getItem('token') || '';
 
   const [myProjects, setMyProjects] = useState<any[]>([]);
@@ -57,7 +58,11 @@ const StudentDeliveries: React.FC = () => {
 
       if (normalized.length > 0) {
         const firstId = String(normalized[0].id);
-        setSelectedProjectId((prev) => prev || firstId);
+        navigate(`/proyectos/${encodeURIComponent(firstId)}/trabajo?from=mis-proyectos`, {
+          replace: true,
+          state: { from: 'mis-proyectos' },
+        });
+        return;
       } else {
         setSelectedProjectId('');
         // Consultar al backend para obtener el mensaje oficial cuando no tiene proyecto asignado

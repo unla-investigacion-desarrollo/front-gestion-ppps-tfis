@@ -6,7 +6,6 @@ import {
   FaCircleCheck,
   FaClock,
   FaArrowRight,
-  FaPlus,
 } from 'react-icons/fa6';
 import { ProjectItem } from './types';
 import ProjectCategoryBadge from './ProjectCategoryBadge';
@@ -117,10 +116,7 @@ export const ProjectExplorerCards: React.FC<ProjectExplorerCardsProps> = ({
                       <span>Enviando solicitud...</span>
                     </>
                   ) : (
-                    <>
-                      <FaPlus size={12} />
-                      <span>Solicitar unirse al proyecto</span>
-                    </>
+                    <span>Postular</span>
                   )}
                 </button>
               )}

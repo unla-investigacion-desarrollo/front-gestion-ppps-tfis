@@ -7,7 +7,6 @@ import {
   FaCircleCheck,
   FaClock,
   FaArrowRight,
-  FaPlus,
 } from 'react-icons/fa6';
 import { ProjectItem } from './types';
 import ProjectCategoryBadge from './ProjectCategoryBadge';
@@ -184,10 +183,7 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
                           <span>Enviando...</span>
                         </>
                       ) : (
-                        <>
-                          <FaPlus size={12} />
-                          <span>Postularme</span>
-                        </>
+                        <span>Postular</span>
                       )}
                     </button>
                   )}

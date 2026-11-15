@@ -11,7 +11,7 @@ import { resolveUserName, formatCreationDate } from './projectExplorerUtils';
 export interface ProjectRequestsTableProps {
   requests: RequestItem[];
   allUsers: any[];
-  onExploreClick: () => void;
+  onExploreClick?: () => void;
 }
 
 /**
@@ -20,7 +20,6 @@ export interface ProjectRequestsTableProps {
 export const ProjectRequestsTable: React.FC<ProjectRequestsTableProps> = ({
   requests,
   allUsers,
-  onExploreClick,
 }) => {
   if (requests.length === 0) {
     return (
@@ -32,13 +31,6 @@ export const ProjectRequestsTable: React.FC<ProjectRequestsTableProps> = ({
           explorar los proyectos disponibles y postularte a los que sean de tu
           interés.
         </p>
-        <button
-          type="button"
-          className="btn-join-primary mt-2"
-          onClick={onExploreClick}
-        >
-          Explorar proyectos disponibles
-        </button>
       </div>
     );
   }

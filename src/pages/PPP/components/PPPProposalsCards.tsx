@@ -108,7 +108,7 @@ export const PPPProposalsCards: React.FC<PPPProposalsCardsProps> = ({
                     onClick={() => onOpenApplyModal(proposalItem)}
                     disabled={actionLoading}
                   >
-                    Postularme a esta convocatoria
+                    Postular
                   </button>
                 )
               ) : (

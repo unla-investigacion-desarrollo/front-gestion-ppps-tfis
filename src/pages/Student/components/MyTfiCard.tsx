@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaFileLines,
-  FaChalkboardUser,
-  FaCalendarDays,
   FaArrowRight,
-  FaCloudArrowUp,
   FaFolderOpen,
   FaClock,
 } from 'react-icons/fa6';
@@ -92,80 +88,112 @@ export const MyTfiCard: React.FC<MyTfiCardProps> = ({ record, loading, error, on
               <FaFolderOpen size={38} className="my-tfi-empty-icon" />
               <h3>Todavía no tenés un TFI asignado</h3>
               <p>Explorá los proyectos disponibles y postulate al que te interese.</p>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary"
-                onClick={() => navigate('/alumno/mis-proyectos?tab=all')}
-              >
-                Ver proyectos disponibles
-              </button>
             </>
           )}
         </div>
       ) : (
-        <div className="my-tfi-card">
-          <div className="my-tfi-card-header">
-            <div className="my-tfi-card-icon">
-              <FaFileLines size={20} />
-            </div>
-            <div className="my-tfi-card-heading">
-              <h2 className="my-tfi-card-title">{record.proyecto}</h2>
-              <div className="d-flex align-items-center flex-wrap gap-2 mt-1">
+        (() => {
+          const workStatus = String(record.rawProject?.studentWork?.status || '').toLowerCase().trim();
+          let deliveryLabel = 'Entrega pendiente';
+          let deliveryBadge = 'Pendiente';
+          let deliveryBadgeClass = 'pending';
+          let progressPct = 25;
+          let nextStepText = 'El siguiente paso es registrar la primera entrega.';
+
+          if (workStatus === 'pending_review') {
+            deliveryLabel = 'Entrega enviada';
+            deliveryBadge = 'Pendiente de revisión';
+            deliveryBadgeClass = 'review';
+            progressPct = 60;
+            nextStepText = 'Tu documento fue enviado y está aguardando revisión.';
+          } else if (workStatus === 'observed') {
+            deliveryLabel = 'Entrega con observaciones';
+            deliveryBadge = 'Con observaciones';
+            deliveryBadgeClass = 'observed';
+            progressPct = 65;
+            nextStepText = 'Revisá las observaciones del equipo docente y notificá tus avances.';
+          } else if (workStatus === 'approved') {
+            deliveryLabel = 'Entrega aprobada';
+            deliveryBadge = 'Aprobada';
+            deliveryBadgeClass = 'approved';
+            progressPct = 100;
+            nextStepText = 'Tu Trabajo Final Integrador fue aprobado.';
+          } else if (workStatus === 'disapproved') {
+            deliveryLabel = 'Entrega desaprobada';
+            deliveryBadge = 'Desaprobada';
+            deliveryBadgeClass = 'observed';
+            progressPct = 40;
+            nextStepText = 'Consultá la devolución docente para continuar con el proyecto.';
+          }
+
+          const categoryName =
+            record.rawProject?.projectType?.name ||
+            record.rawProject?.categoria ||
+            '';
+          const currentYear = new Date().getFullYear();
+
+          return (
+            <div className="my-tfi-panel">
+              <div className="my-tfi-panel-header">
+                <div>
+                  <h2 className="my-tfi-panel-heading">Mi Trabajo Final Integrador</h2>
+                  <p className="my-tfi-panel-cycle">Seguimiento académico · Ciclo {currentYear}</p>
+                </div>
                 <TutorProjectStatusPill estado={record.estado} estadoClass={record.estadoClass} />
-                {record.tutoringRequested && (
-                  <span
-                    className="badge bg-warning text-dark border border-warning-subtle d-inline-flex align-items-center gap-1"
-                    style={{ fontSize: '11px', fontWeight: 600, padding: '3px 7px' }}
-                    title="Solicitaste una sesión de tutoría"
-                  >
-                    <FaChalkboardUser size={11} /> Tutoría solicitada
-                  </span>
-                )}
               </div>
-            </div>
-          </div>
 
-          <p className="my-tfi-card-desc">{record.subtitulo}</p>
+              <div className="my-tfi-panel-divider" />
 
-          <dl className="my-tfi-card-info">
-            <div>
-              <dt>Docente / Tutor</dt>
-              <dd>
-                <FaChalkboardUser size={13} className="text-secondary" />
-                <span>{record.estudiantePrincipal}</span>
-                {record.estudiantesExtras && (
-                  <span className="badge bg-light text-secondary border">{record.estudiantesExtras}</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt>Última tutoría</dt>
-              <dd>
-                <FaCalendarDays size={12} className="text-muted" />
-                <span>{record.ultimaTutoria}</span>
-              </dd>
-            </div>
-          </dl>
+              <div className="my-tfi-panel-section">
+                <div className="my-tfi-section-label">PROYECTO ASIGNADO</div>
+                <h3 className="my-tfi-project-name">{record.proyecto}</h3>
+                <div className="my-tfi-project-meta">
+                  Proyecto N.º {record.id}
+                  {categoryName ? ` · ${categoryName}` : ''}
+                </div>
+              </div>
 
-          <div className="my-tfi-card-actions">
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2"
-              onClick={() => navigate(`/alumno/entregas?projectId=${encodeURIComponent(record.id)}`)}
-            >
-              <FaCloudArrowUp size={13} />
-              <span>Ir a entregas</span>
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm my-tfi-btn-primary d-inline-flex align-items-center gap-2"
-              onClick={() => goToProject(record.id)}
-            >
-              <span>Ver proyecto</span>
-              <FaArrowRight size={12} />
-            </button>
-          </div>
-        </div>
+              <dl className="my-tfi-panel-grid">
+                <div>
+                  <dt>Docente / Tutor</dt>
+                  <dd>
+                    <span>{record.estudiantePrincipal}</span>
+                    {record.estudiantesExtras && (
+                      <span className="badge bg-light text-secondary border ms-2">
+                        {record.estudiantesExtras}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Última tutoría</dt>
+                  <dd>{record.ultimaTutoria === '-' ? 'Sin registrar' : record.ultimaTutoria}</dd>
+                </div>
+              </dl>
+
+              <div className="my-tfi-status-box">
+                <div className="my-tfi-status-box-title">Estado de mi TFI</div>
+                <div className="my-tfi-status-box-row">
+                  <span className="my-tfi-status-label">{deliveryLabel}</span>
+                  <span className={`my-tfi-status-pill ${deliveryBadgeClass}`}>{deliveryBadge}</span>
+                </div>
+                <div className="my-tfi-progress-track">
+                  <div className="my-tfi-progress-fill" style={{ width: `${progressPct}%` }} />
+                </div>
+                <div className="my-tfi-status-hint">{nextStepText}</div>
+              </div>
+
+              <button
+                type="button"
+                className="my-tfi-cta-btn"
+                onClick={() => goToProject(record.id)}
+              >
+                <span>Ver seguimiento del proyecto</span>
+                <FaArrowRight size={14} />
+              </button>
+            </div>
+          );
+        })()
       )}
     </div>
   );
