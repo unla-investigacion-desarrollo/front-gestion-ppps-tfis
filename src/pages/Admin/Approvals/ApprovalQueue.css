@@ -233,9 +233,18 @@
 
 /* Tabla estilizada del Mockup */
 .approvals-table-container {
-  overflow-x: auto;
+  flex: 1;
+  overflow: visible;
   border-radius: 8px;
   border: 1px solid #f1f5f9;
+}
+
+.approvals-table thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.approvals-table thead th:last-child {
+  border-top-right-radius: 8px;
 }
 
 .approvals-table {

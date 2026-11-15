@@ -233,9 +233,9 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
     loadPPPTramites();
   }, [loadPPPTramites]);
 
-  // Filtrado de registros
+  // Filtrado de registros (los ya cargados/asentados en SIU van al final)
   const filteredRecords = useMemo(() => {
-    return records.filter((itemRecord) => {
+    const filtered = records.filter((itemRecord) => {
       // Filtro por Tipo select
       if (filterTipo !== 'todos' && itemRecord.tipo.toLowerCase() !== filterTipo.toLowerCase()) {
         return false;
@@ -262,6 +262,12 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
 
       return true;
     });
+
+    return [...filtered].sort((a, b) => {
+      const aLoaded = a.siu === 'Cargado' ? 1 : 0;
+      const bLoaded = b.siu === 'Cargado' ? 1 : 0;
+      return aLoaded - bLoaded;
+    });
   }, [records, filterTipo, filterEstado, searchQuery]);
 
   // Paginación
@@ -285,16 +291,6 @@ export const EvaluatorPPPTable: React.FC<EvaluatorPPPTableProps> = ({ onBackToIn
 
   return (
     <div className="evaluator-ppp-view">
-      {/* Breadcrumb para regresar al Inicio */}
-      <button
-        type="button"
-        className="teacher-breadcrumb d-inline-flex align-items-center gap-2"
-        onClick={onBackToInicio}
-      >
-        <FaArrowLeft />
-        <span>Inicio</span>
-      </button>
-
       {/* Encabezado */}
       <h1 className="teacher-page-title">Gestión de PPP</h1>
       <p className="teacher-page-subtitle">

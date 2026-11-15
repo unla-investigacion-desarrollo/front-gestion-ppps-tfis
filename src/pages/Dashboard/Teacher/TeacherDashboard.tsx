@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaBell, FaChevronDown } from 'react-icons/fa6';
+import { FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../../../hooks/useAuth';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { TeacherSidebar, TeacherRoleProfile } from './components/TeacherSidebar';
 import { EvaluatorDashboard } from './components/EvaluatorDashboard';
-import { EvaluatorPPPTable } from './components/EvaluatorPPPTable';
 import { TutorDashboard } from './components/TutorDashboard';
 import { TutorProjectsTable } from './components/TutorProjectsTable';
 import { RegisterTutoringModal } from './components/RegisterTutoringModal';
@@ -13,6 +12,7 @@ import { ActivityDetailModal } from './components/ActivityDetailModal';
 import TeacherProjectsList from '../../Teacher/TeacherProjectsList';
 import ApprovalQueue from '../../Admin/Approvals/ApprovalQueue';
 import PPPProposalsCatalog from '../../PPP/PPPProposalsCatalog';
+import PPPExpedientesList from '../../PPP/PPPExpedientesList';
 import { studentWorkService } from '../../../services/studentWorkService';
 import './TeacherDashboard.css';
 
@@ -112,8 +112,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         navigate('/dashboard', { state: { initialView: 'proyectos' } });
       }
     } else if (view === 'ppp') {
-      if (location.pathname !== '/dashboard') {
-        navigate('/dashboard', { state: { initialView: 'ppp' } });
+      if (location.pathname !== '/ppp/expedientes') {
+        navigate('/ppp/expedientes');
       }
     } else if (view === 'convocatorias-ppp') {
       if (location.pathname !== '/ppp/convocatorias') {
@@ -155,21 +155,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Formato de fecha en español (Ej. "Lunes, 28 de abril de 2025")
-  const formattedDate = useMemo(() => {
-    const now = new Date();
-    // Para concordar estéticamente con el mockup se formatea en español
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    };
-    const dateStr = now.toLocaleDateString('es-ES', options);
-    // Capitalizar primer letra del día
-    return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
   }, []);
 
   // Nombre formateado para el perfil del mockup o usuario real
@@ -294,29 +279,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       <div className="teacher-content-wrapper">
         {/* Barra Superior Blanca */}
         <header className="teacher-topbar">
-          <span className="teacher-topbar-date">{formattedDate}</span>
-
           <div className="teacher-topbar-actions">
-            {/* Campana de Notificaciones */}
-            <button
-              type="button"
-              className="teacher-icon-btn"
-              title="Notificaciones"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent('toast', {
-                    detail: {
-                      message: 'Tenés 3 notificaciones pendientes de revisión.',
-                      type: 'info',
-                    },
-                  })
-                );
-              }}
-            >
-              <FaBell size={17} />
-              <span className="teacher-icon-badge" />
-            </button>
-
             {/* Perfil de Usuario con Dropdown */}
             <div className="teacher-profile-dropdown-container" ref={dropdownRef}>
               <button
@@ -391,9 +354,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   )}
 
                   {activeView === 'ppp' && (
-                    <EvaluatorPPPTable
-                      onBackToInicio={() => handleSelectView('inicio')}
-                    />
+                    <PPPExpedientesList />
                   )}
 
                   {activeView === 'convocatorias-ppp' && (

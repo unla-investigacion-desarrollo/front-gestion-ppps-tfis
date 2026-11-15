@@ -106,11 +106,11 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className={`teacher-sidebar-subitem ${activeView === 'ppp' ? 'active' : ''}`}
+                      className={`teacher-sidebar-subitem ${activeView === 'ppp' || location.pathname === '/ppp' || location.pathname === '/ppp/expedientes' ? 'active' : ''}`}
                       onClick={() => {
                         onSelectView('ppp');
-                        if (location.pathname !== '/dashboard') {
-                          navigate('/dashboard', { state: { initialView: 'ppp' } });
+                        if (location.pathname !== '/ppp/expedientes') {
+                          navigate('/ppp/expedientes');
                         }
                       }}
                     >

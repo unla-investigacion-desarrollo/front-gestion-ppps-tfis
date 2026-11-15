@@ -260,19 +260,6 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
   return (
     <div className="projects-card-main">
-      {/* Breadcrumb de navegación */}
-      <div className="mb-2">
-        <button
-          type="button"
-          className="teacher-breadcrumb border-0 bg-transparent p-0 d-inline-flex align-items-center gap-2 text-muted"
-          onClick={onBackToInicio}
-          style={{ cursor: 'pointer', fontSize: '13.5px' }}
-        >
-          <FaArrowLeft size={11} />
-          <span>Inicio</span>
-        </button>
-      </div>
-
       {/* Encabezado con estilo institucional unificado */}
       <div className="mb-4">
         <h1 className="projects-title m-0">Mis proyectos</h1>

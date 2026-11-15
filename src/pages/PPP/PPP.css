@@ -388,6 +388,58 @@
   background-color: #f8fafc;
 }
 
+/* Paginación de Expedientes PPP */
+.ppp-pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 13px;
+  color: #64748b;
+  background-color: #ffffff;
+}
+
+.ppp-pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ppp-page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ppp-page-btn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.ppp-page-btn.active {
+  background-color: var(--unla-primary, #64001d);
+  border-color: var(--unla-primary, #64001d);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ppp-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Stepper del Detalle del Trámite */
 .ppp-stepper-card {
   background: #ffffff;
