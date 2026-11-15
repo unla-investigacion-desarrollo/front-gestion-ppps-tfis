@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaFolderOpen, FaCircleCheck, FaArrowRight } from 'react-icons/fa6';
+import { FaFolderOpen, FaCircleCheck } from 'react-icons/fa6';
 import { useProjectExplorer } from '../hooks/useProjectExplorer';
 import {
   ProjectExplorerHeader,
@@ -15,10 +15,6 @@ import './ProjectJoinExplorer.css';
 export interface ProjectJoinExplorerProps {
   onJoinSuccess?: (projectId: number | string) => void;
 }
-
-/** Ruta de la vista "Mi TFI" del estudiante. */
-const goToMyTfi = (navigate: ReturnType<typeof useNavigate>) =>
-  navigate('/dashboard', { state: { initialView: 'proyectos' } });
 
 /**
  * Explorador de proyectos del estudiante.
@@ -102,14 +98,6 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({ onJoin
             <strong>Ya tenés un TFI asignado: {activeTfiTitle}.</strong>
             <span>Como solo podés tener un TFI, no es posible postularte a otros proyectos.</span>
           </div>
-          <button
-            type="button"
-            className="btn-action-deliveries"
-            onClick={() => goToMyTfi(navigate)}
-          >
-            <span>Ver mi TFI</span>
-            <FaArrowRight size={12} />
-          </button>
         </div>
       )}
 
