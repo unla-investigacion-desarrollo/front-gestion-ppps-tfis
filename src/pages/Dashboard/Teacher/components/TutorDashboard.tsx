@@ -28,7 +28,7 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
     <div>
       {/* Saludo */}
       <h1 className="teacher-page-title">
-        Hola, {userName} 👋
+        Bienvenido, {userName}
       </h1>
       <p className="teacher-page-subtitle">
         Aquí tenés un resumen de tus proyectos y solicitudes pendientes.

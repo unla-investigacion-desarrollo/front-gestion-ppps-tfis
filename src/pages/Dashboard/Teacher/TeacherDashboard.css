@@ -425,10 +425,10 @@
 
 /* Encabezados de Página */
 .teacher-page-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.3px;
   margin: 0 0 4px 0;
   display: flex;
   align-items: center;
@@ -437,8 +437,8 @@
 
 .teacher-page-subtitle {
   font-size: 14px;
-  color: var(--unla-text-muted);
-  margin: 0 0 24px 0;
+  color: #78899f;
+  margin: 0 0 18px 0;
 }
 
 /* ==========================================================================
@@ -526,21 +526,29 @@
 }
 
 .teacher-counter-badge {
-  background-color: #dc2626;
-  color: #ffffff;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
   font-size: 12px;
   font-weight: 700;
-  padding: 2px 9px;
-  border-radius: 12px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .teacher-breakdown-list {
   list-style: none;
-  padding: 0;
-  margin: 0 0 16px 0;
+  padding: 10px 0;
+  margin: 0 0 14px 0;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
   flex: 1;
 }
 
@@ -550,25 +558,44 @@
   justify-content: space-between;
   font-size: 13.5px;
   color: #475569;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.teacher-breakdown-item:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 .teacher-breakdown-item-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.teacher-dot-amber {
-  width: 7px;
-  height: 7px;
-  background-color: #f59e0b;
+.teacher-dot-subtle {
+  width: 5px;
+  height: 5px;
+  background-color: #cbd5e1;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.teacher-breakdown-item:hover .teacher-dot-subtle {
+  background-color: #64748b;
+  transform: scale(1.15);
 }
 
 .teacher-breakdown-count {
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+  margin-left: 12px;
 }
 
 .teacher-card-action-link {
@@ -617,12 +644,12 @@
   margin-bottom: 16px;
 }
 
-/* Sección Resumen General (5 métricas en fila) */
+/* Sección Resumen General */
 .teacher-general-summary-card {
   background: #ffffff;
   border: 1px solid var(--unla-border-light);
   border-radius: 12px;
-  padding: 22px;
+  padding: 24px 28px;
   margin-bottom: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -631,7 +658,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .teacher-section-title {
@@ -644,34 +671,37 @@
 .teacher-metrics-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 48px;
 }
 
 .teacher-submetric-card {
-  border: 1px solid #f1f5f9;
-  background-color: #fafbfc;
-  border-radius: 10px;
-  padding: 16px;
+  border: none;
+  background-color: transparent;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: flex-start;
 }
 
-.teacher-submetric-title {
-  font-size: 12.5px;
+.teacher-submetric-icon {
   color: #64748b;
-  font-weight: 500;
-  margin-bottom: 12px;
-  display: flex;
+  margin-bottom: 10px;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
 }
 
 .teacher-submetric-num {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.teacher-submetric-label {
+  font-size: 13.5px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 /* Banner de Acompañamiento (Mockup 3 Derecha) */

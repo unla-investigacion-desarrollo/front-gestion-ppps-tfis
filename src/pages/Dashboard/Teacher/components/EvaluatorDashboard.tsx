@@ -92,18 +92,24 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
     loadCounts();
   }, []);
 
+  const solicitudesItems = [
+    { label: 'Esperando aprobación', count: 2 },
+    { label: 'Tutores que solicitan incorporarse', count: 1 },
+    { label: 'Pendientes de completar integrantes', count: 1 },
+  ];
+  const totalSolicitudesPendientes = solicitudesItems.reduce((acc, item) => acc + item.count, 0);
+
   return (
     <div>
-
       {/* Saludo Principal */}
       <h1 className="teacher-page-title">
-        Bienvenido, {userName} 👋
+        Bienvenido, {userName}
       </h1>
       <p className="teacher-page-subtitle">
         Gestioná los procesos de evaluación de Prácticas Profesionales y Proyectos.
       </p>
 
-      {/* Fila de 3 Tarjetas Superiores con Desglose */}
+      {/* Fila de 2 Tarjetas Superiores con Desglose */}
       <div className="row g-3 mb-4">
         {/* Tarjeta 1: PPP pendientes de revisión */}
         <div className="col-lg-6 col-md-6">
@@ -115,34 +121,60 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                 </div>
                 <h3 className="teacher-breakdown-title">PPP pendientes de revisión</h3>
               </div>
-              <span className="teacher-counter-badge">{pppCounts.totalPendientes}</span>
+              <span className="teacher-counter-badge" title="Total pendientes">
+                {pppCounts.totalPendientes}
+              </span>
             </div>
 
             <ul className="teacher-breakdown-list">
-              <li className="teacher-breakdown-item">
+              <li
+                className="teacher-breakdown-item"
+                role="button"
+                tabIndex={0}
+                onClick={onGoToPPP}
+                onKeyDown={(e) => e.key === 'Enter' && onGoToPPP()}
+              >
                 <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
+                  <span className="teacher-dot-subtle" />
                   <span>En revisión</span>
                 </div>
                 <span className="teacher-breakdown-count">{pppCounts.enRevision}</span>
               </li>
-              <li className="teacher-breakdown-item">
+              <li
+                className="teacher-breakdown-item"
+                role="button"
+                tabIndex={0}
+                onClick={onGoToPPP}
+                onKeyDown={(e) => e.key === 'Enter' && onGoToPPP()}
+              >
                 <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
+                  <span className="teacher-dot-subtle" />
                   <span>Con observaciones</span>
                 </div>
                 <span className="teacher-breakdown-count">{pppCounts.conObservaciones}</span>
               </li>
-              <li className="teacher-breakdown-item">
+              <li
+                className="teacher-breakdown-item"
+                role="button"
+                tabIndex={0}
+                onClick={onGoToPPP}
+                onKeyDown={(e) => e.key === 'Enter' && onGoToPPP()}
+              >
                 <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
+                  <span className="teacher-dot-subtle" />
                   <span>Pend. de documentación</span>
                 </div>
                 <span className="teacher-breakdown-count">{pppCounts.pendDocumentacion}</span>
               </li>
-              <li className="teacher-breakdown-item">
+              <li
+                className="teacher-breakdown-item"
+                role="button"
+                tabIndex={0}
+                onClick={onGoToPPP}
+                onKeyDown={(e) => e.key === 'Enter' && onGoToPPP()}
+              >
                 <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
+                  <span className="teacher-dot-subtle" />
                   <span>Pend. de carga en SIU</span>
                 </div>
                 <span className="teacher-breakdown-count">{pppCounts.pendSiu}</span>
@@ -169,31 +201,28 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                 </div>
                 <h3 className="teacher-breakdown-title">Solicitudes de proyectos</h3>
               </div>
-              <span className="teacher-counter-badge">4</span>
+              <span className="teacher-counter-badge" title="Total pendientes">
+                {totalSolicitudesPendientes}
+              </span>
             </div>
 
             <ul className="teacher-breakdown-list">
-              <li className="teacher-breakdown-item">
-                <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
-                  <span>Esperando aprobación</span>
-                </div>
-                <span className="teacher-breakdown-count">2</span>
-              </li>
-              <li className="teacher-breakdown-item">
-                <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
-                  <span>Tutores que solicitan incorporarse</span>
-                </div>
-                <span className="teacher-breakdown-count">1</span>
-              </li>
-              <li className="teacher-breakdown-item">
-                <div className="teacher-breakdown-item-left">
-                  <span className="teacher-dot-amber" />
-                  <span>Pendientes de completar integrantes</span>
-                </div>
-                <span className="teacher-breakdown-count">1</span>
-              </li>
+              {solicitudesItems.map((item) => (
+                <li
+                  key={item.label}
+                  className="teacher-breakdown-item"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate('/admin/approvals')}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate('/admin/approvals')}
+                >
+                  <div className="teacher-breakdown-item-left">
+                    <span className="teacher-dot-subtle" />
+                    <span>{item.label}</span>
+                  </div>
+                  <span className="teacher-breakdown-count">{item.count}</span>
+                </li>
+              ))}
             </ul>
 
             <button
@@ -210,33 +239,32 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
       {/* Sección Resumen General */}
       <div className="teacher-general-summary-card">
         <div className="teacher-section-header">
-          <FaTableCellsLarge size={17} color="var(--unla-wine)" />
           <h2 className="teacher-section-title">Resumen general</h2>
         </div>
 
         <div className="teacher-metrics-grid">
           <div className="teacher-submetric-card">
-            <div className="teacher-submetric-title">
-              <FaArrowTrendUp size={13} />
-              <span>PPP activas</span>
+            <div className="teacher-submetric-icon">
+              <FaArrowTrendUp size={18} />
             </div>
             <div className="teacher-submetric-num">12</div>
+            <div className="teacher-submetric-label">PPP activas</div>
           </div>
 
           <div className="teacher-submetric-card">
-            <div className="teacher-submetric-title">
-              <FaFolder size={13} />
-              <span>Proyectos en curso</span>
+            <div className="teacher-submetric-icon">
+              <FaFolder size={18} />
             </div>
             <div className="teacher-submetric-num">8</div>
+            <div className="teacher-submetric-label">Proyectos en curso</div>
           </div>
 
           <div className="teacher-submetric-card">
-            <div className="teacher-submetric-title">
-              <FaBullhorn size={13} />
-              <span>Convocatorias abiertas</span>
+            <div className="teacher-submetric-icon">
+              <FaBullhorn size={18} />
             </div>
             <div className="teacher-submetric-num">3</div>
+            <div className="teacher-submetric-label">Convocatorias abiertas</div>
           </div>
         </div>
       </div>
