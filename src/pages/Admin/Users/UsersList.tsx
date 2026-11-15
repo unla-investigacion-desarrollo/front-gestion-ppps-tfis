@@ -85,13 +85,17 @@ const UsersList: React.FC = () => {
   const canEditUser = (targetUser: any) =>
     isSuperAdmin || normalizeRole(targetUser?.role || targetUser?.rol) !== 'SUPERADMIN';
 
+  const canResetPassword = canEditUser;
+
   const canDeleteUser = (targetUser: any) => {
     const targetRole = normalizeRole(targetUser?.role || targetUser?.rol);
     return targetRole !== 'SUPERADMIN' && (targetRole !== 'ADMIN' || isSuperAdmin);
   };
 
-  const canDeactivateUser = (targetUser: any) =>
-    normalizeRole(targetUser?.role || targetUser?.rol) !== 'SUPERADMIN';
+  const canDeactivateUser = (targetUser: any) => {
+    const targetRole = normalizeRole(targetUser?.role || targetUser?.rol);
+    return targetRole !== 'SUPERADMIN' && (targetRole !== 'ADMIN' || isSuperAdmin);
+  };
 
   // --- ESTADO LOCAL ---
   const [filters, setFilters] = useState({ q: '', rol: 'ALL', estado: 'ALL' });
@@ -361,6 +365,11 @@ const UsersList: React.FC = () => {
 
   // Resetear contraseña
   const handleResetPassword = async (targetUser: any) => {
+    if (!canResetPassword(targetUser)) {
+      showToast('Solo el superadmin puede resetear la contraseña de una cuenta de superadmin.', 'error');
+      return;
+    }
+
     const res = await dispatch<any>(resetPassword({ id: targetUser.id }));
     if (res && res.payload) {
       showToast('Contraseña reseteada correctamente', 'success');
@@ -369,11 +378,12 @@ const UsersList: React.FC = () => {
 
   // Habilitar/Deshabilitar cuenta
   const handleToggleActivation = async (user: any, enable: boolean) => {
-    const id = user.id;
     if (!enable && !canDeactivateUser(user)) {
-      showToast('No se puede desactivar la cuenta del superadmin.', 'error');
+      showToast('Solo el superadmin puede desactivar cuentas de administrador.', 'error');
       return;
     }
+
+    const id = user.id;
     if (String(id) === String(currentUser?.id)) {
       showToast('No podés desactivar tu propia cuenta.', 'error');
       return;
@@ -660,6 +670,7 @@ const UsersList: React.FC = () => {
           showActionsColumn={showActionsColumn}
           canManage={canManage}
           canEditUser={canEditUser}
+          canResetPassword={canResetPassword}
           canDeleteUser={canDeleteUser}
           canDeactivateUser={canDeactivateUser}
           sort={sort}

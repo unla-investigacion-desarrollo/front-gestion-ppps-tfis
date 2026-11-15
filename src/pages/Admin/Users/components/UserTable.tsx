@@ -15,6 +15,7 @@ interface UserTableProps {
   showActionsColumn: boolean;
   canManage: (role: string, user: any) => boolean;
   canEditUser: (user: any) => boolean;
+  canResetPassword: (user: any) => boolean;
   canDeleteUser: (user: any) => boolean;
   canDeactivateUser: (user: any) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
@@ -35,6 +36,7 @@ const UserTable: React.FC<UserTableProps> = ({
   showActionsColumn,
   canManage,
   canEditUser,
+  canResetPassword,
   canDeleteUser,
   canDeactivateUser,
   sort,
@@ -259,7 +261,7 @@ const UserTable: React.FC<UserTableProps> = ({
                               )}
 
                               {/* Acción: Resetear Contraseña (solo si el usuario tiene DNI registrado) */}
-                              {userItem.dni && userItem.estado !== 'papelera' && (
+                              {userItem.dni && userItem.estado !== 'papelera' && canResetPassword(userItem) && (
                                 <li>
                                   <button
                                     type="button"
