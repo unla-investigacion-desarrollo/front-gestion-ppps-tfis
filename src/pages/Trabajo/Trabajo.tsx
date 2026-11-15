@@ -651,14 +651,6 @@ const Trabajo: React.FC = () => {
                     <FaCircleInfo size={14} />
                     Información
                   </button>
-                  <button
-                    type="button"
-                    className={`trabajo-tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('historial')}
-                  >
-                    <FaClock size={14} />
-                    Historial de versiones
-                  </button>
                 </div>
                 {work.documentUrl && (
                   <a
@@ -723,43 +715,6 @@ const Trabajo: React.FC = () => {
                         ) : (
                           <span className="text-muted small py-2">No se adjuntó carpeta de Google Drive</span>
                         )}
-                      </div>
-                    </div>
-                  ) : activeTab === 'historial' ? (
-                    /* Pestaña Historial de Versiones y Auditoría */
-                    <div className="p-4 bg-light rounded-3 border">
-                      <h4 className="fs-6 fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <FaClock size={16} /> Registro de Actividad y Versiones
-                      </h4>
-                      <div className="d-flex flex-column gap-3 small text-secondary">
-                        <div className="d-flex justify-content-between border-bottom pb-2">
-                          <span>Fecha inicial de registro:</span>
-                          <strong className="text-dark">
-                            {work.createdAt ? new Date(work.createdAt).toLocaleString() : 'No registrada'}
-                          </strong>
-                        </div>
-                        <div className="d-flex justify-content-between border-bottom pb-2">
-                          <span>Última modificación de enlaces:</span>
-                          <strong className="text-dark">
-                            {work.updatedAt ? new Date(work.updatedAt).toLocaleString() : 'No registrada'}
-                          </strong>
-                        </div>
-                        <div className="d-flex justify-content-between border-bottom pb-2">
-                          <span>Última intervención docente:</span>
-                          <strong className="text-dark">
-                            {work.lastReviewedAt
-                              ? `${new Date(work.lastReviewedAt).toLocaleString()}${work.lastReviewedBy ? ` (${resolveUserName(work.lastReviewedBy)})` : ''}`
-                              : 'Sin revisiones registradas'}
-                          </strong>
-                        </div>
-                        <div className="d-flex justify-content-between">
-                          <span>Última tutoría docente:</span>
-                          <strong className="text-dark">
-                            {work.lastTutoredAt
-                              ? `${new Date(work.lastTutoredAt).toLocaleString()}${work.lastTutoredBy ? ` (${resolveUserName(work.lastTutoredBy)})` : ''}`
-                              : 'Sin tutorías registradas'}
-                          </strong>
-                        </div>
                       </div>
                     </div>
                   ) : (
@@ -1121,8 +1076,8 @@ const Trabajo: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Regla de Evaluación Institucional (No visible para Tutor) */}
-                    {!isTutor && (
+                    {/* Regla de Evaluación Institucional (No visible para Tutor ni Estudiante) */}
+                    {!isTutor && !isStudent && (
                       <div className="trabajo-eval-rules-box">
                         <div className="trabajo-eval-rules-header">
                           <FaCircleInfo size={14} />
