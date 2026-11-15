@@ -6,12 +6,28 @@
   background-color: #f8fafc;
   min-height: calc(100vh - 64px);
   padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.teacher-main-scrollable .ppp-page-wrapper {
+  background-color: transparent;
+  min-height: auto;
+  padding: 0;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .ppp-container {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Encabezado de Sección */
@@ -248,22 +264,89 @@
   margin-top: auto;
 }
 
-/* Interruptor Convocatoria Abierta/Cerrada */
+/* Interruptor Moderno ON/OFF Convocatoria */
 .ppp-switch-wrapper {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
 }
 
-.form-check-input.ppp-switch {
+.ppp-toggle-switch {
+  position: relative;
+  width: 58px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  width: 2.4em;
-  height: 1.25em;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+  outline: none;
+  user-select: none;
 }
 
-.form-check-input.ppp-switch:checked {
+.ppp-toggle-switch.is-on {
   background-color: #16a34a;
-  border-color: #16a34a;
+}
+
+.ppp-toggle-switch.is-off {
+  background-color: #cbd5e1;
+}
+
+.ppp-toggle-switch:hover:not(:disabled).is-on {
+  background-color: #15803d;
+}
+
+.ppp-toggle-switch:hover:not(:disabled).is-off {
+  background-color: #94a3b8;
+}
+
+.ppp-toggle-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+}
+
+.ppp-toggle-switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ppp-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.ppp-toggle-switch.is-on .ppp-toggle-thumb {
+  transform: translateX(32px);
+}
+
+.ppp-toggle-label {
+  width: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  transition: color 0.2s ease;
+  z-index: 1;
+}
+
+.ppp-toggle-switch.is-on .ppp-toggle-label {
+  color: #ffffff;
+  text-align: left;
+  padding-left: 9px;
+}
+
+.ppp-toggle-switch.is-off .ppp-toggle-label {
+  color: #475569;
+  text-align: right;
+  padding-right: 7px;
 }
 
 /* Badges de Estado del Trámite */
@@ -357,6 +440,9 @@
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .ppp-table {
@@ -393,6 +479,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: auto;
   padding: 16px 20px;
   border-top: 1px solid #e2e8f0;
   font-size: 13px;

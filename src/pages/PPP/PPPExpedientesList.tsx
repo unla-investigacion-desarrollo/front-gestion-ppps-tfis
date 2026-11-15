@@ -64,9 +64,9 @@ export const PPPExpedientesList: React.FC = () => {
     }
 
     list.sort((a, b) => {
-      const aLoaded = a.isSiuLoaded ? 1 : 0;
-      const bLoaded = b.isSiuLoaded ? 1 : 0;
-      return aLoaded - bLoaded;
+      const aAtEnd = a.isSiuLoaded || a.status === 'disapproved' ? 1 : 0;
+      const bAtEnd = b.isSiuLoaded || b.status === 'disapproved' ? 1 : 0;
+      return aAtEnd - bAtEnd;
     });
 
     return list;
@@ -94,9 +94,9 @@ export const PPPExpedientesList: React.FC = () => {
       case 'observed':
         return 'Con Observaciones';
       case 'approved':
-        return 'Práctica Aprobada';
+        return 'Aprobado';
       case 'disapproved':
-        return 'Práctica No Aprobada';
+        return 'Desaprobado';
       case 'dropped_out':
         return 'Trámite Dado de Baja';
       default:
@@ -172,8 +172,8 @@ export const PPPExpedientesList: React.FC = () => {
               <option value="pending_documentation">Documentación Pendiente</option>
               <option value="in_review">En Revisión Académica</option>
               <option value="observed">Con Observaciones</option>
-              <option value="approved">Práctica Aprobada</option>
-              <option value="disapproved">Práctica No Aprobada</option>
+              <option value="approved">Aprobado</option>
+              <option value="disapproved">Desaprobado</option>
               <option value="application_rejected">Postulación Desestimada</option>
               <option value="dropped_out">Dado de Baja</option>
             </select>

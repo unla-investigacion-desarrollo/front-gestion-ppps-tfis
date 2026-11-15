@@ -114,21 +114,24 @@ export const PPPProposalsCards: React.FC<PPPProposalsCardsProps> = ({
               ) : (
                 <>
                   <div className="ppp-switch-wrapper">
-                    <input
-                      className="form-check-input ppp-switch"
-                      type="checkbox"
-                      checked={proposalItem.isOpen}
-                      onChange={() => onToggleOpenStatus(proposalItem)}
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={proposalItem.isOpen}
+                      className={`ppp-toggle-switch ${proposalItem.isOpen ? 'is-on' : 'is-off'}`}
+                      onClick={() => onToggleOpenStatus(proposalItem)}
                       disabled={actionLoading}
                       title={
                         proposalItem.isOpen
                           ? 'Cerrar convocatoria'
                           : 'Abrir convocatoria'
                       }
-                    />
-                    <span className="small text-muted">
-                      {proposalItem.isOpen ? 'Abierta' : 'Cerrada'}
-                    </span>
+                    >
+                      <span className="ppp-toggle-thumb" />
+                      <span className="ppp-toggle-label">
+                        {proposalItem.isOpen ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
                   </div>
 
                   {isTutor && !canManageApplicants ? (

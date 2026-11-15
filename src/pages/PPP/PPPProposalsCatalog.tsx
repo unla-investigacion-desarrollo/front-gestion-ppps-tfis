@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   FaIdCard,
   FaPlus,
@@ -65,6 +65,20 @@ export const PPPProposalsCatalog: React.FC = () => {
     handleNavigateToApplicantsPage,
     handleViewTramite,
   } = usePPPProposals();
+
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(5);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterState]);
+
+  const totalItems = filteredProposals.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const paginatedProposals = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredProposals.slice(startIndex, startIndex + pageSize);
+  }, [filteredProposals, currentPage, pageSize]);
 
   return (
     <div className="ppp-page-wrapper">
@@ -177,7 +191,16 @@ export const PPPProposalsCatalog: React.FC = () => {
         {/* Listado de Convocatorias: Vista Tabla (Igual a Expedientes) */}
         {viewMode === 'table' ? (
           <PPPProposalsTable
-            proposals={filteredProposals}
+            proposals={paginatedProposals}
+            totalItems={totalItems}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
             isStudent={isStudent}
             appliedProposalIds={appliedProposalIds}
             canManageApplicants={canManageApplicants}
@@ -195,24 +218,81 @@ export const PPPProposalsCatalog: React.FC = () => {
             onNavigateToApplicantsPage={handleNavigateToApplicantsPage}
           />
         ) : (
-          <PPPProposalsCards
-            proposals={filteredProposals}
-            isStudent={isStudent}
-            appliedProposalIds={appliedProposalIds}
-            canManageApplicants={canManageApplicants}
-            isTutor={isTutor}
-            actionLoading={actionLoading}
-            onToggleOpenStatus={handleToggleOpenStatus}
-            onOpenApplyModal={(proposalItem) => {
-              setSelectedProposalToApply(proposalItem);
-              setShowApplyModal(true);
-            }}
-            onOpenApplicantsModal={(proposalItem) => {
-              setSelectedProposalApplicants(proposalItem);
-              setShowApplicantsModal(true);
-            }}
-            onNavigateToApplicantsPage={handleNavigateToApplicantsPage}
-          />
+          <>
+            <PPPProposalsCards
+              proposals={paginatedProposals}
+              isStudent={isStudent}
+              appliedProposalIds={appliedProposalIds}
+              canManageApplicants={canManageApplicants}
+              isTutor={isTutor}
+              actionLoading={actionLoading}
+              onToggleOpenStatus={handleToggleOpenStatus}
+              onOpenApplyModal={(proposalItem) => {
+                setSelectedProposalToApply(proposalItem);
+                setShowApplyModal(true);
+              }}
+              onOpenApplicantsModal={(proposalItem) => {
+                setSelectedProposalApplicants(proposalItem);
+                setShowApplicantsModal(true);
+              }}
+              onNavigateToApplicantsPage={handleNavigateToApplicantsPage}
+            />
+            {totalItems > 0 && (
+              <div className="ppp-pagination-footer rounded-3 border mb-4">
+                <div className="d-flex align-items-center gap-3 flex-wrap">
+                  <span>
+                    Mostrando {(currentPage - 1) * pageSize + 1} -{' '}
+                    {Math.min(currentPage * pageSize, totalItems)} de {totalItems} convocatorias
+                  </span>
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="text-muted small">Por página:</span>
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ width: '72px' }}
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="ppp-pagination-nav">
+                  <button
+                    type="button"
+                    className="ppp-page-btn"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    ‹
+                  </button>
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      className={`ppp-page-btn ${currentPage === pageNumber ? 'active' : ''}`}
+                      onClick={() => setCurrentPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="ppp-page-btn"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Modales de Gestión */}
