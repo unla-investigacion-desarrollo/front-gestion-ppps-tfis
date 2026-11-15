@@ -22,7 +22,6 @@ import './PPP.css';
 
 export const PPPProposalsCatalog: React.FC = () => {
   const {
-    isAdmin,
     isStudent,
     isTutor,
     canManageApplicants,

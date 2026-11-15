@@ -5,12 +5,10 @@ import { FaFileLines, FaMagnifyingGlass } from 'react-icons/fa6';
 import {
   fetchPPPExpedientes,
   selectPPPExpedientes,
-  selectPPPStatus,
 } from '../../../redux/slices/pppSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 import {
   PPPEpidiente,
-  PPPStatus,
   getStudentDisplayName,
   getStudentEmail,
   normalizePPPType,
@@ -23,7 +21,6 @@ export const PPPExpedientesList: React.FC = () => {
 
   const expedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
   const allUsers = useSelector(selectUsers);
-  const status = useSelector(selectPPPStatus);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'interna' | 'externa'>('ALL');

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaArrowLeft,
   FaFileLines,
   FaUsers,
-  FaTableCellsLarge,
   FaArrowTrendUp,
   FaFolder,
   FaBullhorn,
@@ -14,13 +12,11 @@ import { pppService } from '../../../../services/pppService';
 interface EvaluatorDashboardProps {
   userName: string;
   onGoToPPP: () => void;
-  onViewActivity: (act: { fecha: string; tipo: string; detalle: string; estudiante?: string }) => void;
 }
 
 export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
   userName,
   onGoToPPP,
-  onViewActivity,
 }) => {
   const navigate = useNavigate();
 
@@ -112,7 +108,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
           pendSiu: siuCount,
           loaded: true,
         });
-      } catch (loadError) {
+      } catch {
         // Silenciosamente conservar conteos por defecto si no hay conexión
       }
 

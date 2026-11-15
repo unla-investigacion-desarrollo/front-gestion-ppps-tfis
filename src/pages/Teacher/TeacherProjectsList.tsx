@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 // Redux Actions & Selectors
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
-import { normalizeRole, normalizeRoles } from '../../redux/features/auth/asyncActions';
+import { normalizeRoles } from '../../redux/features/auth/asyncActions';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import {
   fetchProjects,
@@ -33,7 +33,6 @@ import {
 // Styles & Assets
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaGraduationCap } from 'react-icons/fa6';
-import bgImage from '../../assets/fondo-rojo.jpg';
 import './TeacherProjectsList.css';
 import { projectService } from '../../services/projectService';
 
@@ -154,26 +153,6 @@ const TeacherProjectsList: React.FC = () => {
   }, [filters]);
 
   // --- PROCESAMIENTO Y FILTRADO DE DATOS ---
-
-  // Obtener alumnos activos del sistema para la asignación
-  const activeStudents = useMemo(() => {
-    return users.filter((user) => user.rol === 'ESTUDIANTE' && user.estado === 'active');
-  }, [users]);
-
-  // Obtener todos los docentes en el sistema
-  const allTeachers = useMemo(() => {
-    return users.filter((user) => {
-      const rolesArray = [
-        ...((Array.isArray((user as any).roles) ? (user as any).roles : []) as any[]),
-        (user as any).role,
-        (user as any).rol,
-      ].filter(Boolean);
-      const normalizedRoles = rolesArray.map(normalizeRole);
-      return normalizedRoles.some((role: string) =>
-        ['DOCENTE', 'PROFESSOR', 'ADMIN', 'SUPERADMIN'].includes(role)
-      );
-    });
-  }, [users]);
 
   // Enriquecer proyectos con las relaciones completas de los proyectos activos del docente
   const enrichedProjects = useMemo(() => {
@@ -405,7 +384,6 @@ const TeacherProjectsList: React.FC = () => {
   const handleSaveProjectEdit = async (
     titulo: string,
     descripcion: string,
-    categoria: string,
     projectTypeId?: number
   ) => {
     if (!activeEditProject) return;

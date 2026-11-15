@@ -21,8 +21,6 @@ import {
   removeCoTeacher,
   approveStudentProjectRequest,
   rejectStudentProjectRequest,
-  approveProfessorProjectRequest,
-  rejectProfessorProjectRequest,
   normalizeBackendProject,
 } from './asyncActions';
 
