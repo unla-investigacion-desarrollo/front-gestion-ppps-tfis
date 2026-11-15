@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
@@ -24,10 +24,8 @@ import {
   FaCircleInfo,
   FaArrowUpRightFromSquare,
   FaFolderOpen,
-  FaStar,
   FaGraduationCap,
   FaPencil,
-  FaPaperPlane,
   FaChalkboardUser,
   FaChevronRight,
   FaCalendarDays,
@@ -44,7 +42,6 @@ import './Trabajo.css';
  */
 const Trabajo: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<any>();
 

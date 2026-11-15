@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  FaArrowLeft,
   FaFolderOpen,
   FaCalendarDays,
   FaEllipsisVertical,
@@ -32,7 +31,6 @@ export interface TutorProjectRecord {
 }
 
 interface TutorProjectsTableProps {
-  onBackToInicio: () => void;
   onOpenRegisterTutoring?: (project: {
     id: string | number;
     titulo: string;
@@ -49,7 +47,6 @@ interface TutorProjectsTableProps {
  * como para Estudiantes (con proyectos activos y acceso a entregas).
  */
 export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
-  onBackToInicio,
   onOpenRegisterTutoring,
   refreshTrigger,
   isStudent = false,

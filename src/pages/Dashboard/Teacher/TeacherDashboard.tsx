@@ -349,7 +349,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     <EvaluatorDashboard
                       userName={teacherFirstName}
                       onGoToPPP={() => handleSelectView('ppp')}
-                      onViewActivity={(act) => setSelectedActivity(act)}
                     />
                   )}
 
@@ -387,7 +386,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                   {activeView === 'proyectos' && (
                     <TutorProjectsTable
-                      onBackToInicio={() => handleSelectView('inicio')}
                       onOpenRegisterTutoring={(project) => setTutoringModalProject(project)}
                       refreshTrigger={projectsRefreshTrigger}
                     />

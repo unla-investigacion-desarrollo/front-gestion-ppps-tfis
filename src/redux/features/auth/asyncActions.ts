@@ -7,6 +7,7 @@ export interface User {
   email: string;
   name: string;
   role?: string;
+  rol?: string;
   roles?: string[];
   mustChangePassword?: boolean;
   isTutor?: boolean;

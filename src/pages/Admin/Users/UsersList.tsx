@@ -16,7 +16,6 @@ import { selectCurrentUser, normalizeRole } from '../../../../redux/slices/authS
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../../../styles/unla.css';
-import bgImage from '../../../assets/fondo-rojo.jpg';
 import './UsersList.css';
 import { showToast } from '../../../utils/toast';
 import {
@@ -55,7 +54,6 @@ const UsersList: React.FC = () => {
 
   const userRolesList = [
     currentUser?.role,
-    currentUser?.rol,
     ...(Array.isArray(currentUser?.roles) ? currentUser.roles : []),
   ]
     .filter(Boolean)

@@ -17,14 +17,6 @@ const ChangePassword = () => {
   const [ok, setOk] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Password live checks
-  const pw = form.newPassword || '';
-  const hasLen = pw.length >= 6;
-  const hasLower = /[a-z]/.test(pw);
-  const hasUpper = /[A-Z]/.test(pw);
-  const hasNumber = /\d/.test(pw);
-  const hasSpecial = /[^A-Za-z0-9]/.test(pw);
-  const checksPassed = [hasLen, hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
   const confirmMatches = !!form.confirmPassword && form.newPassword === form.confirmPassword;
 
   if (!user) return null;

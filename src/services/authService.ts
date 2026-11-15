@@ -40,4 +40,15 @@ export const authService = {
       }),
     });
   },
+
+  forgotPassword: async (email: string, signal?: AbortSignal) => {
+    return fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+      signal,
+    });
+  },
 };

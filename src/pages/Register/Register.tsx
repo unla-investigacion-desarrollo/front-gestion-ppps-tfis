@@ -252,7 +252,7 @@ const Register: React.FC = () => {
 
           {error && !isWelcomeEmailErrorMessage(error) && (
             <div className="alert alert-danger mb-3 py-2 small" role="alert">
-              {error} — <a href="/help" className="text-danger fw-bold">Ver ayuda</a>
+              {error}
             </div>
           )}
 
@@ -331,7 +331,7 @@ const Register: React.FC = () => {
                   <span className="register-field-error">{errors.email}</span>
                 ) : emailCheck === 'taken' ? (
                   <span className="register-field-error">
-                    El email ya está en uso. <a href="/help">Ver ayuda</a>
+                    El email ya está en uso.
                   </span>
                 ) : emailCheck === 'checking' ? (
                   <span className="register-field-help text-muted">Verificando disponibilidad…</span>

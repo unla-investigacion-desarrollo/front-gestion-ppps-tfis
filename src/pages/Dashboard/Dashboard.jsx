@@ -62,7 +62,6 @@ const Dashboard = () => {
   const pppExpedientes = useSelector(selectPPPExpedientes);
   const pppExpedientesStatus = useSelector(selectPPPExpedientesStatus);
   const isAdminDashboard = isAdmin || role === 'admin';
-  const [lastDataSync, setLastDataSync] = useState(null);
   const [, setActivityVersion] = useState(0);
 
   useEffect(() => {
@@ -89,16 +88,6 @@ const Dashboard = () => {
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
   }, [dispatch, isAdminDashboard]);
-
-  useEffect(() => {
-    if (
-      usersStatus === 'succeeded' &&
-      projectsStatus === 'succeeded' &&
-      pppExpedientesStatus === 'succeeded'
-    ) {
-      setLastDataSync(new Date());
-    }
-  }, [usersStatus, projectsStatus, pppExpedientesStatus]);
 
   useEffect(() => {
     const handleActivityStorage = (storageEvent) => {

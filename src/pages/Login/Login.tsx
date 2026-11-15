@@ -1,8 +1,9 @@
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaTriangleExclamation } from 'react-icons/fa6';
+import { FaEye, FaEyeSlash, FaTriangleExclamation, FaCheck, FaXmark } from 'react-icons/fa6';
 import { loginUser, selectAuthError, selectAuthLoading } from '../../../redux/slices/authSlice';
+import { authService } from '../../services/authService';
 import './Login.css';
 
 interface LoginCredentials {
@@ -21,6 +22,56 @@ function LoginForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
+
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
+  const handleOpenForgotModal = () => {
+    setForgotEmail(credentials.email || '');
+    setForgotError(null);
+    setForgotSuccess(null);
+    setShowForgotModal(true);
+  };
+
+  const handleCloseForgotModal = () => {
+    if (forgotLoading) return;
+    setShowForgotModal(false);
+    setForgotError(null);
+    setForgotSuccess(null);
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const trimmedEmail = forgotEmail.trim();
+    if (!trimmedEmail) {
+      setForgotError('Ingresá tu correo electrónico.');
+      return;
+    }
+
+    setForgotLoading(true);
+    setForgotError(null);
+    setForgotSuccess(null);
+
+    try {
+      const response = await authService.forgotPassword(trimmedEmail);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'No se pudo procesar la solicitud para reestablecer la contraseña.');
+      }
+
+      setForgotSuccess(
+        data?.message || 'Te enviamos las instrucciones para reestablecer tu contraseña a tu correo electrónico.'
+      );
+    } catch (err: any) {
+      setForgotError(err?.message || 'Error al conectar con el servidor.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -140,7 +191,13 @@ function LoginForm() {
             </div>
             <div className="login-link-item">
               ¿Necesitás ayuda para recuperar tu contraseña?{' '}
-              <Link to="/help" className="login-link">Ver ayuda</Link>
+              <button
+                type="button"
+                className="login-link login-link-btn"
+                onClick={handleOpenForgotModal}
+              >
+                Reestablecer contraseña
+              </button>
             </div>
           </div>
         </div>
@@ -149,6 +206,95 @@ function LoginForm() {
           <span className="login-footer-copy">2026 &copy; UNLa</span>
         </div>
       </div>
+
+      {showForgotModal && (
+        <div className="login-modal-overlay" onClick={handleCloseForgotModal}>
+          <div
+            className="login-modal-box"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="forgot-password-title"
+          >
+            <button
+              type="button"
+              className="login-modal-close"
+              onClick={handleCloseForgotModal}
+              aria-label="Cerrar"
+              disabled={forgotLoading}
+            >
+              <FaXmark size={18} />
+            </button>
+
+            {forgotSuccess ? (
+              <div className="login-modal-success">
+                <div className="login-modal-icon-success">
+                  <FaCheck size={28} />
+                </div>
+                <h2 id="forgot-password-title" className="login-modal-title">
+                  Solicitud enviada
+                </h2>
+                <p className="login-modal-subtitle">{forgotSuccess}</p>
+                <button
+                  type="button"
+                  className="login-button"
+                  onClick={handleCloseForgotModal}
+                >
+                  Entendido
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 id="forgot-password-title" className="login-modal-title">
+                  Reestablecer contraseña
+                </h2>
+                <p className="login-modal-subtitle">
+                  Ingresá tu correo electrónico para recibir las instrucciones de recuperación.
+                </p>
+
+                {forgotError && <div className="error-message">{forgotError}</div>}
+
+                <form onSubmit={handleForgotSubmit} className="unla-form">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="forgot-email-input">
+                      Correo electrónico
+                    </label>
+                    <input
+                      id="forgot-email-input"
+                      type="email"
+                      name="forgotEmail"
+                      placeholder="estudiante@ejemplo.com"
+                      className="login-input"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="login-modal-actions">
+                    <button
+                      type="submit"
+                      className="login-button"
+                      disabled={forgotLoading}
+                    >
+                      {forgotLoading ? 'Enviando...' : 'Reestablecer contraseña'}
+                    </button>
+                    <button
+                      type="button"
+                      className="login-modal-cancel-btn"
+                      onClick={handleCloseForgotModal}
+                      disabled={forgotLoading}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
