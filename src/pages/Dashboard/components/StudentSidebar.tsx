@@ -7,6 +7,7 @@ import {
   FaBullhorn,
   FaUser,
   FaChevronDown,
+  FaGraduationCap,
 } from 'react-icons/fa6';
 
 export interface StudentSidebarProps {
@@ -249,6 +250,19 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           )}
         </div>
       </nav>
+
+      {/* Tarjeta inferior: Identificador de Rol */}
+      <div className="student-sidebar-footer">
+        <div className="student-role-badge-card">
+          <div className="student-role-avatar-circle">
+            <FaGraduationCap size={18} />
+          </div>
+          <div className="student-role-info">
+            <div className="student-role-title">Estudiante</div>
+            <div className="student-role-subtitle">Gestión de TFI y PPP</div>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 };

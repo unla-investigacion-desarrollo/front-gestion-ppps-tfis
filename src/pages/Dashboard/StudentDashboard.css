@@ -401,3 +401,48 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Tarjeta inferior de rol en el sidebar de estudiante */
+.student-sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.student-role-badge-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.student-role-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-role-info {
+  min-width: 0;
+}
+
+.student-role-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.student-role-subtitle {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.25;
+}
