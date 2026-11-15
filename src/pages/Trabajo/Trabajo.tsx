@@ -156,7 +156,7 @@ const Trabajo: React.FC = () => {
         userIdOrObj = targetUserObj.id || targetUserObj.id_user || userIdOrObj.id || userIdOrObj.id_user;
       }
       const idString = String(userIdOrObj);
-      const userFound = users.find((userCandidate) => String(userCandidate.id) === idString || String(userCandidate.id_user) === idString);
+      const userFound = users.find((userCandidate: any) => String(userCandidate.id) === idString || String(userCandidate.id_user) === idString);
       if (userFound) {
         return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${idString}`;
       }
