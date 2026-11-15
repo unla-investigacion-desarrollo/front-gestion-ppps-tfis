@@ -54,7 +54,6 @@ const UsersList: React.FC = () => {
 
   const userRolesList = [
     currentUser?.role,
-    currentUser?.rol,
     ...(Array.isArray(currentUser?.roles) ? currentUser.roles : []),
   ]
     .filter(Boolean)
