@@ -6,7 +6,7 @@ import {
   FaFileLines,
   FaUserPlus,
   FaFilePen,
-  FaChartColumn,
+  FaFolder,
 } from 'react-icons/fa6';
 import './Dashboard.css';
 
@@ -307,40 +307,94 @@ const Dashboard = () => {
     return (
       <div className="admin-dashboard-container">
         {/* Title */}
-        <div className="admin-dashboard-title-section">
-          <h1>Inicio</h1>
-          <p>Resumen general del sistema.</p>
+        <div className="admin-dashboard-title-section d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1>Inicio</h1>
+            <p>Resumen general del sistema</p>
+          </div>
+          <span className="admin-realtime-pill">Datos en tiempo real</span>
         </div>
 
-        {/* 3 Cards Row */}
+        {/* 3 Equal Minimalist Cards Row */}
         <div className="row g-3 mb-4">
-          <div className="col-md-6">
-            <MetricCard
-              title="Usuarios activos"
-              value={getMetricValue(usersStatus, activeUsersCount)}
-              trendText={getMetricText(usersStatus)}
-              trendDirection="none"
-              colorTheme="purple"
+          <div className="col-md-4">
+            <div
+              className="admin-minimal-card"
+              role="button"
+              tabIndex={0}
               onClick={() => navigate('/admin/users')}
-              icon={<FaUsers size={24} />}
-            />
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') navigate('/admin/users');
+              }}
+            >
+              <div className="admin-minimal-card-header">
+                <span className="admin-minimal-card-label">Usuarios activos</span>
+                <FaUsers size={16} className="admin-minimal-card-icon" />
+              </div>
+              <div className="admin-minimal-card-value">
+                {getMetricValue(usersStatus, activeUsersCount)}
+              </div>
+              <div className="admin-minimal-card-footer">→ {getMetricText(usersStatus)}</div>
+            </div>
           </div>
-          <div className="col-md-6">
-            <MetricCard
-              title="Proyectos en curso"
-              value={getMetricValue(projectsStatus, inProgressProjectsCount)}
-              trendText={getMetricText(projectsStatus)}
-              trendDirection="none"
-              colorTheme="green"
+
+          <div className="col-md-4">
+            <div
+              className="admin-minimal-card"
+              role="button"
+              tabIndex={0}
               onClick={() => navigate('/docente/proyectos')}
-              icon={<FaFileLines size={24} />}
-            />
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') navigate('/docente/proyectos');
+              }}
+            >
+              <div className="admin-minimal-card-header">
+                <span className="admin-minimal-card-label">Proyectos en curso</span>
+                <FaFolder size={16} className="admin-minimal-card-icon" />
+              </div>
+              <div className="admin-minimal-card-value">
+                {getMetricValue(projectsStatus, inProgressProjectsCount)}
+              </div>
+              <div className="admin-minimal-card-footer">→ {getMetricText(projectsStatus)}</div>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="admin-minimal-card admin-minimal-summary-card">
+              <div className="admin-minimal-card-header mb-2">
+                <span className="admin-minimal-card-label">Resumen por tipo</span>
+              </div>
+              <div className="admin-summary-rows">
+                <div className="admin-summary-row">
+                  <span className="admin-summary-label">
+                    <span className="admin-summary-dot dot-tfi" />
+                    TFI
+                  </span>
+                  <span className="admin-summary-value">
+                    {getMetricValue(projectsStatus, tfiProjectCount)}
+                  </span>
+                </div>
+                <div className="admin-summary-row">
+                  <span className="admin-summary-label">
+                    <span className="admin-summary-dot dot-ppp" />
+                    PPP
+                  </span>
+                  <span className="admin-summary-value">
+                    {getMetricValue(pppExpedientesStatus, pppCount)}
+                  </span>
+                </div>
+              </div>
+              <div className="admin-summary-total">
+                <span>Proyectos totales</span>
+                <strong>{allDataLoaded ? projectCount : '—'}</strong>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Lower Row: Activity + Summary */}
-        <div className="row g-3">
-          <div className="col-md-8">
+        {/* Lower Row: Full-width Recent Activity */}
+        <div className="row">
+          <div className="col-12">
             <RecentActivityPanel
               activities={latestActivities.map((activityItem) => ({
                 ...activityItem,
@@ -350,25 +404,6 @@ const Dashboard = () => {
               hasError={hasDataError}
               onManageUsers={() => navigate('/admin/users')}
             />
-          </div>
-
-          {/* Right Panel: Summary */}
-          <div className="col-md-4 d-flex flex-column">
-            <div className="dashboard-panel-card">
-              <h3 className="panel-card-title mb-3 d-flex align-items-center gap-2">
-                <FaChartColumn size={20} color="var(--unla-primary)" />
-                Resumen por tipo
-              </h3>
-              <div className="summary-list d-flex flex-column gap-1">
-                <SummaryRow label="TFI" value={getMetricValue(projectsStatus, tfiProjectCount)} theme="tfi" />
-                <SummaryRow label="PPP" value={getMetricValue(pppExpedientesStatus, pppCount)} theme="ppp" />
-                <SummaryRow
-                  label="Proyectos"
-                  value={allDataLoaded ? projectCount : '—'}
-                  theme="proyectos"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>

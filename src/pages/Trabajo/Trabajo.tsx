@@ -911,50 +911,27 @@ const Trabajo: React.FC = () => {
                         </button>
                       )}
 
-                      {/* Aprobar Entrega (Docente evaluador / Admin) */}
+                      {/* Calificar Entrega (Docente evaluador / Admin) */}
                       {((isTeacher && !isTutor) || isAdmin) && (
                         <button
                           type="button"
-                          className="trabajo-action-card approve"
-                          onClick={() => handleOpenQualifyModal(
-                            work.qualification !== null && work.qualification !== undefined && work.qualification >= 4
-                              ? work.qualification
-                              : 7
-                          )}
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            handleOpenQualifyModal(
+                              work.qualification !== null && work.qualification !== undefined
+                                ? work.qualification
+                                : 7
+                            )
+                          }
                           disabled={actionLoading}
                         >
-                          <div className="trabajo-action-icon-circle green">
+                          <div className="trabajo-action-icon-circle">
                             <FaCheck size={16} />
                           </div>
                           <div className="trabajo-action-card-text">
-                            <div className="trabajo-action-card-title">Aprobar entrega</div>
+                            <div className="trabajo-action-card-title">Calificar entrega</div>
                             <div className="trabajo-action-card-desc">
-                              La entrega será marcada como aprobada y el estado se actualizará.
-                            </div>
-                          </div>
-                          <FaChevronRight className="trabajo-action-chevron" />
-                        </button>
-                      )}
-
-                      {/* Rechazar / Desaprobar (Docente evaluador / Admin) */}
-                      {((isTeacher && !isTutor) || isAdmin) && (
-                        <button
-                          type="button"
-                          className="trabajo-action-card disapprove"
-                          onClick={() => handleOpenQualifyModal(
-                            work.qualification !== null && work.qualification !== undefined && work.qualification > 0 && work.qualification <= 3
-                              ? work.qualification
-                              : 2
-                          )}
-                          disabled={actionLoading}
-                        >
-                          <div className="trabajo-action-icon-circle red">
-                            <FaXmark size={16} />
-                          </div>
-                          <div className="trabajo-action-card-text">
-                            <div className="trabajo-action-card-title">Rechazar / Desaprobar</div>
-                            <div className="trabajo-action-card-desc">
-                              La entrega será desaprobada y el estudiante notificado.
+                              Asignar calificación y actualizar el estado de la entrega.
                             </div>
                           </div>
                           <FaChevronRight className="trabajo-action-chevron" />
