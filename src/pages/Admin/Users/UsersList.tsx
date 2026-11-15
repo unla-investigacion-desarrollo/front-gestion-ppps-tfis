@@ -262,8 +262,19 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Crear docente mediante registro directo en el backend
-  const handleCreateTeacherSubmit = async (formData: any): Promise<boolean> => {
+  // Crear docente/admin mediante registro directo en el backend.
+  // Todas las validaciones las resuelve el backend; el modal muestra los errores devueltos.
+  const handleCreateTeacherSubmit = async (
+    formData: any
+  ): Promise<{ ok: boolean; message?: string; messages?: string[] }> => {
+    const extractErrorResult = (payload: any, fallback: string) => {
+      if (Array.isArray(payload)) {
+        return { ok: false, messages: payload.map(String), message: payload.join('. ') };
+      }
+      const msg = typeof payload === 'string' && payload.trim() ? payload : fallback;
+      return { ok: false, messages: [msg], message: msg };
+    };
+
     try {
       if (formData.rol === 'ADMIN') {
         const res = await dispatch<any>(registerAdmin({
@@ -275,13 +286,12 @@ const UsersList: React.FC = () => {
         }));
 
         if (res.error) {
-          showToast(res.payload || 'Error al registrar el administrador', 'error');
-        } else {
-          showToast('Administrador creado correctamente', 'success');
-          setIsCreateTeacherModalOpen(false);
-          dispatch<any>(fetchUsers());
+          return extractErrorResult(res.payload, 'Error al registrar el administrador');
         }
-        return !res.error;
+        showToast('Administrador creado correctamente', 'success');
+        setIsCreateTeacherModalOpen(false);
+        dispatch<any>(fetchUsers());
+        return { ok: true };
       }
 
       const res = await dispatch<any>(registerProfessor({
@@ -295,7 +305,7 @@ const UsersList: React.FC = () => {
       }));
       
       if (res.error) {
-        showToast(res.payload || 'Error al registrar el docente', 'error');
+        return extractErrorResult(res.payload, 'Error al registrar el docente');
       } else {
         try {
           const raw = localStorage.getItem('users');
@@ -330,10 +340,9 @@ const UsersList: React.FC = () => {
         setIsCreateTeacherModalOpen(false);
         dispatch<any>(fetchUsers());
       }
-      return !res.error;
+      return { ok: true };
     } catch (error: any) {
-      showToast(error.message || 'Error al procesar la solicitud', 'error');
-      return false;
+      return { ok: false, message: error?.message || 'Error al procesar la solicitud' };
     }
   };
 

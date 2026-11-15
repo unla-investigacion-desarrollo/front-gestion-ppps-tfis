@@ -12,6 +12,7 @@ import { studentWorkService } from '../../../../services/studentWorkService';
 import Pagination from '../../../../components/Pagination';
 import TutorProjectFilters from './TutorProjectFilters';
 import TutorProjectStatusPill from './TutorProjectStatusPill';
+import MyTfiCard from '../../../Student/components/MyTfiCard';
 
 // Importar estilos compartidos del módulo de gestión de proyectos
 import '../../../Teacher/TeacherProjectsList.css';
@@ -39,12 +40,13 @@ interface TutorProjectsTableProps {
   }) => void;
   refreshTrigger?: number;
   isStudent?: boolean;
+  onBackToInicio?: () => void;
 }
 
 /**
- * Componente que renderiza el listado de "Mis proyectos".
- * Reutilizable tanto para el Profesor Tutor (con asignaciones y registro de tutorías)
- * como para Estudiantes (con proyectos activos y acceso a entregas).
+ * Componente que renderiza el listado de "Mis proyectos" del Profesor Tutor
+ * (con asignaciones y registro de tutorías).
+ * Para Estudiantes renderiza la ficha "Mi TFI", ya que solo pueden tener un único TFI.
  */
 export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
   onOpenRegisterTutoring,
@@ -254,6 +256,18 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
     setSearchQuery('');
     setFilterEstado('todos');
   };
+
+  // Estudiante: un único TFI → ficha en lugar de tabla con filtros y paginación
+  if (isStudent) {
+    return (
+      <MyTfiCard
+        record={projectsList[0] ?? null}
+        loading={loading}
+        error={error}
+        onRetry={fetchMyProjects}
+      />
+    );
+  }
 
   return (
     <div className="projects-card-main">

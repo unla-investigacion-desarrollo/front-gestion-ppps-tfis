@@ -80,7 +80,10 @@ export const usersSlice = createSlice({
       })
       .addCase(registerStudent.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = (action.payload as string) || action.error.message || 'Error al registrar el estudiante';
+        const payload = action.payload;
+        state.error = Array.isArray(payload)
+          ? payload.join('. ')
+          : (payload as string) || action.error.message || 'Error al registrar el estudiante';
       })
       .addCase(registerProfessor.pending, (state) => {
         state.status = 'loading';
@@ -93,7 +96,10 @@ export const usersSlice = createSlice({
       })
       .addCase(registerProfessor.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = (action.payload as string) || action.error.message || 'Error al registrar el docente';
+        const payload = action.payload;
+        state.error = Array.isArray(payload)
+          ? payload.join('. ')
+          : (payload as string) || action.error.message || 'Error al registrar el docente';
       })
       .addCase(approveUser.fulfilled, (state, action) => {
         const idx = state.list.findIndex((u) => u.id === action.payload.id);

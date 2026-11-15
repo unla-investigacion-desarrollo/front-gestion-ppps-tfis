@@ -114,6 +114,10 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
     );
   }, [myActiveProjects]);
 
+  // Un estudiante solo puede tener un único TFI activo
+  const activeTfi = !isTeacher && myActiveProjects.length > 0 ? myActiveProjects[0] : null;
+  const hasActiveTfi = Boolean(activeTfi);
+
   // Lista de categorías únicas encontradas en la lista de proyectos
   const availableCategories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -133,6 +137,11 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
   ) => {
     if (!authToken) {
       showToast('Sesión no válida o expirada', 'error');
+      return;
+    }
+
+    if (hasActiveTfi) {
+      showToast('Ya tenés un TFI asignado. No podés postularte a otro proyecto.', 'error');
       return;
     }
 
@@ -257,6 +266,8 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
     setPageSize,
     pendingProjectIds,
     activeProjectIds,
+    activeTfi,
+    hasActiveTfi,
     availableCategories,
     filteredProjects,
     paginatedProjects,

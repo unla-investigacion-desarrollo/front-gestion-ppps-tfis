@@ -24,6 +24,8 @@ export interface ProjectExplorerTableProps {
   activeProjectIds: Set<string>;
   requestingId: number | string | null;
   onJoinProject: (projectId: number | string, projectTitle: string) => void;
+  /** Si es false (p. ej. el estudiante ya tiene su TFI), no se permite postularse. */
+  canApply?: boolean;
 }
 
 /**
@@ -36,6 +38,7 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
   activeProjectIds,
   requestingId,
   onJoinProject,
+  canApply = true,
 }) => {
   return (
     <div className="projects-table-wrapper">
@@ -155,6 +158,13 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
                       title="Solicitud enviada a la espera de aprobación"
                     >
                       Enviada
+                    </span>
+                  ) : !canApply ? (
+                    <span
+                      className="btn-action-disabled"
+                      title="Ya tenés un TFI asignado"
+                    >
+                      No disponible
                     </span>
                   ) : (
                     <button

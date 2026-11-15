@@ -235,30 +235,25 @@ export const registerStudent = createAsyncThunk<
     apellido: string;
     dni?: string;
     password?: string;
-    yearOfAdmission?: number;
-    completedCoursesWithFinal?: number;
-    completedCoursesWithoutFinal?: number;
+    yearOfAdmission?: number | string;
+    completedCoursesWithFinal?: number | string;
+    completedCoursesWithoutFinal?: number | string;
   },
-  { rejectValue: string }
+  { rejectValue: string | string[] }
 >('users/register', async (payload, { rejectWithValue, signal }) => {
   try {
     const response = await authService.registerStudent(payload, signal);
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const serverErrorMessage = (data && (data.message || data.error)) || '';
-      const isOnlyWelcomeEmailFailure =
-        typeof serverErrorMessage === 'string' &&
-        (serverErrorMessage.toLowerCase().includes('correo de bienvenida') ||
-          serverErrorMessage.toLowerCase().includes('email de bienvenida') ||
-          serverErrorMessage.toLowerCase().includes('mail de bienvenida') ||
-          (serverErrorMessage.toLowerCase().includes('bienvenida') &&
-            (serverErrorMessage.toLowerCase().includes('correo') ||
-              serverErrorMessage.toLowerCase().includes('email') ||
-              serverErrorMessage.toLowerCase().includes('enviar'))));
+      const rawMessage = data?.message ?? data?.error;
+      const errorMessage = parseErrorMessageFromData(data, 'Error al registrar el estudiante');
 
-      if (!isOnlyWelcomeEmailFailure) {
-        return rejectWithValue(data?.message || 'Error al registrar el estudiante');
+      if (!isOnlyWelcomeEmailFailureMessage(errorMessage)) {
+        if (Array.isArray(rawMessage) && rawMessage.length > 0) {
+          return rejectWithValue(rawMessage);
+        }
+        return rejectWithValue(errorMessage);
       }
     }
 
@@ -275,9 +270,9 @@ export const registerStudent = createAsyncThunk<
       rol: (userRoles[0] as UserRole) || 'ESTUDIANTE',
       estado: rawUser.estado || 'active',
       dni: rawUser.dni || payload.dni,
-      yearOfAdmission: rawUser.yearOfAdmission !== undefined ? Number(rawUser.yearOfAdmission) : payload.yearOfAdmission,
-      completedCoursesWithFinal: rawUser.completedCoursesWithFinal !== undefined ? Number(rawUser.completedCoursesWithFinal) : payload.completedCoursesWithFinal,
-      completedCoursesWithoutFinal: rawUser.completedCoursesWithoutFinal !== undefined ? Number(rawUser.completedCoursesWithoutFinal) : payload.completedCoursesWithoutFinal,
+      yearOfAdmission: rawUser.yearOfAdmission !== undefined ? Number(rawUser.yearOfAdmission) : Number(payload.yearOfAdmission),
+      completedCoursesWithFinal: rawUser.completedCoursesWithFinal !== undefined ? Number(rawUser.completedCoursesWithFinal) : Number(payload.completedCoursesWithFinal),
+      completedCoursesWithoutFinal: rawUser.completedCoursesWithoutFinal !== undefined ? Number(rawUser.completedCoursesWithoutFinal) : Number(payload.completedCoursesWithoutFinal),
       createdAt: rawUser.createdAt || new Date().toISOString(),
       updatedAt: rawUser.updatedAt || new Date().toISOString(),
     };
@@ -293,6 +288,33 @@ export const registerStudent = createAsyncThunk<
   }
 });
 
+/**
+ * Detecta cuando el backend creó el usuario en la base de datos pero falló únicamente
+ * el envío del correo de bienvenida (p. ej. SMTP no configurado).
+ */
+const isOnlyWelcomeEmailFailureMessage = (serverErrorMessage: unknown): boolean => {
+  if (typeof serverErrorMessage !== 'string') return false;
+  const lower = serverErrorMessage.toLowerCase();
+  return (
+    lower.includes('correo de bienvenida') ||
+    lower.includes('email de bienvenida') ||
+    lower.includes('mail de bienvenida') ||
+    (lower.includes('bienvenida') &&
+      (lower.includes('correo') || lower.includes('email') || lower.includes('enviar')))
+  );
+};
+
+/**
+ * Lee el cuerpo JSON de una respuesta y extrae un mensaje de error legible.
+ * Soporta `message` como string o array (ValidationPipe de NestJS) y cuerpos no JSON.
+ */
+const parseErrorMessageFromData = (data: any, fallback: string): string => {
+  const rawMessage = data?.message ?? data?.error;
+  if (Array.isArray(rawMessage)) return rawMessage.join('. ');
+  if (typeof rawMessage === 'string' && rawMessage.trim()) return rawMessage;
+  return fallback;
+};
+
 export const registerProfessor = createAsyncThunk<
   User,
   {
@@ -304,15 +326,22 @@ export const registerProfessor = createAsyncThunk<
     specialization: string;
     isTutor: boolean;
   },
-  { rejectValue: string }
+  { rejectValue: string | string[] }
 >('users/registerProfessor', async (payload, { rejectWithValue }) => {
   try {
     const token = localStorage.getItem('token');
     const response = await userService.registerProfessor(payload, token);
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      return rejectWithValue(data.message || 'Error al registrar el docente');
+      const rawMessage = data?.message ?? data?.error;
+      const errorMessage = parseErrorMessageFromData(data, 'Error al registrar el docente');
+      if (!isOnlyWelcomeEmailFailureMessage(errorMessage)) {
+        if (Array.isArray(rawMessage) && rawMessage.length > 0) {
+          return rejectWithValue(rawMessage);
+        }
+        return rejectWithValue(errorMessage);
+      }
     }
 
     const rawUser = data.user || data || {};
@@ -363,15 +392,22 @@ export const registerAdmin = createAsyncThunk<
     dni: string;
     password?: string;
   },
-  { rejectValue: string }
+  { rejectValue: string | string[] }
 >('users/registerAdmin', async (payload, { rejectWithValue }) => {
   try {
     const token = localStorage.getItem('token');
     const response = await userService.registerAdmin(payload, token);
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      return rejectWithValue(data.message || 'Error al registrar el administrador');
+      const rawMessage = data?.message ?? data?.error;
+      const errorMessage = parseErrorMessageFromData(data, 'Error al registrar el administrador');
+      if (!isOnlyWelcomeEmailFailureMessage(errorMessage)) {
+        if (Array.isArray(rawMessage) && rawMessage.length > 0) {
+          return rejectWithValue(rawMessage);
+        }
+        return rejectWithValue(errorMessage);
+      }
     }
 
     const rawUser = data.user || data || {};

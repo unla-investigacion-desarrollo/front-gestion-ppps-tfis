@@ -411,7 +411,7 @@ const Trabajo: React.FC = () => {
             className="trabajo-back-btn d-inline-flex align-items-center gap-1.5"
           >
             <FaArrowLeft size={16} />
-            {backLabel}
+            {isFromMisProyectos && isStudent ? 'Ir a Mi TFI' : backLabel}
           </Link>
           <div className="d-flex align-items-center gap-2">
             <span className="badge bg-light text-dark border">

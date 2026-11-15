@@ -19,6 +19,8 @@ export interface ProjectExplorerCardsProps {
   activeProjectIds: Set<string>;
   requestingId: number | string | null;
   onJoinProject: (projectId: number | string, projectTitle: string) => void;
+  /** Si es false (p. ej. el estudiante ya tiene su TFI), no se permite postularse. */
+  canApply?: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export const ProjectExplorerCards: React.FC<ProjectExplorerCardsProps> = ({
   activeProjectIds,
   requestingId,
   onJoinProject,
+  canApply = true,
 }) => {
   return (
     <div className="project-join-grid">
@@ -89,6 +92,13 @@ export const ProjectExplorerCards: React.FC<ProjectExplorerCardsProps> = ({
               ) : isPending ? (
                 <span className="badge-status-pending w-100 justify-content-center">
                   <FaClock size={12} /> Solicitud enviada (Pendiente)
+                </span>
+              ) : !canApply ? (
+                <span
+                  className="btn-action-disabled w-100 text-center"
+                  title="Ya tenés un TFI asignado"
+                >
+                  No disponible: ya tenés un TFI asignado
                 </span>
               ) : (
                 <button

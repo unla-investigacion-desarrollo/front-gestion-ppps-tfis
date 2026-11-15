@@ -110,7 +110,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUs
                 {/* Tarjeta 1: Proyectos TFI */}
                 <StudentCard
                   title="Proyectos TFI"
-                  description="Consultá los proyectos disponibles, revisá tus solicitudes y accedé a tus proyectos activos."
+                  description="Consultá los proyectos disponibles, revisá tus solicitudes y accedé a tu TFI."
                   colorTheme="purple"
                   onClick={() => setActiveView('proyectos')}
                   icon={<FaFileLines size={22} />}

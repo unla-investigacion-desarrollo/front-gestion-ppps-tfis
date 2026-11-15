@@ -15,77 +15,146 @@ interface CreateTeacherModalProps {
     specialization?: string;
     isTutor?: boolean;
     rol: 'DOCENTE' | 'ADMIN';
-  }) => Promise<boolean>;
+  }) => Promise<{ ok: boolean; message?: string; messages?: string[] }>;
 }
+
+/**
+ * Clasifica cada mensaje de validación devuelto por el backend (ValidationPipe / ConflictException)
+ * en el campo correspondiente del formulario.
+ */
+const matchBackendErrorToField = (
+  message: string
+): 'nombre' | 'apellido' | 'dni' | 'email' | 'password' | 'specialization' | 'general' => {
+  const lower = message.toLowerCase();
+  if ((lower.includes('email') || lower.includes('correo') || lower.includes('mail')) && !lower.includes('bienvenida')) {
+    return 'email';
+  }
+  if (lower.includes('dni') || lower.includes('documento')) {
+    return 'dni';
+  }
+  if (lower.includes('contraseña') || lower.includes('password')) {
+    return 'password';
+  }
+  if (lower.includes('apellido') || lower.includes('lastname')) {
+    return 'apellido';
+  }
+  if (lower.includes('nombre') || lower.includes('firstname')) {
+    return 'nombre';
+  }
+  if (lower.includes('specialization') || lower.includes('especializ')) {
+    return 'specialization';
+  }
+  return 'general';
+};
+
+const createInitialFormState = (rol: 'DOCENTE' | 'ADMIN' = 'DOCENTE') => ({
+  nombre: '',
+  apellido: '',
+  dni: '',
+  email: '',
+  password: '',
+  specialization: '',
+  isTutor: false,
+  rol,
+});
 
 const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
   isOpen,
   role = 'DOCENTE',
-  users = [],
   onClose,
   onSubmit,
 }) => {
-  const [form, setForm] = useState({
-    nombre: '',
-    apellido: '',
-    dni: '',
-    email: '',
-    password: '',
-    specialization: '',
-    isTutor: false,
-    rol: role,
-  });
-  const [emailInUse, setEmailInUse] = useState(false);
-  const [dniInUse, setDniInUse] = useState(false);
+  const [form, setForm] = useState(() => createInitialFormState(role));
+  // Errores por campo devueltos exclusivamente por el backend
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
+  const resetFormState = () => {
+    setForm(createInitialFormState(role));
+    setFieldErrors({});
+    setGeneralError(null);
+    setSubmitting(false);
+  };
+
+  // Siempre que se abre el modal, reiniciar todos los campos y errores
   useEffect(() => {
-    const rawUsers = localStorage.getItem('users');
-    let storedUsers: Array<{ email?: string; dni?: string }> = [];
-    try {
-      storedUsers = rawUsers ? JSON.parse(rawUsers) : [];
-    } catch {
-      storedUsers = [];
+    if (isOpen) {
+      resetFormState();
     }
-
-    const allUsers = [...users, ...storedUsers];
-    setEmailInUse(
-      !!form.email.trim() && allUsers.some(
-        (user) => (user.email || '').trim().toLowerCase() === form.email.trim().toLowerCase(),
-      ),
-    );
-    setDniInUse(
-      !!form.dni && allUsers.some((user) => user.dni === form.dni),
-    );
-  }, [form.email, form.dni, users]);
+  }, [isOpen, role]);
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    resetFormState();
+    onClose();
+  };
+
+  const clearFieldError = (fieldName: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[fieldName]) return prev;
+      const next = { ...prev };
+      delete next[fieldName];
+      return next;
+    });
+    setGeneralError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password.length < 6) {
-      showToast('La contraseña debe tener al menos 6 caracteres', 'error');
-      return;
-    }
-    if (emailInUse) {
-      showToast('El email ya está siendo utilizado por otra persona', 'error');
-      return;
-    }
-    if (dniInUse) {
-      showToast('El DNI ya está siendo utilizado por otra persona', 'error');
-      return;
-    }
+    if (submitting) return;
 
-    const created = await onSubmit({ ...form, rol: form.rol });
-    if (created) setForm({
-      nombre: '',
-      apellido: '',
-      dni: '',
-      email: '',
-      password: '',
-      specialization: '',
-      isTutor: false,
-      rol: form.rol,
-    });
+    setFieldErrors({});
+    setGeneralError(null);
+    setSubmitting(true);
+    try {
+      // Todas las validaciones las realiza el backend
+      const result = await onSubmit({
+        ...form,
+        nombre: form.nombre.trim(),
+        apellido: form.apellido.trim(),
+        dni: form.dni.trim(),
+        email: form.email.trim(),
+        specialization: form.specialization.trim(),
+        rol: form.rol,
+      });
+
+      if (result.ok) {
+        resetFormState();
+        return;
+      }
+
+      const rawMessages =
+        Array.isArray(result.messages) && result.messages.length > 0
+          ? result.messages
+          : result.message
+          ? [result.message]
+          : ['No se pudo crear el usuario'];
+
+      const mappedFieldErrors: Record<string, string> = {};
+      const generalMessages: string[] = [];
+
+      rawMessages.forEach((rawMsg) => {
+        const msg = String(rawMsg).trim();
+        if (!msg) return;
+        const field = matchBackendErrorToField(msg);
+        if (field === 'general') {
+          generalMessages.push(msg);
+        } else if (!mappedFieldErrors[field]) {
+          mappedFieldErrors[field] = msg;
+        }
+      });
+
+      setFieldErrors(mappedFieldErrors);
+      if (generalMessages.length > 0) {
+        const joined = generalMessages.join('. ');
+        setGeneralError(joined);
+        showToast(joined, 'error');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -100,18 +169,28 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
               <button
                 type="button"
                 className="btn-close"
-                onClick={onClose}
+                onClick={handleClose}
                 aria-label="Close"
               />
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate autoComplete="off">
               <div className="modal-body custom-modal-body d-flex flex-column gap-3">
+                {generalError && (
+                  <div className="alert alert-danger py-2 mb-0 small" role="alert">
+                    {generalError}
+                  </div>
+                )}
+
                 <div>
                   <label className="form-label" style={{ fontWeight: 500 }}>Tipo de usuario</label>
                   <select
                     className="form-select"
                     value={form.rol}
-                    onChange={(e) => setForm(prev => ({ ...prev, rol: e.target.value as 'DOCENTE' | 'ADMIN' }))}
+                    onChange={(e) => {
+                      setFieldErrors({});
+                      setGeneralError(null);
+                      setForm(prev => ({ ...prev, rol: e.target.value as 'DOCENTE' | 'ADMIN' }));
+                    }}
                   >
                     <option value="DOCENTE">Docente</option>
                     <option value="ADMIN">Administrador</option>
@@ -123,21 +202,27 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                     <label className="form-label" style={{ fontWeight: 500 }}>Nombre</label>
                     <input
                       type="text"
-                      className="form-control"
-                      required
+                      className={`form-control ${fieldErrors.nombre ? 'is-invalid' : ''}`}
                       value={form.nombre}
-                      onChange={(e) => setForm(prev => ({ ...prev, nombre: e.target.value }))}
+                      onChange={(e) => {
+                        clearFieldError('nombre');
+                        setForm(prev => ({ ...prev, nombre: e.target.value }));
+                      }}
                     />
+                    {fieldErrors.nombre && <div className="invalid-feedback d-block">{fieldErrors.nombre}</div>}
                   </div>
                   <div className="col-md-6">
                     <label className="form-label" style={{ fontWeight: 500 }}>Apellido</label>
                     <input
                       type="text"
-                      className="form-control"
-                      required
+                      className={`form-control ${fieldErrors.apellido ? 'is-invalid' : ''}`}
                       value={form.apellido}
-                      onChange={(e) => setForm(prev => ({ ...prev, apellido: e.target.value }))}
+                      onChange={(e) => {
+                        clearFieldError('apellido');
+                        setForm(prev => ({ ...prev, apellido: e.target.value }));
+                      }}
                     />
+                    {fieldErrors.apellido && <div className="invalid-feedback d-block">{fieldErrors.apellido}</div>}
                   </div>
                 </div>
 
@@ -146,25 +231,31 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                     <label className="form-label" style={{ fontWeight: 500 }}>DNI</label>
                     <input
                       type="text"
-                      className="form-control"
-                      required
-                      maxLength={8}
+                      className={`form-control ${fieldErrors.dni ? 'is-invalid' : ''}`}
                       value={form.dni}
-                      onChange={(e) => setForm(prev => ({ ...prev, dni: e.target.value.replace(/\D/g, '') }))}
+                      onChange={(e) => {
+                        clearFieldError('dni');
+                        setForm(prev => ({ ...prev, dni: e.target.value }));
+                      }}
                     />
-                    {dniInUse && <div className="form-text text-danger">Este DNI ya está siendo utilizado por otra persona.</div>}
+                    {fieldErrors.dni && <div className="invalid-feedback d-block">{fieldErrors.dni}</div>}
                   </div>
                   {form.rol === 'DOCENTE' && (
                     <div className="col-md-6">
                       <label className="form-label" style={{ fontWeight: 500 }}>Especialización</label>
                       <input
                         type="text"
-                        className="form-control"
-                        required
+                        className={`form-control ${fieldErrors.specialization ? 'is-invalid' : ''}`}
                         placeholder="Ej: Ingeniería de Software"
                         value={form.specialization}
-                        onChange={(e) => setForm(prev => ({ ...prev, specialization: e.target.value }))}
+                        onChange={(e) => {
+                          clearFieldError('specialization');
+                          setForm(prev => ({ ...prev, specialization: e.target.value }));
+                        }}
                       />
+                      {fieldErrors.specialization && (
+                        <div className="invalid-feedback d-block">{fieldErrors.specialization}</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -173,25 +264,30 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                   <label className="form-label" style={{ fontWeight: 500 }}>Email</label>
                   <input
                     type="email"
-                    className="form-control"
-                    required
+                    className={`form-control ${fieldErrors.email ? 'is-invalid' : ''}`}
+                    autoComplete="off"
                     value={form.email}
-                    onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => {
+                      clearFieldError('email');
+                      setForm(prev => ({ ...prev, email: e.target.value }));
+                    }}
                   />
-                  {emailInUse && <div className="form-text text-danger">Este email ya está siendo utilizado por otra persona.</div>}
+                  {fieldErrors.email && <div className="invalid-feedback d-block">{fieldErrors.email}</div>}
                 </div>
 
                 <div>
                   <label className="form-label" style={{ fontWeight: 500 }}>Contraseña</label>
                   <input
                     type="password"
-                    className="form-control"
-                    required
-                    minLength={6}
+                    className={`form-control ${fieldErrors.password ? 'is-invalid' : ''}`}
                     autoComplete="new-password"
                     value={form.password}
-                    onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
+                    onChange={(e) => {
+                      clearFieldError('password');
+                      setForm(prev => ({ ...prev, password: e.target.value }));
+                    }}
                   />
+                  {fieldErrors.password && <div className="invalid-feedback d-block">{fieldErrors.password}</div>}
                 </div>
 
                 {form.rol === 'DOCENTE' && <div className="form-check form-switch mt-2">
@@ -212,16 +308,17 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                 <button
                   type="button"
                   className="btn btn-outline-secondary"
-                  onClick={onClose}
+                  onClick={handleClose}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   className="btn btn-primary"
+                  disabled={submitting}
                   style={{ backgroundColor: 'var(--unla-primary)', border: 'none' }}
                 >
-                  Crear {form.rol === 'DOCENTE' ? 'Docente' : 'Administrador'}
+                  {submitting ? 'Creando...' : `Crear ${form.rol === 'DOCENTE' ? 'Docente' : 'Administrador'}`}
                 </button>
               </div>
             </form>

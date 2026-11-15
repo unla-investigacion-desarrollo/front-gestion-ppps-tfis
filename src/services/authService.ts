@@ -18,10 +18,16 @@ export const authService = {
     dni?: string;
     email: string;
     password?: string;
-    yearOfAdmission?: number;
-    completedCoursesWithFinal?: number;
-    completedCoursesWithoutFinal?: number;
+    yearOfAdmission?: number | string;
+    completedCoursesWithFinal?: number | string;
+    completedCoursesWithoutFinal?: number | string;
   }, signal?: AbortSignal) => {
+    const parseNumericField = (val: number | string | undefined) => {
+      if (val === undefined || val === null || String(val).trim() === '') return undefined;
+      const num = Number(val);
+      return Number.isNaN(num) ? val : num;
+    };
+
     return fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -34,9 +40,9 @@ export const authService = {
         dni: payload.dni,
         email: payload.email,
         password: payload.password,
-        yearOfAdmission: payload.yearOfAdmission !== undefined ? Number(payload.yearOfAdmission) : undefined,
-        completedCoursesWithFinal: payload.completedCoursesWithFinal !== undefined ? Number(payload.completedCoursesWithFinal) : 0,
-        completedCoursesWithoutFinal: payload.completedCoursesWithoutFinal !== undefined ? Number(payload.completedCoursesWithoutFinal) : 0,
+        yearOfAdmission: parseNumericField(payload.yearOfAdmission),
+        completedCoursesWithFinal: parseNumericField(payload.completedCoursesWithFinal),
+        completedCoursesWithoutFinal: parseNumericField(payload.completedCoursesWithoutFinal),
       }),
     });
   },

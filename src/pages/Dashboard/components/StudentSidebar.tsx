@@ -128,7 +128,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                     }
                   }}
                 >
-                  Mis proyectos
+                  Mi TFI
                 </a>
               </li>
             </ul>

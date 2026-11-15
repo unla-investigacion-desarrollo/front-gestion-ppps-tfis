@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   registerStudent,
   selectUsersStatus,
-  selectUsersError,
   clearUsersError,
 } from '../../../redux/slices/usersSlice';
 import {
@@ -24,14 +23,57 @@ import {
 import './Register.css';
 
 /**
- * Pantalla de Registro de Estudiante
- * Rediseño basado en tarjeta de 2 columnas con banner informativo y modal de éxito.
+ * Clasifica cada mensaje de error devuelto por el backend (ValidationPipe / ConflictException)
+ * y lo asocia al campo correspondiente del formulario de registro.
+ */
+const matchStudentBackendErrorToField = (
+  message: string
+):
+  | 'nombre'
+  | 'apellido'
+  | 'email'
+  | 'dni'
+  | 'yearOfAdmission'
+  | 'completedCoursesWithFinal'
+  | 'completedCoursesWithoutFinal'
+  | 'password'
+  | 'general' => {
+  const lower = message.toLowerCase();
+  if ((lower.includes('email') || lower.includes('correo') || lower.includes('mail')) && !lower.includes('bienvenida')) {
+    return 'email';
+  }
+  if (lower.includes('dni') || lower.includes('documento')) {
+    return 'dni';
+  }
+  if (lower.includes('contraseña') || lower.includes('password')) {
+    return 'password';
+  }
+  if (lower.includes('apellido') || lower.includes('lastname')) {
+    return 'apellido';
+  }
+  if (lower.includes('nombre') || lower.includes('firstname')) {
+    return 'nombre';
+  }
+  if (lower.includes('yearofadmission') || lower.includes('año de ingreso') || lower.includes('ingreso')) {
+    return 'yearOfAdmission';
+  }
+  if (lower.includes('completedcourseswithfinal') || lower.includes('con final')) {
+    return 'completedCoursesWithFinal';
+  }
+  if (lower.includes('completedcourseswithoutfinal') || lower.includes('sin final')) {
+    return 'completedCoursesWithoutFinal';
+  }
+  return 'general';
+};
+
+/**
+ * Pantalla de Registro de Estudiante.
+ * Todas las validaciones provienen del backend al enviar el formulario.
  */
 const Register: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const status = useSelector(selectUsersStatus);
-  const error = useSelector(selectUsersError);
 
   const initialFormState = {
     email: '',
@@ -46,12 +88,10 @@ const Register: React.FC = () => {
 
   const [form, setForm] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [registeredEmail, setRegisteredEmail] = useState<string>('');
-
-  const [emailCheck, setEmailCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
-  const [dniCheck, setDniCheck] = useState<'idle' | 'checking' | 'free' | 'taken'>('idle');
 
   // Limpiar errores de usuario al ingresar
   useEffect(() => {
@@ -73,107 +113,21 @@ const Register: React.FC = () => {
     );
   };
 
-  // Verificar disponibilidad de email (mock: localStorage)
-  useEffect(() => {
-    if (!form.email) {
-      setEmailCheck('idle');
-      return;
-    }
-    setEmailCheck('checking');
-    const timeoutIdentifier = setTimeout(() => {
-      try {
-        const rawUsers = localStorage.getItem('users');
-        const parsedUsers = rawUsers ? JSON.parse(rawUsers) : [];
-        const exists = parsedUsers.some(
-          (userCandidate: any) => (userCandidate.email || '').toLowerCase() === form.email.toLowerCase()
-        );
-        setEmailCheck(exists ? 'taken' : 'free');
-      } catch {
-        setEmailCheck('free');
-      }
-    }, 350);
-    return () => clearTimeout(timeoutIdentifier);
-  }, [form.email]);
-
-  // Verificar disponibilidad de DNI (mock: localStorage) cuando tiene 8 dígitos
-  useEffect(() => {
-    if (!form.dni || form.dni.length !== 8) {
-      setDniCheck('idle');
-      return;
-    }
-    setDniCheck('checking');
-    const timeoutIdentifier = setTimeout(() => {
-      try {
-        const rawUsers = localStorage.getItem('users');
-        const parsedUsers = rawUsers ? JSON.parse(rawUsers) : [];
-        const exists = parsedUsers.some(
-          (userCandidate: any) => (userCandidate.dni || '') === form.dni
-        );
-        setDniCheck(exists ? 'taken' : 'free');
-      } catch {
-        setDniCheck('free');
-      }
-    }, 350);
-    return () => clearTimeout(timeoutIdentifier);
-  }, [form.dni]);
-
   const handleChange = (changeEvent: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = changeEvent.target;
     setForm((previousForm) => ({ ...previousForm, [name]: value }));
     if (errors[name]) {
       setErrors((previousErrors) => ({ ...previousErrors, [name]: '' }));
     }
+    if (generalError) {
+      setGeneralError(null);
+    }
   };
 
   const handleSubmit = async (formSubmitEvent: React.FormEvent) => {
     formSubmitEvent.preventDefault();
-    const validationErrors: Record<string, string> = {};
-
-    if (!form.nombre.trim()) validationErrors.nombre = 'El nombre es obligatorio';
-    if (!form.apellido.trim()) validationErrors.apellido = 'El apellido es obligatorio';
-    if (!form.email.trim()) {
-      validationErrors.email = 'El email es obligatorio';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      validationErrors.email = 'Ingresá un correo electrónico válido';
-    } else if (emailCheck === 'taken') {
-      validationErrors.email = 'El email ya está en uso';
-    }
-
-    if (!form.dni || !/^\d{8}$/.test(form.dni)) {
-      validationErrors.dni = 'DNI debe tener exactamente 8 números';
-    } else if (dniCheck === 'taken') {
-      validationErrors.dni = 'El DNI ya está en uso';
-    }
-
-    const currentYear = new Date().getFullYear();
-    const parsedYear = Number(form.yearOfAdmission);
-    if (!form.yearOfAdmission) {
-      validationErrors.yearOfAdmission = 'El año de ingreso es obligatorio';
-    } else if (isNaN(parsedYear) || parsedYear < 1950 || parsedYear > currentYear) {
-      validationErrors.yearOfAdmission = `Ingresá un año válido (1950 - ${currentYear})`;
-    }
-
-    const withFinalCount = Number(form.completedCoursesWithFinal);
-    if (form.completedCoursesWithFinal === '') {
-      validationErrors.completedCoursesWithFinal = 'Campo obligatorio';
-    } else if (isNaN(withFinalCount) || withFinalCount < 0) {
-      validationErrors.completedCoursesWithFinal = 'Debe ser 0 o mayor';
-    }
-
-    const withoutFinalCount = Number(form.completedCoursesWithoutFinal);
-    if (form.completedCoursesWithoutFinal === '') {
-      validationErrors.completedCoursesWithoutFinal = 'Campo obligatorio';
-    } else if (isNaN(withoutFinalCount) || withoutFinalCount < 0) {
-      validationErrors.completedCoursesWithoutFinal = 'Debe ser 0 o mayor';
-    }
-
-    if (!form.password || form.password.length < 6) {
-      validationErrors.password = 'La contraseña debe tener al menos 6 caracteres';
-    }
-
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
-
+    setErrors({});
+    setGeneralError(null);
     dispatch(clearUsersError());
 
     try {
@@ -184,32 +138,51 @@ const Register: React.FC = () => {
           dni: form.dni.trim(),
           email: form.email.trim(),
           password: form.password,
-          yearOfAdmission: Number(form.yearOfAdmission),
-          completedCoursesWithFinal: Number(form.completedCoursesWithFinal),
-          completedCoursesWithoutFinal: Number(form.completedCoursesWithoutFinal),
+          yearOfAdmission: form.yearOfAdmission,
+          completedCoursesWithFinal: form.completedCoursesWithFinal,
+          completedCoursesWithoutFinal: form.completedCoursesWithoutFinal,
         })
       ).unwrap();
 
       setRegisteredEmail(form.email.trim());
       setShowSuccessModal(true);
       setForm(initialFormState);
-      setEmailCheck('idle');
-      setDniCheck('idle');
     } catch (registrationError: any) {
-      const serverErrorMessage =
-        typeof registrationError === 'string'
-          ? registrationError
-          : registrationError?.message || '';
+      const rawMessages: string[] = Array.isArray(registrationError)
+        ? registrationError.map(String)
+        : typeof registrationError === 'string'
+        ? [registrationError]
+        : registrationError?.message
+        ? [String(registrationError.message)]
+        : ['Error al registrar el estudiante'];
 
-      if (isWelcomeEmailErrorMessage(serverErrorMessage)) {
+      const combinedText = rawMessages.join('. ');
+      if (isWelcomeEmailErrorMessage(combinedText)) {
         dispatch(clearUsersError());
         setRegisteredEmail(form.email.trim());
         setShowSuccessModal(true);
         setForm(initialFormState);
-        setEmailCheck('idle');
-        setDniCheck('idle');
+        return;
       }
-      // Cualquier otro error se mantiene en Redux para mostrarse en el formulario
+
+      const mappedFieldErrors: Record<string, string> = {};
+      const generalMessages: string[] = [];
+
+      rawMessages.forEach((rawMsg) => {
+        const msg = rawMsg.trim();
+        if (!msg) return;
+        const field = matchStudentBackendErrorToField(msg);
+        if (field === 'general') {
+          generalMessages.push(msg);
+        } else if (!mappedFieldErrors[field]) {
+          mappedFieldErrors[field] = msg;
+        }
+      });
+
+      setErrors(mappedFieldErrors);
+      if (generalMessages.length > 0) {
+        setGeneralError(generalMessages.join('. '));
+      }
     }
   };
 
@@ -250,13 +223,13 @@ const Register: React.FC = () => {
             Completá la información tal como figura en tu documento.
           </p>
 
-          {error && !isWelcomeEmailErrorMessage(error) && (
+          {generalError && (
             <div className="alert alert-danger mb-3 py-2 small" role="alert">
-              {error}
+              {generalError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} noValidate className="register-form-grid">
+          <form onSubmit={handleSubmit} noValidate autoComplete="off" className="register-form-grid">
             {/* Fila 1: Nombre y Apellido */}
             <div className="register-row-2">
               <div className="register-field-group">
@@ -272,12 +245,7 @@ const Register: React.FC = () => {
                     className={`register-input ${errors.nombre ? 'is-invalid' : ''}`}
                     placeholder="Ingresá tu nombre"
                     value={form.nombre}
-                    onChange={(changeEvent) => {
-                      const cleanLetters = changeEvent.target.value.replace(/[^\p{L}\s]/gu, '');
-                      setForm((previousForm) => ({ ...previousForm, nombre: cleanLetters }));
-                      if (errors.nombre) setErrors((prev) => ({ ...prev, nombre: '' }));
-                    }}
-                    required
+                    onChange={handleChange}
                   />
                 </div>
                 {errors.nombre && <span className="register-field-error">{errors.nombre}</span>}
@@ -296,12 +264,7 @@ const Register: React.FC = () => {
                     className={`register-input ${errors.apellido ? 'is-invalid' : ''}`}
                     placeholder="Ingresá tu apellido"
                     value={form.apellido}
-                    onChange={(changeEvent) => {
-                      const cleanLetters = changeEvent.target.value.replace(/[^\p{L}\s]/gu, '');
-                      setForm((previousForm) => ({ ...previousForm, apellido: cleanLetters }));
-                      if (errors.apellido) setErrors((prev) => ({ ...prev, apellido: '' }));
-                    }}
-                    required
+                    onChange={handleChange}
                   />
                 </div>
                 {errors.apellido && <span className="register-field-error">{errors.apellido}</span>}
@@ -320,21 +283,14 @@ const Register: React.FC = () => {
                     type="email"
                     id="email"
                     name="email"
-                    className={`register-input ${(errors.email || emailCheck === 'taken') ? 'is-invalid' : ''}`}
+                    className={`register-input ${errors.email ? 'is-invalid' : ''}`}
                     placeholder="ejemplo@dominio.com"
                     value={form.email}
                     onChange={handleChange}
-                    required
                   />
                 </div>
                 {errors.email ? (
                   <span className="register-field-error">{errors.email}</span>
-                ) : emailCheck === 'taken' ? (
-                  <span className="register-field-error">
-                    El email ya está en uso.
-                  </span>
-                ) : emailCheck === 'checking' ? (
-                  <span className="register-field-help text-muted">Verificando disponibilidad…</span>
                 ) : (
                   <span className="register-field-help">Usá tu email institucional o personal</span>
                 )}
@@ -350,26 +306,16 @@ const Register: React.FC = () => {
                     type="text"
                     id="dni"
                     name="dni"
-                    maxLength={8}
-                    className={`register-input ${(errors.dni || dniCheck === 'taken') ? 'is-invalid' : ''}`}
-                    placeholder="8 dígitos"
+                    className={`register-input ${errors.dni ? 'is-invalid' : ''}`}
+                    placeholder="7 u 8 dígitos"
                     value={form.dni}
-                    onChange={(changeEvent) => {
-                      const cleanDigits = changeEvent.target.value.replace(/\D/g, '').slice(0, 8);
-                      setForm((previousForm) => ({ ...previousForm, dni: cleanDigits }));
-                      if (errors.dni) setErrors((prev) => ({ ...prev, dni: '' }));
-                    }}
-                    required
+                    onChange={handleChange}
                   />
                 </div>
                 {errors.dni ? (
                   <span className="register-field-error">{errors.dni}</span>
-                ) : dniCheck === 'taken' ? (
-                  <span className="register-field-error">El DNI ya está en uso.</span>
-                ) : dniCheck === 'checking' ? (
-                  <span className="register-field-help text-muted">Verificando…</span>
                 ) : (
-                  <span className="register-field-help">Exactamente 8 números</span>
+                  <span className="register-field-help">Sin puntos ni espacios</span>
                 )}
               </div>
             </div>
@@ -390,9 +336,6 @@ const Register: React.FC = () => {
                     placeholder="Ej. 2024"
                     value={form.yearOfAdmission}
                     onChange={handleChange}
-                    min="1950"
-                    max={new Date().getFullYear()}
-                    required
                   />
                 </div>
                 {errors.yearOfAdmission && (
@@ -414,8 +357,6 @@ const Register: React.FC = () => {
                     placeholder="Ej. 2"
                     value={form.completedCoursesWithFinal}
                     onChange={handleChange}
-                    min="0"
-                    required
                   />
                 </div>
                 {errors.completedCoursesWithFinal && (
@@ -437,8 +378,6 @@ const Register: React.FC = () => {
                     placeholder="Ej. 1"
                     value={form.completedCoursesWithoutFinal}
                     onChange={handleChange}
-                    min="0"
-                    required
                   />
                 </div>
                 {errors.completedCoursesWithoutFinal && (
@@ -463,7 +402,6 @@ const Register: React.FC = () => {
                     placeholder="••••••••"
                     value={form.password}
                     onChange={handleChange}
-                    required
                   />
                   <button
                     type="button"
@@ -478,7 +416,7 @@ const Register: React.FC = () => {
                   <span className="register-field-error">{errors.password}</span>
                 ) : (
                   <span className="register-field-help">
-                    Mínimo 8 caracteres, con al menos una letra y un número.
+                    Mínimo 6 caracteres.
                   </span>
                 )}
               </div>

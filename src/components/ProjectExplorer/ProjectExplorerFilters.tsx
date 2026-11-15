@@ -74,7 +74,7 @@ export const ProjectExplorerFilters: React.FC<ProjectExplorerFiltersProps> = ({
         <option value="ALL">Estado: Todos</option>
         <option value="AVAILABLE">Disponibles para unirme</option>
         <option value="PENDING">Con solicitud enviada</option>
-        <option value="ACTIVE">Ya soy miembro</option>
+        <option value="ACTIVE">Mi TFI</option>
       </select>
 
       {/* Botón para Limpiar Filtros */}
