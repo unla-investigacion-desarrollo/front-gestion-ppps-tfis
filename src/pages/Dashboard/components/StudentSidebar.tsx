@@ -34,7 +34,9 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     !location.search.includes('tab=active');
   const isRequestsActive =
     location.pathname === '/alumno/mis-proyectos' && location.search.includes('tab=requests');
-  const isDeliveriesActive = location.pathname.startsWith('/alumno/entregas');
+  const isDeliveriesActive =
+    location.pathname.startsWith('/alumno/entregas') ||
+    (location.pathname.startsWith('/proyectos/') && location.pathname.endsWith('/trabajo'));
   const isConvocatoriasActive = location.pathname.startsWith('/ppp/convocatorias');
   const isTramitesActive =
     location.pathname.startsWith('/alumno/ppp') ||
@@ -135,7 +137,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           )}
         </div>
 
-        {/* Item 3: Entregas TFI */}
+        {/* Item 3: Seguimiento TFI */}
         <div className="student-sidebar-group">
           <button
             type="button"
@@ -146,7 +148,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               <span className="student-sidebar-icon">
                 <FaCloudArrowUp size={16} />
               </span>
-              <span>Entregas TFI</span>
+              <span>Seguimiento TFI</span>
             </div>
             <span className={`student-sidebar-chevron ${openSections.entregas ? 'rotated' : ''}`}>
               <FaChevronDown size={12} />
@@ -160,15 +162,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                   className={`student-sidebar-sublink ${isDeliveriesActive ? 'active' : ''}`}
                   onClick={() => navigate('/alumno/entregas')}
                 >
-                  Ver/subir entrega
-                </a>
-              </li>
-              <li>
-                <a
-                  className="student-sidebar-sublink"
-                  onClick={() => navigate('/alumno/entregas')}
-                >
-                  Consultar observaciones, tutoría y calificación
+                  Mi proyecto y entregas
                 </a>
               </li>
             </ul>

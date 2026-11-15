@@ -119,3 +119,186 @@
   color: #ffffff;
 }
 
+/* --- PANEL DE SEGUIMIENTO ACADÉMICO (REDISEÑO MI TFI) --- */
+.my-tfi-panel {
+  width: 100%;
+  padding: 28px 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.my-tfi-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.my-tfi-panel-heading {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.my-tfi-panel-cycle {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: #64748b;
+}
+
+.my-tfi-panel-divider {
+  height: 1px;
+  background-color: #e2e8f0;
+}
+
+.my-tfi-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.my-tfi-project-name {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--unla-primary, #64001d);
+  word-break: break-word;
+}
+
+.my-tfi-project-meta {
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: #64748b;
+}
+
+.my-tfi-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin: 0;
+}
+
+.my-tfi-panel-grid dt {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.my-tfi-panel-grid dd {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+}
+
+.my-tfi-status-box {
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #f8fafc;
+}
+
+.my-tfi-status-box-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.my-tfi-status-box-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.my-tfi-status-label {
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.my-tfi-status-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.my-tfi-status-pill.pending {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+.my-tfi-status-pill.review {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.my-tfi-status-pill.observed {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.my-tfi-status-pill.approved {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.my-tfi-progress-track {
+  width: 100%;
+  height: 7px;
+  background-color: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.my-tfi-progress-fill {
+  height: 100%;
+  background-color: var(--unla-primary, #64001d);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.my-tfi-status-hint {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.my-tfi-cta-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--unla-primary, #64001d);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.my-tfi-cta-btn:hover {
+  background-color: #4a0016;
+  transform: translateY(-1px);
+}
+
