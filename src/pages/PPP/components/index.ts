@@ -1,5 +1,6 @@
 export { default as PPPProposalsTable } from './PPPProposalsTable';
 export { default as PPPProposalsCards } from './PPPProposalsCards';
+export { default as PPPHowItWorks } from './PPPHowItWorks';
 export {
   PPPCreateProposalModal,
   PPPApplyModal,

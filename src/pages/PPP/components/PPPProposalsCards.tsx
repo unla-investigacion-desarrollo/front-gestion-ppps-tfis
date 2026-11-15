@@ -5,6 +5,7 @@ import { PPPProposal } from '../../../services/pppService';
 export interface PPPProposalsCardsProps {
   proposals: PPPProposal[];
   isStudent: boolean;
+  appliedProposalIds?: Set<string>;
   canManageApplicants?: boolean;
   isTutor?: boolean;
   actionLoading: boolean;
@@ -20,6 +21,7 @@ export interface PPPProposalsCardsProps {
 export const PPPProposalsCards: React.FC<PPPProposalsCardsProps> = ({
   proposals,
   isStudent,
+  appliedProposalIds,
   canManageApplicants = true,
   isTutor = false,
   actionLoading,
@@ -95,14 +97,20 @@ export const PPPProposalsCards: React.FC<PPPProposalsCardsProps> = ({
             {/* Pie de Tarjeta */}
             <div className="ppp-proposal-footer">
               {isStudent ? (
-                <button
-                  type="button"
-                  className="btn btn-sm btn-unla-primary w-100"
-                  onClick={() => onOpenApplyModal(proposalItem)}
-                  disabled={actionLoading}
-                >
-                  Postularme a esta convocatoria
-                </button>
+                appliedProposalIds?.has(String(proposalItem.id)) ? (
+                  <span className="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-semibold w-100 text-center">
+                    Postulado
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-unla-primary w-100"
+                    onClick={() => onOpenApplyModal(proposalItem)}
+                    disabled={actionLoading}
+                  >
+                    Postularme a esta convocatoria
+                  </button>
+                )
               ) : (
                 <>
                   <div className="ppp-switch-wrapper">

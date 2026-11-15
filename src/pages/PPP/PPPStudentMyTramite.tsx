@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaIdCard, FaSquarePlus, FaMagnifyingGlass } from 'react-icons/fa6';
+import { FaIdCard, FaSquarePlus } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchMyPPPApplications,
@@ -10,6 +10,7 @@ import {
 } from '../../../redux/slices/pppSlice';
 import { PPPEpidiente, PPPStatus, normalizePPPType } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
+import { PPPHowItWorks } from './components';
 import './PPP.css';
 
 export const PPPStudentMyTramite: React.FC = () => {
@@ -17,8 +18,6 @@ export const PPPStudentMyTramite: React.FC = () => {
   const navigate = useNavigate();
   const currentUser = useSelector(selectCurrentUser) as any;
   const myExpedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
-
-  const [consultIdInput, setConsultIdInput] = useState<string>('');
 
   useEffect(() => {
     // Limpiar posibles datos cacheados antiguos en localStorage
@@ -75,16 +74,6 @@ export const PPPStudentMyTramite: React.FC = () => {
     }
   };
 
-  const handleConsultSubmit = (formSubmitEvent: React.FormEvent) => {
-    formSubmitEvent.preventDefault();
-    const cleanId = consultIdInput.trim().replace(/^#/, '');
-    if (!cleanId) {
-      showToast('Por favor, ingresá el número de identificación de tu postulación o trámite', 'error');
-      return;
-    }
-    navigate(`/ppp/${cleanId}`);
-  };
-
   return (
     <div className="ppp-page-wrapper">
       <div className="ppp-container">
@@ -102,37 +91,13 @@ export const PPPStudentMyTramite: React.FC = () => {
             </div>
           </div>
           <div className="ppp-header-actions">
-            <Link to="/ppp/convocatorias" className="btn-unla-outline">
-              Explorar convocatorias
-            </Link>
             <button type="button" className="btn-unla-primary" onClick={handleCreateExternal}>
               Iniciar trámite externo
             </button>
           </div>
         </div>
 
-        {/* Buscador de Trámite / Postulación por ID (GET /ppp/:id) */}
-        <div className="bg-white rounded-3 border p-3.5 shadow-sm mb-4">
-          <form onSubmit={handleConsultSubmit} className="d-flex align-items-center flex-wrap gap-2">
-            <div className="text-secondary small fw-semibold me-2">
-              Consultar postulación o expediente por ID:
-            </div>
-            <div className="input-group" style={{ maxWidth: '280px' }}>
-              <span className="input-group-text bg-light text-muted">#</span>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Ej: 1, 14, 25..."
-                value={consultIdInput}
-                onChange={(changeEvent) => setConsultIdInput(changeEvent.target.value)}
-              />
-            </div>
-            <button type="submit" className="btn btn-sm btn-unla-primary d-inline-flex align-items-center gap-1.5">
-              <FaMagnifyingGlass size={13} />
-              Consultar trámite
-            </button>
-          </form>
-        </div>
+        <PPPHowItWorks highlightStep={3} defaultOpen={myExpedientes.length === 0} />
 
         {/* Listado de Trámites y Postulaciones del Alumno */}
         {myExpedientes.length === 0 ? (

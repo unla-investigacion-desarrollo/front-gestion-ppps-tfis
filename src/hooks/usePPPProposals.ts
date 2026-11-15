@@ -9,10 +9,12 @@ import {
   applyToPPPProposal,
   fetchPPPGeneralDrive,
   updatePPPGeneralDrive,
+  fetchMyPPPApplications,
   createPPPExternal,
   acceptPPPApplicant,
   rejectPPPApplicant,
   selectPPPProposals,
+  selectPPPExpedientes,
   selectPPPGeneralDrive,
   selectPPPStatus,
 } from '../../redux/slices/pppSlice';
@@ -62,6 +64,7 @@ export const usePPPProposals = () => {
 
   // Estado de Redux
   const proposals = useSelector(selectPPPProposals);
+  const expedientes = useSelector(selectPPPExpedientes);
   const generalDriveUrl = useSelector(selectPPPGeneralDrive);
   const pppStatus = useSelector(selectPPPStatus);
 
@@ -97,7 +100,30 @@ export const usePPPProposals = () => {
   useEffect(() => {
     dispatch(fetchPPPProposals({ isStudent }));
     dispatch(fetchPPPGeneralDrive());
+    if (isStudent) {
+      dispatch(fetchMyPPPApplications());
+    }
   }, [dispatch, isStudent]);
+
+  // IDs de propuestas a las que el estudiante ya se postuló (con postulación activa)
+  const appliedProposalIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!isStudent) return ids;
+    expedientes.forEach((exp) => {
+      const status = String(exp.status || '').toLowerCase().trim();
+      const isRejectedOrDropped =
+        status === 'application_rejected' ||
+        status === 'rejected' ||
+        status === 'rechazada' ||
+        status === 'dropped_out' ||
+        status === 'cancelled';
+      const propId = exp.proposalId ?? (exp as any).proposal?.id;
+      if (propId !== undefined && propId !== null && !isRejectedOrDropped) {
+        ids.add(String(propId));
+      }
+    });
+    return ids;
+  }, [isStudent, expedientes]);
 
   useEffect(() => {
     if (generalDriveUrl) {
@@ -233,6 +259,8 @@ export const usePPPProposals = () => {
         proposalTitle,
       });
 
+      dispatch(fetchMyPPPApplications());
+
       showToast(
         `¡Postulación registrada! Tu número de trámite es #${createdApplicationId}`,
         'success'
@@ -348,6 +376,7 @@ export const usePPPProposals = () => {
     isTutor,
     canManageApplicants,
     proposals,
+    appliedProposalIds,
     generalDriveUrl,
     pppStatus,
     searchQuery,

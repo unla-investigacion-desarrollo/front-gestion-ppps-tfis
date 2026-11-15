@@ -629,7 +629,7 @@ export const PPPAppliedFeedbackModal: React.FC<AppliedFeedbackModalProps> = ({
                 onViewTramite(feedback.id);
               }}
             >
-              Ver mi trámite / postulación →
+              Ver trámite
             </button>
           </div>
         </div>

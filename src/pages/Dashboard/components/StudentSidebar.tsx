@@ -5,7 +5,6 @@ import {
   FaFileLines,
   FaCloudArrowUp,
   FaBullhorn,
-  FaClipboardList,
   FaUser,
   FaChevronDown,
 } from 'react-icons/fa6';
@@ -46,8 +45,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const [openSections, setOpenSections] = useState<{ [sectionKey: string]: boolean }>({
     proyectos: true,
     entregas: true,
-    convocatorias: true,
-    tramites: true,
+    ppp: true,
     perfil: false,
   });
 
@@ -177,103 +175,47 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           )}
         </div>
 
-        {/* Item 4: Convocatorias PPP */}
+        {/* Item 4: Prácticas (PPP) */}
         <div className="student-sidebar-group">
           <button
             type="button"
             className="student-sidebar-header-btn"
-            onClick={() => toggleSection('convocatorias')}
+            onClick={() => toggleSection('ppp')}
           >
             <div className="student-sidebar-header-left">
               <span className="student-sidebar-icon">
                 <FaBullhorn size={16} />
               </span>
-              <span>Convocatorias PPP</span>
+              <span>Prácticas (PPP)</span>
             </div>
-            <span className={`student-sidebar-chevron ${openSections.convocatorias ? 'rotated' : ''}`}>
+            <span className={`student-sidebar-chevron ${openSections.ppp ? 'rotated' : ''}`}>
               <FaChevronDown size={12} />
             </span>
           </button>
 
-          {openSections.convocatorias && (
+          {openSections.ppp && (
             <ul className="student-sidebar-sublist">
               <li>
                 <a
                   className={`student-sidebar-sublink ${isConvocatoriasActive ? 'active' : ''}`}
                   onClick={() => navigate('/ppp/convocatorias')}
                 >
-                  Ver convocatorias abiertas
+                  Convocatorias
                 </a>
               </li>
-              <li>
-                <a
-                  className="student-sidebar-sublink"
-                  onClick={() => navigate('/ppp/convocatorias')}
-                >
-                  Postularse a una convocatoria
-                </a>
-              </li>
-              <li>
-                <a
-                  className="student-sidebar-sublink"
-                  onClick={() => navigate('/ppp/convocatorias')}
-                >
-                  Iniciar trámite de PPP externa
-                </a>
-              </li>
-            </ul>
-          )}
-        </div>
-
-        {/* Item 5: Mis trámites PPP */}
-        <div className="student-sidebar-group">
-          <button
-            type="button"
-            className="student-sidebar-header-btn"
-            onClick={() => toggleSection('tramites')}
-          >
-            <div className="student-sidebar-header-left">
-              <span className="student-sidebar-icon">
-                <FaClipboardList size={16} />
-              </span>
-              <span>Mis trámites PPP</span>
-            </div>
-            <span className={`student-sidebar-chevron ${openSections.tramites ? 'rotated' : ''}`}>
-              <FaChevronDown size={12} />
-            </span>
-          </button>
-
-          {openSections.tramites && (
-            <ul className="student-sidebar-sublist">
               <li>
                 <a
                   className={`student-sidebar-sublink ${isTramitesActive ? 'active' : ''}`}
                   onClick={() => navigate('/alumno/ppp')}
                 >
-                  Ver estado de la postulación o trámite
-                </a>
-              </li>
-              <li>
-                <a
-                  className="student-sidebar-sublink"
-                  onClick={() => navigate('/alumno/ppp')}
-                >
-                  Notificar documentación enviada
-                </a>
-              </li>
-              <li>
-                <a
-                  className="student-sidebar-sublink"
-                  onClick={() => navigate('/alumno/ppp')}
-                >
-                  Abandonar trámite cuando corresponda
+                  Mi trámite
                 </a>
               </li>
             </ul>
           )}
         </div>
 
-        {/* Item 6: Mi perfil */}
+        {/* Item 5: Mi perfil */}
         <div className="student-sidebar-group">
           <button
             type="button"

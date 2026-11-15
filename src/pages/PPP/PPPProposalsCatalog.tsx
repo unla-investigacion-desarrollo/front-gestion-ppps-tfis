@@ -16,6 +16,7 @@ import {
   PPPApplicantsModal,
   PPPDriveModal,
   PPPAppliedFeedbackModal,
+  PPPHowItWorks,
 } from './components';
 import './PPP.css';
 
@@ -26,6 +27,7 @@ export const PPPProposalsCatalog: React.FC = () => {
     isTutor,
     canManageApplicants,
     proposals,
+    appliedProposalIds,
     searchQuery,
     setSearchQuery,
     filterState,
@@ -117,6 +119,8 @@ export const PPPProposalsCatalog: React.FC = () => {
           </div>
         </div>
 
+        {isStudent && <PPPHowItWorks highlightStep={1} />}
+
         {/* Barra de Búsqueda y Filtros */}
         <div className="ppp-filter-card">
           <div className="ppp-search-box">
@@ -175,6 +179,7 @@ export const PPPProposalsCatalog: React.FC = () => {
           <PPPProposalsTable
             proposals={filteredProposals}
             isStudent={isStudent}
+            appliedProposalIds={appliedProposalIds}
             canManageApplicants={canManageApplicants}
             isTutor={isTutor}
             actionLoading={actionLoading}
@@ -193,6 +198,7 @@ export const PPPProposalsCatalog: React.FC = () => {
           <PPPProposalsCards
             proposals={filteredProposals}
             isStudent={isStudent}
+            appliedProposalIds={appliedProposalIds}
             canManageApplicants={canManageApplicants}
             isTutor={isTutor}
             actionLoading={actionLoading}

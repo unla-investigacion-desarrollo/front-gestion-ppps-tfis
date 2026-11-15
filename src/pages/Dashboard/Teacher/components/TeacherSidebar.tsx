@@ -174,6 +174,21 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                       <span>Proyectos</span>
                     </button>
                   </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`teacher-sidebar-subitem ${activeView === 'solicitudes' ? 'active' : ''}`}
+                      onClick={() => {
+                        onSelectView('solicitudes');
+                        if (location.pathname !== '/admin/approvals') {
+                          navigate('/admin/approvals');
+                        }
+                      }}
+                    >
+                      <FaUserClock size={14} />
+                      <span>Solicitudes a proyectos</span>
+                    </button>
+                  </li>
                 </ul>
               )}
             </div>

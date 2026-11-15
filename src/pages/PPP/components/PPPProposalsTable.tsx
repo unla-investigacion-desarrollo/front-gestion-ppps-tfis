@@ -5,6 +5,7 @@ import { PPPProposal } from '../../../services/pppService';
 export interface PPPProposalsTableProps {
   proposals: PPPProposal[];
   isStudent: boolean;
+  appliedProposalIds?: Set<string>;
   canManageApplicants?: boolean;
   isTutor?: boolean;
   actionLoading: boolean;
@@ -20,6 +21,7 @@ export interface PPPProposalsTableProps {
 export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
   proposals,
   isStudent,
+  appliedProposalIds,
   canManageApplicants = true,
   isTutor = false,
   actionLoading,
@@ -157,14 +159,20 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                 {/* Columna: Acción (Estudiante) o Postulantes (Docente/Admin) */}
                 <td style={{ textAlign: 'center' }}>
                   {isStudent ? (
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-unla-primary"
-                      onClick={() => onOpenApplyModal(proposalItem)}
-                      disabled={actionLoading}
-                    >
-                      Postularme →
-                    </button>
+                    appliedProposalIds?.has(String(proposalItem.id)) ? (
+                      <span className="badge bg-success-subtle text-success px-3 py-1.5 rounded-pill fw-semibold">
+                        Postulado
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-unla-primary"
+                        onClick={() => onOpenApplyModal(proposalItem)}
+                        disabled={actionLoading}
+                      >
+                        Postularme →
+                      </button>
+                    )
                   ) : isTutor && !canManageApplicants ? (
                     <span className="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-pill small">
                       Solo evaluadores
