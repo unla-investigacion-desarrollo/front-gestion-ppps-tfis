@@ -14,6 +14,7 @@ interface UserTableProps {
   users: any[];
   showActionsColumn: boolean;
   canManage: (role: string, user: any) => boolean;
+  canEditUser: (user: any) => boolean;
   canDeleteUser: (user: any) => boolean;
   canDeactivateUser: (user: any) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
@@ -33,6 +34,7 @@ const UserTable: React.FC<UserTableProps> = ({
   users,
   showActionsColumn,
   canManage,
+  canEditUser,
   canDeleteUser,
   canDeactivateUser,
   sort,
@@ -240,19 +242,21 @@ const UserTable: React.FC<UserTableProps> = ({
                               </li>
 
                               {/* Acción: Editar */}
-                              <li>
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item"
-                                  onClick={() => {
-                                    setOpenDropdownId(null);
-                                    onEditClick(userItem);
-                                  }}
-                                >
-                                  <FaPencil size={14} />
-                                  Editar usuario
-                                </button>
-                              </li>
+                              {canEditUser(userItem) && (
+                                <li>
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item"
+                                    onClick={() => {
+                                      setOpenDropdownId(null);
+                                      onEditClick(userItem);
+                                    }}
+                                  >
+                                    <FaPencil size={14} />
+                                    Editar usuario
+                                  </button>
+                                </li>
+                              )}
 
                               {/* Acción: Resetear Contraseña (solo si el usuario tiene DNI registrado) */}
                               {userItem.dni && userItem.estado !== 'papelera' && (
