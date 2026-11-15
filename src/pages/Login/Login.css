@@ -228,6 +228,124 @@
   text-decoration: underline;
 }
 
+.login-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+/* Modal Reestablecer Contraseña */
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.login-modal-box {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+.login-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #7e8299;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.login-modal-close:hover:not(:disabled) {
+  background-color: #f3f6f9;
+  color: #181c32;
+}
+
+.login-modal-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #181c32;
+  margin: 0 0 0.5rem 0;
+}
+
+.login-modal-subtitle {
+  font-size: 0.9rem;
+  color: #7e8299;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.45;
+}
+
+.login-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.login-modal-cancel-btn {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background-color: #f3f6f9;
+  color: #5e6278;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-modal-cancel-btn:hover:not(:disabled) {
+  background-color: #e4e6ef;
+  color: #181c32;
+}
+
+.login-modal-cancel-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.login-modal-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-modal-icon-success {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
 /* Footer copyright */
 .login-footer {
   margin-top: 2rem;

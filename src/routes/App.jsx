@@ -11,7 +11,6 @@ import TeacherRoute from '../auth/TeacherRoute';
 import Register from '../pages/Register/Register';
 import UsersList from '../pages/Admin/Users/UsersList';
 import ApprovalQueue from '../pages/Admin/Approvals/ApprovalQueue';
-import Help from '../pages/Help/Help';
 import ChangePassword from '../pages/Auth/ChangePassword';
 import TeacherProjectsList from '../pages/Teacher/TeacherProjectsList';
 import MyProjects from '../pages/Student/MyProjects';
@@ -80,7 +79,6 @@ const App = () => {
           <Route path='/' element={<Login />} />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
-          <Route path='/help' element={<Help />} />
           {/* Rutas protegidas */}
           <Route path="/dashboard" element={
             <PrivateRoute>
