@@ -363,19 +363,6 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Resetear contraseña
-  const handleResetPassword = async (targetUser: any) => {
-    if (!canResetPassword(targetUser)) {
-      showToast('Solo el superadmin puede resetear la contraseña de una cuenta de superadmin.', 'error');
-      return;
-    }
-
-    const res = await dispatch<any>(resetPassword({ id: targetUser.id }));
-    if (res && res.payload) {
-      showToast('Contraseña reseteada correctamente', 'success');
-    }
-  };
-
   // Habilitar/Deshabilitar cuenta
   const handleToggleActivation = async (user: any, enable: boolean) => {
     if (!enable && !canDeactivateUser(user)) {
@@ -670,12 +657,10 @@ const UsersList: React.FC = () => {
           showActionsColumn={showActionsColumn}
           canManage={canManage}
           canEditUser={canEditUser}
-          canResetPassword={canResetPassword}
           canDeleteUser={canDeleteUser}
           canDeactivateUser={canDeactivateUser}
           sort={sort}
           onToggleSort={toggleSort}
-          onResetPassword={handleResetPassword}
           onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
           onEditClick={handleStartEdit}
