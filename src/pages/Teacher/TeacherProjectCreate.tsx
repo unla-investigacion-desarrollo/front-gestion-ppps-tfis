@@ -26,9 +26,7 @@ const TeacherProjectCreate: React.FC = () => {
     { id: 3, name: 'Extension' },
     { id: 4, name: 'Other' },
   ];
-  const projectTypes: ProjectType[] = baseTypes.some((t) => t.name.toUpperCase() === 'PPP')
-    ? baseTypes
-    : [...baseTypes, { id: 99, name: 'PPP' }];
+  const projectTypes: ProjectType[] = baseTypes.filter((type) => type.name.trim().toUpperCase() !== 'PPP');
 
   const [form, setForm] = useState({
     titulo: '',

@@ -105,24 +105,6 @@ export const PPPCreateProposalModal: React.FC<CreateProposalModalProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="form-label fw-semibold small text-secondary">
-                  Notas internas de cátedra{' '}
-                  <span className="text-muted small">(Privado - solo docentes)</span>
-                </label>
-                <textarea
-                  className="form-control"
-                  rows={2}
-                  placeholder="Criterios de admisión internos, observaciones de docentes evaluadores..."
-                  value={createForm.internalNotes}
-                  onChange={(changeEvent) =>
-                    onCreateFormChange({
-                      ...createForm,
-                      internalNotes: changeEvent.target.value,
-                    })
-                  }
-                />
-              </div>
             </div>
             <div className="modal-footer border-top px-4 py-3">
               <button type="button" className="btn btn-light" onClick={onClose}>

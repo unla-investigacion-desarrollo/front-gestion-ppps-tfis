@@ -82,6 +82,9 @@ const UsersList: React.FC = () => {
     return true;
   };
 
+  const canEditUser = (targetUser: any) =>
+    isSuperAdmin || normalizeRole(targetUser?.role || targetUser?.rol) !== 'SUPERADMIN';
+
   const canDeleteUser = (targetUser: any) => {
     const targetRole = normalizeRole(targetUser?.role || targetUser?.rol);
     return targetRole !== 'SUPERADMIN' && (targetRole !== 'ADMIN' || isSuperAdmin);
@@ -145,6 +148,11 @@ const UsersList: React.FC = () => {
 
   // Preparar estado del usuario para editar
   const handleStartEdit = (user: any) => {
+    if (!canEditUser(user)) {
+      showToast('Solo el superadmin puede editar cuentas de superadmin.', 'error');
+      return;
+    }
+
     const normalizedRole = normalizeRole(user.role || user.rol);
 
     setEditingUser({
@@ -167,6 +175,11 @@ const UsersList: React.FC = () => {
   const handleEditUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editingUser) return;
+    if (!canEditUser(editingUser)) {
+      showToast('Solo el superadmin puede editar cuentas de superadmin.', 'error');
+      setEditingUser(null);
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token') || '';
@@ -646,6 +659,7 @@ const UsersList: React.FC = () => {
           users={paginatedUsers}
           showActionsColumn={showActionsColumn}
           canManage={canManage}
+          canEditUser={canEditUser}
           canDeleteUser={canDeleteUser}
           canDeactivateUser={canDeactivateUser}
           sort={sort}

@@ -26,7 +26,6 @@ export interface CreateProposalFormData {
   title: string;
   description: string;
   driveFolderUrl: string;
-  internalNotes: string;
 }
 
 export const usePPPProposals = () => {
@@ -79,7 +78,6 @@ export const usePPPProposals = () => {
     title: '',
     description: '',
     driveFolderUrl: '',
-    internalNotes: '',
   });
 
   const [showApplyModal, setShowApplyModal] = useState<boolean>(false);
@@ -207,7 +205,6 @@ export const usePPPProposals = () => {
         title: '',
         description: '',
         driveFolderUrl: '',
-        internalNotes: '',
       });
     } catch (createError: any) {
       showToast(createError || 'Error al crear la propuesta', 'error');
