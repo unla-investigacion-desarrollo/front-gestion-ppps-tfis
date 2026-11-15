@@ -143,7 +143,7 @@ const ApprovalQueue: React.FC = () => {
     } else {
       result = await dispatch(rejectStudentProjectRequest({ projectId, studentUserId: applicantId }));
       if (!result.error) {
-        showToast('Solicitud rechazada y removida.', 'info');
+        showToast('Solicitud rechazada.', 'info');
       } else {
         showToast(result.payload || 'Error al rechazar la solicitud', 'error');
       }

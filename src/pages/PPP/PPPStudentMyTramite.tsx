@@ -90,11 +90,6 @@ export const PPPStudentMyTramite: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="ppp-header-actions">
-            <button type="button" className="btn-unla-primary" onClick={handleCreateExternal}>
-              Iniciar trámite externo
-            </button>
-          </div>
         </div>
 
         <PPPHowItWorks highlightStep={3} defaultOpen={myExpedientes.length === 0} />

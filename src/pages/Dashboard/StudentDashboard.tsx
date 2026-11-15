@@ -55,7 +55,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUs
     }
   }, [propUser]);
 
-  // Nombre formateado para el saludo "Hola, María 👋"
+  // Nombre formateado para el saludo "Hola, María "
   const studentFirstName = useMemo(() => {
     let resolvedName = '';
     if (currentUser?.nombre) {
@@ -98,7 +98,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUs
               <div className="student-greeting-section">
                 <div className="student-greeting-pretitle">BIENVENIDO/A</div>
                 <h1 className="student-greeting-title">
-                  Hola, {studentFirstName} 👋
+                  Hola, {studentFirstName}
                 </h1>
                 <p className="student-greeting-subtitle">
                   Desde aquí podés gestionar tus proyectos, entregas y trámites académicos.
