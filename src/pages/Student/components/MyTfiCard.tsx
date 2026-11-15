@@ -92,13 +92,6 @@ export const MyTfiCard: React.FC<MyTfiCardProps> = ({ record, loading, error, on
               <FaFolderOpen size={38} className="my-tfi-empty-icon" />
               <h3>Todavía no tenés un TFI asignado</h3>
               <p>Explorá los proyectos disponibles y postulate al que te interese.</p>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary"
-                onClick={() => navigate('/alumno/mis-proyectos?tab=all')}
-              >
-                Ver proyectos disponibles
-              </button>
             </>
           )}
         </div>

@@ -55,6 +55,7 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div
       style={{
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',

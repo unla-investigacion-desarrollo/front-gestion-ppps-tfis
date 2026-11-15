@@ -192,6 +192,9 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({ onJoin
         />
       )}
 
+      {/* Espaciador flexible para empujar la paginación al fondo */}
+      <div style={{ flexGrow: 1 }} />
+
       {/* Controles de Paginación */}
       {!loading && filteredProjects.length > 0 && (
         <Pagination

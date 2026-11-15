@@ -12,7 +12,8 @@
 
 /* Tarjeta contenedora principal */
 .projects-card-main.student-projects-card {
-  max-width: 1240px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   padding: 28px 32px;
   background-color: #ffffff;
@@ -25,6 +26,9 @@
 }
 
 .project-join-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   width: 100%;
 }
 

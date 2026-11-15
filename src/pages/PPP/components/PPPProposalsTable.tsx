@@ -185,7 +185,7 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                         onClick={() => onOpenApplyModal(proposalItem)}
                         disabled={actionLoading}
                       >
-                        Postularme →
+                        Postular
                       </button>
                     )
                   ) : isTutor && !canManageApplicants ? (

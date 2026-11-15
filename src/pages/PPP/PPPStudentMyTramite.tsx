@@ -1,21 +1,18 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FaIdCard, FaSquarePlus } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchMyPPPApplications,
-  createPPPExternal,
   selectPPPExpedientes,
 } from '../../../redux/slices/pppSlice';
 import { PPPEpidiente, PPPStatus, normalizePPPType } from '../../services/pppService';
-import { showToast } from '../../utils/toast';
 import { PPPHowItWorks } from './components';
 import './PPP.css';
 
 export const PPPStudentMyTramite: React.FC = () => {
   const dispatch = useDispatch<any>();
-  const navigate = useNavigate();
   const currentUser = useSelector(selectCurrentUser) as any;
   const myExpedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
 
@@ -30,26 +27,6 @@ export const PPPStudentMyTramite: React.FC = () => {
 
     dispatch(fetchMyPPPApplications());
   }, [dispatch, currentUser?.id]);
-
-  const handleCreateExternal = async () => {
-    try {
-      const studentInfo = {
-        id: currentUser?.id,
-        name:
-          [currentUser?.nombre, currentUser?.apellido]
-            .filter(Boolean)
-            .join(' ') || currentUser?.email,
-        email: currentUser?.email,
-      };
-      const newExp = await dispatch(createPPPExternal({ studentInfo })).unwrap();
-      showToast('Trámite externo iniciado con éxito', 'success');
-      if (newExp?.id) {
-        navigate(`/ppp/${newExp.id}`);
-      }
-    } catch (externalError: any) {
-      showToast(externalError || 'Error al iniciar trámite externo', 'error');
-    }
-  };
 
   const getStatusLabel = (statusKey: PPPStatus | string) => {
     switch (statusKey) {
@@ -101,17 +78,9 @@ export const PPPStudentMyTramite: React.FC = () => {
               <FaSquarePlus size={56} color="#cbd5e1" />
             </div>
             <h5 className="fw-bold text-dark mb-2">Aún no tenés ningún trámite de PPP iniciado</h5>
-            <p className="text-muted small mx-auto mb-4" style={{ maxWidth: '480px' }}>
+            <p className="text-muted small mx-auto mb-0" style={{ maxWidth: '480px' }}>
               Podés postularte a las propuestas de proyectos internos ofrecidos por la universidad o iniciar la tramitación de una práctica profesional autogestionada en una empresa u organismo externo.
             </p>
-            <div className="d-flex justify-content-center gap-3">
-              <Link to="/ppp/convocatorias" className="btn-unla-primary text-decoration-none">
-                Ver convocatorias abiertas
-              </Link>
-              <button type="button" className="btn-unla-outline" onClick={handleCreateExternal}>
-                Iniciar trámite externo
-              </button>
-            </div>
           </div>
         ) : (
           <div className="d-flex flex-column gap-3">
