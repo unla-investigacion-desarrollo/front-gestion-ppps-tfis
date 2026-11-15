@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
@@ -27,6 +27,9 @@ import {
 } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
 import {
+  FaChevronDown,
+  FaCommentDots,
+  FaCircleInfo,
   FaFileLines,
   FaFileArrowDown,
   FaFolderOpen,
@@ -71,6 +74,18 @@ export const PPPTramiteDetail: React.FC = () => {
 
   const [actionLoading, setActionLoading] = useState(false);
   const [showDriveModal, setShowDriveModal] = useState(false);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
+        setActionsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const [driveInput, setDriveInput] = useState('');
 
   useEffect(() => {
@@ -570,88 +585,157 @@ export const PPPTramiteDetail: React.FC = () => {
 
         {/* Panel de Acciones según Rol */}
         <div className="ppp-actions-panel">
-          <div className="ppp-actions-title d-flex align-items-center gap-2">
-            <FaEye size={18} />
-            Acciones del Trámite
-          </div>
+          {isStudent ? (
+            <>
+              <div className="ppp-actions-title d-flex align-items-center gap-2">
+                <FaEye size={18} />
+                Acciones del Trámite
+              </div>
+              <div className="ppp-actions-group">
+                <button
+                  type="button"
+                  className="btn-unla-primary d-inline-flex align-items-center gap-1.5"
+                  disabled={!canNotifyDocumentation || actionLoading}
+                  onClick={handleNotifySent}
+                >
+                  <FaPaperPlane size={14} />
+                  Notificar entrega de documentación
+                </button>
 
-          {/* VISTA ESTUDIANTE: Botones de Notificar y Dar de Baja */}
-          {isStudent && (
-            <div className="ppp-actions-group">
-              <button
-                type="button"
-                className="btn-unla-primary d-inline-flex align-items-center gap-1.5"
-                disabled={!canNotifyDocumentation || actionLoading}
-                onClick={handleNotifySent}
-              >
-                <FaPaperPlane size={14} />
-                Notificar entrega de documentación
-              </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-danger"
+                  disabled={!canAbandon || actionLoading}
+                  onClick={handleAbandon}
+                >
+                  Dar de baja trámite
+                </button>
 
-              <button
-                type="button"
-                className="btn btn-outline-danger"
-                disabled={!canAbandon || actionLoading}
-                onClick={handleAbandon}
-              >
-                Dar de baja trámite
-              </button>
+                {!canNotifyDocumentation && (
+                  <span className="small text-muted ms-2">
+                    (El botón de notificar entrega se habilitará cuando la cátedra requiera documentación o correcciones)
+                  </span>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <div className="fw-bold text-dark" style={{ fontSize: '15.5px' }}>
+                  Acciones del Trámite
+                </div>
+                <div className="text-muted" style={{ fontSize: '13px' }}>
+                  Dictamen de revisión académica
+                </div>
+              </div>
 
-              {!canNotifyDocumentation && (
-                <span className="small text-muted ms-2">
-                  (El botón de notificar entrega se habilitará cuando la cátedra requiera documentación o correcciones)
-                </span>
-              )}
-            </div>
-          )}
+              <div className="position-relative d-inline-block" ref={actionsMenuRef}>
+                <div
+                  className="d-inline-flex align-items-stretch bg-white"
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="btn btn-light bg-white border-0 d-inline-flex align-items-center gap-2 px-3 py-2 fw-medium text-dark"
+                    style={{ fontSize: '13.5px', borderRadius: 0 }}
+                    disabled={expediente.status === 'observed' || actionLoading}
+                    onClick={handleObserve}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: '#f59e0b',
+                        display: 'inline-block',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span>Marcar con observaciones</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-light bg-white border-0 border-start d-inline-flex align-items-center px-2 py-2 text-secondary"
+                    style={{ borderColor: '#e2e8f0', borderRadius: 0 }}
+                    aria-expanded={actionsMenuOpen}
+                    aria-label="Más acciones del trámite"
+                    disabled={actionLoading}
+                    onClick={() => setActionsMenuOpen((prev) => !prev)}
+                  >
+                    <FaChevronDown size={12} />
+                  </button>
+                </div>
 
-          {/* VISTA DOCENTE / ADMIN: Botones de Transición de Estado y Carga en SIU */}
-          {!isStudent && (
-            <div className="ppp-actions-group">
-              {/* Aprobar */}
-              <button
-                type="button"
-                className="btn btn-success d-inline-flex align-items-center gap-1.5"
-                disabled={expediente.status === 'approved' || actionLoading}
-                onClick={handleApprove}
-              >
-                <FaCircleCheck size={16} />
-                Aprobar práctica
-              </button>
+                {actionsMenuOpen && (
+                  <div
+                    className="dropdown-menu show shadow-sm border rounded-3 py-2"
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 'calc(100% + 6px)',
+                      minWidth: '240px',
+                      zIndex: 1050,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center gap-2 py-2 text-success fw-medium"
+                      disabled={expediente.status === 'approved' || actionLoading}
+                      onClick={() => {
+                        setActionsMenuOpen(false);
+                        handleApprove();
+                      }}
+                    >
+                      <FaCheck size={14} />
+                      <span>Aprobar práctica</span>
+                    </button>
 
-              {/* Observar */}
-              <button
-                type="button"
-                className="btn btn-warning text-dark d-inline-flex align-items-center gap-1.5"
-                disabled={expediente.status === 'observed' || actionLoading}
-                onClick={handleObserve}
-              >
-                <FaCircleExclamation size={16} />
-                Marcar con observaciones
-              </button>
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                      disabled={expediente.status === 'disapproved' || actionLoading}
+                      onClick={() => {
+                        setActionsMenuOpen(false);
+                        handleDisapprove();
+                      }}
+                    >
+                      <FaCircleXmark size={14} />
+                      <span>Desaprobar práctica</span>
+                    </button>
 
-              {/* Desaprobar */}
-              <button
-                type="button"
-                className="btn btn-outline-danger d-inline-flex align-items-center gap-1.5"
-                disabled={expediente.status === 'disapproved' || actionLoading}
-                onClick={handleDisapprove}
-              >
-                <FaCircleXmark size={16} />
-                Desaprobar práctica
-              </button>
+                    <div className="dropdown-divider my-1" />
 
-              {/* Registrar Carga en SIU Guaraní */}
-              <button
-                type="button"
-                className="btn btn-outline-success d-inline-flex align-items-center gap-1.5"
-                disabled={expediente.status !== 'approved' || expediente.isSiuLoaded || actionLoading}
-                onClick={handleSiuLoad}
-                title={expediente.status !== 'approved' ? 'Requiere aprobación previa' : 'Registrar en SIU'}
-              >
-                <FaCheck size={16} />
-                {expediente.isSiuLoaded ? 'Carga asentada en SIU' : 'Registrar carga en SIU Guaraní'}
-              </button>
+                    {expediente.status !== 'approved' ? (
+                      <div className="px-3 py-2 small text-muted d-flex align-items-start gap-2">
+                        <FaCircleInfo size={13} className="mt-1 flex-shrink-0" />
+                        <span>SIU Guaraní bloqueado hasta aprobación</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="dropdown-item d-flex align-items-center gap-2 py-2 text-success fw-medium"
+                        disabled={expediente.isSiuLoaded || actionLoading}
+                        onClick={() => {
+                          setActionsMenuOpen(false);
+                          handleSiuLoad();
+                        }}
+                      >
+                        <FaCheck size={14} />
+                        <span>
+                          {expediente.isSiuLoaded
+                            ? 'Carga asentada en SIU'
+                            : 'Registrar carga en SIU Guaraní'}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

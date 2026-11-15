@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { FaIdCard, FaSquarePlus } from 'react-icons/fa6';
+import { FaIdCard } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchMyPPPApplications,
@@ -74,9 +74,6 @@ export const PPPStudentMyTramite: React.FC = () => {
         {/* Listado de Trámites y Postulaciones del Alumno */}
         {myExpedientes.length === 0 ? (
           <div className="bg-white rounded-3 border p-5 text-center shadow-sm">
-            <div className="mb-3 text-muted">
-              <FaSquarePlus size={56} color="#cbd5e1" />
-            </div>
             <h5 className="fw-bold text-dark mb-2">Aún no tenés ningún trámite de PPP iniciado</h5>
             <p className="text-muted small mx-auto mb-0" style={{ maxWidth: '480px' }}>
               Podés postularte a las propuestas de proyectos internos ofrecidos por la universidad o iniciar la tramitación de una práctica profesional autogestionada en una empresa u organismo externo.
