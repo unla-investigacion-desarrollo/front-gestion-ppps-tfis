@@ -9,7 +9,6 @@ import {
   FaChevronDown,
   FaFileLines,
   FaFolder,
-  FaUser,
   FaBullhorn,
   FaUserClock,
   FaChalkboardUser,
@@ -71,7 +70,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             }
           }}
         >
-          <FaHouse size={16} />
+          <FaHouse size={14} />
           <span>Inicio</span>
         </button>
 
@@ -88,11 +87,11 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 onClick={() => toggleSection('ppp')}
               >
                 <div className="d-flex align-items-center gap-2">
-                  <FaGraduationCap size={16} />
+                  <FaGraduationCap size={14} />
                   <span>Gestión de PPP</span>
                 </div>
                 <FaChevronDown
-                  size={12}
+                  size={11}
                   style={{
                     transform: openSections.ppp ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.15s ease',
@@ -113,7 +112,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                         }
                       }}
                     >
-                      <FaFileLines size={14} />
+                      <FaFileLines size={13} />
                       <span>PPP</span>
                     </button>
                   </li>
@@ -128,7 +127,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                         }
                       }}
                     >
-                      <FaBullhorn size={14} />
+                      <FaBullhorn size={13} />
                       <span>Convocatorias PPP</span>
                     </button>
                   </li>
@@ -144,11 +143,11 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 onClick={() => toggleSection('proyectos')}
               >
                 <div className="d-flex align-items-center gap-2">
-                  <FaGraduationCap size={16} />
+                  <FaGraduationCap size={14} />
                   <span>Gestión de TFI</span>
                 </div>
                 <FaChevronDown
-                  size={12}
+                  size={11}
                   style={{
                     transform: openSections.proyectos ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.15s ease',
@@ -169,7 +168,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                         }
                       }}
                     >
-                      <FaFolder size={14} />
+                      <FaFolder size={13} />
                       <span>Proyectos</span>
                     </button>
                   </li>
@@ -184,25 +183,13 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                         }
                       }}
                     >
-                      <FaUserClock size={14} />
+                      <FaUserClock size={13} />
                       <span>Solicitudes a proyectos</span>
                     </button>
                   </li>
                 </ul>
               )}
             </div>
-
-            <div className="teacher-sidebar-divider" />
-
-            {/* Mi perfil */}
-            <button
-              type="button"
-              className="teacher-sidebar-item"
-              onClick={() => navigate('/change-password')}
-            >
-              <FaUser size={16} />
-              <span>Mi perfil</span>
-            </button>
           </>
         )}
 
@@ -222,7 +209,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 }
               }}
             >
-              <FaFolder size={16} />
+              <FaFolder size={14} />
               <span>Mis proyectos</span>
             </button>
 
@@ -237,7 +224,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 }
               }}
             >
-              <FaBullhorn size={16} />
+              <FaBullhorn size={14} />
               <span>Convocatoria proyectos TFI</span>
             </button>
 
@@ -252,7 +239,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 }
               }}
             >
-              <FaUserClock size={16} />
+              <FaUserClock size={14} />
               <span>Solicitudes</span>
             </button>
 
@@ -267,20 +254,8 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
                 }
               }}
             >
-              <FaChalkboardUser size={16} />
+              <FaChalkboardUser size={14} />
               <span>Tutorías pendientes</span>
-            </button>
-
-            <div className="teacher-sidebar-divider" />
-
-            {/* Mi perfil */}
-            <button
-              type="button"
-              className="teacher-sidebar-item"
-              onClick={() => navigate('/change-password')}
-            >
-              <FaUser size={16} />
-              <span>Mi perfil</span>
             </button>
           </>
         )}

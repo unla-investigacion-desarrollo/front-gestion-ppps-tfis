@@ -25,34 +25,59 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
   const navigate = useNavigate();
 
   const [pppCounts, setPppCounts] = useState<{
+    totalActivas: number;
     totalPendientes: number;
     enRevision: number;
     conObservaciones: number;
     pendDocumentacion: number;
     pendSiu: number;
+    loaded: boolean;
   }>({
+    totalActivas: 12,
     totalPendientes: 0,
     enRevision: 0,
     conObservaciones: 0,
     pendDocumentacion: 0,
     pendSiu: 0,
+    loaded: false,
+  });
+
+  const [proposalsSummary, setProposalsSummary] = useState<{
+    open: number;
+    total: number;
+    loaded: boolean;
+  }>({
+    open: 3,
+    total: 0,
+    loaded: false,
   });
 
   useEffect(() => {
     const loadCounts = async () => {
+      const token = localStorage.getItem('token') || '';
       try {
-        const token = localStorage.getItem('token') || '';
         const tramites = await pppService.getPPPTramites(token);
         let revisionCount = 0;
         let observacionesCount = 0;
         let documentacionCount = 0;
         let siuCount = 0;
+        let activasCount = 0;
 
         for (const itemRecord of tramites) {
           const status = (itemRecord.status || itemRecord.estado || '').toLowerCase().trim();
           const isSiuLoaded = Boolean(
             itemRecord.loadedInSiu ?? itemRecord.isSiuLoaded ?? itemRecord.siuLoaded ?? itemRecord.siu
           );
+
+          if (
+            status !== 'dropped_out' &&
+            status !== 'abandoned' &&
+            status !== 'application_rejected' &&
+            status !== 'disapproved' &&
+            status !== 'desaprobada'
+          ) {
+            activasCount += 1;
+          }
 
           if (
             status === 'in_review' ||
@@ -79,15 +104,27 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
         }
 
         setPppCounts({
+          totalActivas: tramites.length > 0 ? activasCount : 0,
           totalPendientes: revisionCount + observacionesCount + documentacionCount + siuCount,
           enRevision: revisionCount,
           conObservaciones: observacionesCount,
           pendDocumentacion: documentacionCount,
           pendSiu: siuCount,
+          loaded: true,
         });
       } catch (loadError) {
         // Silenciosamente conservar conteos por defecto si no hay conexión
       }
+
+      try {
+        const proposals = await pppService.getProposals(token, false);
+        const openCount = proposals.filter((p) => p.isOpen).length;
+        setProposalsSummary({
+          open: openCount,
+          total: proposals.length,
+          loaded: true,
+        });
+      } catch {}
     };
     loadCounts();
   }, []);
@@ -245,26 +282,39 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
         <div className="teacher-metrics-grid">
           <div className="teacher-submetric-card">
             <div className="teacher-submetric-icon">
-              <FaArrowTrendUp size={18} />
+              <FaArrowTrendUp size={17} />
             </div>
-            <div className="teacher-submetric-num">12</div>
+            <div className="teacher-submetric-num">{pppCounts.totalActivas}</div>
             <div className="teacher-submetric-label">PPP activas</div>
+            {pppCounts.loaded && (
+              <div className="teacher-submetric-context">
+                {pppCounts.enRevision} en revisión · {pppCounts.conObservaciones} con observaciones
+              </div>
+            )}
           </div>
 
           <div className="teacher-submetric-card">
             <div className="teacher-submetric-icon">
-              <FaFolder size={18} />
+              <FaFolder size={17} />
             </div>
             <div className="teacher-submetric-num">8</div>
             <div className="teacher-submetric-label">Proyectos en curso</div>
+            <div className="teacher-submetric-context">
+              {totalSolicitudesPendientes} solicitudes pendientes de revisión
+            </div>
           </div>
 
           <div className="teacher-submetric-card">
             <div className="teacher-submetric-icon">
-              <FaBullhorn size={18} />
+              <FaBullhorn size={17} />
             </div>
-            <div className="teacher-submetric-num">3</div>
+            <div className="teacher-submetric-num">{proposalsSummary.open}</div>
             <div className="teacher-submetric-label">Convocatorias abiertas</div>
+            {proposalsSummary.loaded && proposalsSummary.total > 0 && (
+              <div className="teacher-submetric-context">
+                de {proposalsSummary.total} convocatorias en el catálogo
+              </div>
+            )}
           </div>
         </div>
       </div>
