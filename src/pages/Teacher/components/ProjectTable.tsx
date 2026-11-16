@@ -8,6 +8,7 @@ interface ProjectTableProps {
   projects: Project[];
   users: any[];
   isTutor?: boolean;
+  canRemoveProjectMembers: boolean;
   canDeleteProject?: boolean;
   onRemoveStudent: (projectId: string, studentId: string) => void;
   onRemoveCoTeacher: (projectId: string, teacherId: string) => void;
@@ -29,6 +30,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
   users,
   isTutor = false,
+  canRemoveProjectMembers,
   canDeleteProject = false,
   onRemoveStudent,
   onRemoveCoTeacher,
@@ -414,7 +416,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               <span className="text-truncate" style={{ maxWidth: '140px' }} title={name}>
                                 {name}
                               </span>
-                              {!effectiveIsTutor && (
+                              {canRemoveProjectMembers && (
                                 <button
                                   type="button"
                                   className="btn-remove-member"
@@ -449,7 +451,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               <span className="text-truncate" style={{ maxWidth: '140px' }} title={name}>
                                 {name}
                               </span>
-                              {!effectiveIsTutor && (
+                              {canRemoveProjectMembers && (
                                 <button
                                   type="button"
                                   className="btn-remove-member"

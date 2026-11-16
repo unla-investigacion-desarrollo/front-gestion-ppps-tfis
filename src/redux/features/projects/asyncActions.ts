@@ -353,7 +353,7 @@ export const removeStudentFromProject = createAsyncThunk<
 >('projects/removeStudent', async ({ projectId, studentId }, { rejectWithValue, dispatch }) => {
   try {
     const token = localStorage.getItem('token') || '';
-    await projectService.rejectStudentRequest(projectId, studentId, token);
+    await projectService.removeStudentFromProject(projectId, studentId, token);
     dispatch(fetchProjects());
     return { projectId, studentId };
   } catch (error: any) {
@@ -383,7 +383,7 @@ export const removeCoTeacher = createAsyncThunk<
 >('projects/removeCoTeacher', async ({ projectId, teacherId }, { rejectWithValue, dispatch }) => {
   try {
     const token = localStorage.getItem('token') || '';
-    await projectService.rejectProfessorRequest(projectId, teacherId, token);
+    await projectService.removeProfessorFromProject(projectId, teacherId, token);
     dispatch(fetchProjects());
     return { projectId, teacherId };
   } catch (error: any) {
