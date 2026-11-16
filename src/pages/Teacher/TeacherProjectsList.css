@@ -163,7 +163,7 @@
 }
 
 /* --- TABLA DE PROYECTOS --- */
-.projects-table-wrapper {
+.projects-page-container .projects-table-wrapper {
   overflow: visible;
   background: #fff;
   border-radius: 8px;
