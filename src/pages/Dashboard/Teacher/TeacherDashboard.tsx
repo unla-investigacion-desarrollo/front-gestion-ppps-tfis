@@ -380,7 +380,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       userName={teacherFirstName}
                       onGoToProjects={() => handleSelectView('proyectos')}
                       onViewActivity={(act) => setSelectedActivity(act)}
-                      onGoToApprovals={() => handleSelectView('solicitudes')}
                     />
                   )}
 

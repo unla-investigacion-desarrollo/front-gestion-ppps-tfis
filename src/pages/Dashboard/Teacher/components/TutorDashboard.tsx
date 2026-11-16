@@ -1,27 +1,152 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import {
   FaFileLines,
-  FaPlus,
   FaChalkboardUser,
   FaTriangleExclamation,
   FaGraduationCap,
 } from 'react-icons/fa6';
+import { projectService } from '../../../../services/projectService';
+import { studentWorkService } from '../../../../services/studentWorkService';
+
+interface RecentTutoring {
+  id: string;
+  projectName: string;
+  studentName: string;
+  date: string;
+  timestamp: number;
+}
+
+interface TutorDashboardData {
+  activeProjects: number;
+  tutoringRequests: number;
+  projectsWithoutDelivery: number;
+  recentTutorings: RecentTutoring[];
+}
+
+const getStudentName = (project: any): string => {
+  const students =
+    project?.activeStudents || project?.students || project?.users || [];
+  if (!Array.isArray(students)) return '';
+
+  const student = students.find((item: any) => item && item.active !== false);
+  if (!student) return '';
+
+  const user = student.student?.user || student.user || student.student || student;
+  const fullName = [user.firstName || user.nombre, user.lastName || user.apellido]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  return fullName || user.name || user.email || '';
+};
 
 interface TutorDashboardProps {
   userName: string;
   onGoToProjects: () => void;
   onViewActivity: (act: { fecha: string; tipo: string; detalle: string; estudiante?: string }) => void;
-  onGoToApprovals?: () => void;
 }
 
 export const TutorDashboard: React.FC<TutorDashboardProps> = ({
   userName,
   onGoToProjects,
   onViewActivity,
-  onGoToApprovals,
 }) => {
-  const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState<TutorDashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDashboardData = async () => {
+      const token = localStorage.getItem('token') || '';
+      if (!token) {
+        setError('No se encontró una sesión activa. Por favor, iniciá sesión nuevamente.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const activeProjects = await projectService.getMyActiveProjects(token);
+        if (!Array.isArray(activeProjects)) {
+          throw new Error('La respuesta de proyectos activos no es válida.');
+        }
+
+        const projectWorks = await Promise.all(
+          activeProjects.map(async (projectItem: any) => {
+            const project = projectItem.project || projectItem;
+            const projectId = project.id || projectItem.id;
+            if (!projectId) {
+              throw new Error('No se pudo identificar un proyecto para consultar su entrega.');
+            }
+
+            const work =
+              project.studentWork ||
+              projectItem.studentWork ||
+              (await studentWorkService.getWorkByProject(projectId, token));
+
+            return { project, work };
+          })
+        );
+
+        const recentTutorings = projectWorks
+          .map(({ project, work }) => {
+            const rawDate = work?.lastTutoredAt || project.lastTutoredAt;
+            const timestamp = rawDate ? new Date(rawDate).getTime() : Number.NaN;
+            if (!Number.isFinite(timestamp)) return null;
+
+            const date = new Date(timestamp);
+            return {
+              id: String(work?.id || project.id),
+              projectName: project.title || project.titulo || 'Proyecto sin título',
+              studentName:
+                getStudentName(project) ||
+                getStudentName(work?.project) ||
+                'Estudiante sin nombre',
+              date: date.toLocaleString('es-AR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              timestamp,
+            };
+          })
+          .filter((tutoring): tutoring is RecentTutoring => tutoring !== null)
+          .sort((first, second) => second.timestamp - first.timestamp)
+          .slice(0, 3);
+
+        if (isMounted) {
+          setDashboardData({
+            activeProjects: activeProjects.length,
+            tutoringRequests: projectWorks.filter(({ work }) => work?.tutoringRequested).length,
+            projectsWithoutDelivery: projectWorks.filter(({ work }) => !work).length,
+            recentTutorings,
+          });
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : 'No se pudieron cargar los datos del dashboard.'
+          );
+          setDashboardData(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div>
@@ -30,13 +155,15 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
         Bienvenido, {userName}
       </h1>
       <p className="teacher-page-subtitle">
-        Aquí tenés un resumen de tus proyectos y solicitudes pendientes.
+        Aquí tenés un resumen de tus proyectos y tutorías pendientes.
       </p>
 
-      {/* 4 Tarjetas de Métricas Principales */}
+      {error && <div className="alert alert-danger py-2 small" role="alert">{error}</div>}
+
+      {/* Métricas principales */}
       <div className="row g-3 mb-4">
         {/* Card 1: Mis proyectos activos */}
-        <div className="col-lg-3 col-md-6">
+        <div className="col-lg-4 col-md-6">
           <div className="teacher-card teacher-metric-large-card">
             <div className="teacher-metric-header">
               <div className="teacher-card-icon-box blue">
@@ -44,7 +171,9 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
               </div>
               <h3 className="teacher-metric-title">Mis proyectos activos</h3>
             </div>
-            <div className="teacher-metric-value">3</div>
+            <div className="teacher-metric-value">
+              {loading ? '…' : dashboardData?.activeProjects ?? '—'}
+            </div>
             <button
               type="button"
               className="teacher-card-action-link bg-transparent border-0 p-0 text-start"
@@ -55,28 +184,8 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Solicitudes de incorporación */}
-        <div className="col-lg-3 col-md-6">
-          <div className="teacher-card teacher-metric-large-card">
-            <div className="teacher-metric-header">
-              <div className="teacher-card-icon-box cyan">
-                <FaPlus size={18} />
-              </div>
-              <h3 className="teacher-metric-title">Solicitudes de incorporación</h3>
-            </div>
-            <div className="teacher-metric-value">2</div>
-            <button
-              type="button"
-              className="teacher-card-action-link bg-transparent border-0 p-0 text-start"
-              onClick={onGoToApprovals || (() => navigate('/admin/approvals'))}
-            >
-              Ver solicitudes →
-            </button>
-          </div>
-        </div>
-
-        {/* Card 3: Solicitudes de tutoría */}
-        <div className="col-lg-3 col-md-6">
+        {/* Card 2: Solicitudes de tutoría */}
+        <div className="col-lg-4 col-md-6">
           <div className="teacher-card teacher-metric-large-card">
             <div className="teacher-metric-header">
               <div className="teacher-card-icon-box purple">
@@ -84,7 +193,9 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
               </div>
               <h3 className="teacher-metric-title">Solicitudes de tutoría</h3>
             </div>
-            <div className="teacher-metric-value">4</div>
+            <div className="teacher-metric-value">
+              {loading ? '…' : dashboardData?.tutoringRequests ?? '—'}
+            </div>
             <button
               type="button"
               className="teacher-card-action-link bg-transparent border-0 p-0 text-start"
@@ -95,8 +206,8 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
           </div>
         </div>
 
-        {/* Card 4: Proyectos sin entrega */}
-        <div className="col-lg-3 col-md-6">
+        {/* Card 3: Proyectos sin entrega */}
+        <div className="col-lg-4 col-md-6">
           <div className="teacher-card teacher-metric-large-card">
             <div className="teacher-metric-header">
               <div className="teacher-card-icon-box red">
@@ -104,7 +215,9 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
               </div>
               <h3 className="teacher-metric-title">Proyectos sin entrega</h3>
             </div>
-            <div className="teacher-metric-value">1</div>
+            <div className="teacher-metric-value">
+              {loading ? '…' : dashboardData?.projectsWithoutDelivery ?? '—'}
+            </div>
             <button
               type="button"
               className="teacher-card-action-link bg-transparent border-0 p-0 text-start"
@@ -143,69 +256,43 @@ export const TutorDashboard: React.FC<TutorDashboardProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className="fw-semibold text-dark">Desarrollo TFI y PPP</td>
-                    <td className="text-secondary">Ana García</td>
-                    <td className="text-secondary">24 abr 2025, 16:30</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn btn-sm teacher-btn-view-outline"
-                        onClick={() =>
-                          onViewActivity({
-                            fecha: '24 abr 2025, 16:30',
-                            tipo: 'Tutoría',
-                            detalle: 'Sesión de tutoría - Desarrollo TFI y PPP',
-                            estudiante: 'Ana García',
-                          })
-                        }
-                      >
-                        Ver detalle
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="fw-semibold text-dark">Worker YPF</td>
-                    <td className="text-secondary">Lucas Fernández</td>
-                    <td className="text-secondary">22 abr 2025, 11:20</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn btn-sm teacher-btn-view-outline"
-                        onClick={() =>
-                          onViewActivity({
-                            fecha: '22 abr 2025, 11:20',
-                            tipo: 'Tutoría',
-                            detalle: 'Sesión de tutoría - Worker YPF',
-                            estudiante: 'Lucas Fernández',
-                          })
-                        }
-                      >
-                        Ver detalle
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="fw-semibold text-dark">Proyecto Vaca Muerta</td>
-                    <td className="text-secondary">Mariana Pérez</td>
-                    <td className="text-secondary">18 abr 2025, 09:15</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn btn-sm teacher-btn-view-outline"
-                        onClick={() =>
-                          onViewActivity({
-                            fecha: '18 abr 2025, 09:15',
-                            tipo: 'Tutoría',
-                            detalle: 'Sesión de tutoría - Proyecto Vaca Muerta',
-                            estudiante: 'Mariana Pérez',
-                          })
-                        }
-                      >
-                        Ver detalle
-                      </button>
-                    </td>
-                  </tr>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="text-center text-secondary py-4">
+                        Cargando tutorías…
+                      </td>
+                    </tr>
+                  ) : dashboardData?.recentTutorings.length ? (
+                    dashboardData.recentTutorings.map((tutoring) => (
+                      <tr key={tutoring.id}>
+                        <td className="fw-semibold text-dark">{tutoring.projectName}</td>
+                        <td className="text-secondary">{tutoring.studentName}</td>
+                        <td className="text-secondary">{tutoring.date}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            className="btn btn-sm teacher-btn-view-outline"
+                            onClick={() =>
+                              onViewActivity({
+                                fecha: tutoring.date,
+                                tipo: 'Tutoría',
+                                detalle: `Sesión de tutoría - ${tutoring.projectName}`,
+                                estudiante: tutoring.studentName,
+                              })
+                            }
+                          >
+                            Ver detalle
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="text-center text-secondary py-4">
+                        {error ? 'No se pudieron cargar las tutorías.' : 'Todavía no hay tutorías registradas.'}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
