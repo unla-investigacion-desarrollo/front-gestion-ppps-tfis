@@ -302,27 +302,42 @@ const Trabajo: React.FC = () => {
 
     try {
       let updated: StudentWork;
+      const mergeWorkState = (patch: Partial<StudentWork>) => {
+        setWork((prev) => (prev ? { ...prev, ...patch } : (patch as StudentWork)));
+      };
+
       switch (confirmActionModal.actionType) {
         case 'mark_observed':
           updated = await studentWorkService.markObserved(work.id, token);
-          setWork(updated);
+          mergeWorkState(updated);
           showToast('La entrega fue marcada con observaciones', 'success');
           break;
         case 'notify_advances':
           updated = await studentWorkService.notifyAdvances(work.id, token);
-          setWork(updated);
+          mergeWorkState(updated);
           showToast('Se notificaron los avances. Estado: Pendiente de revisión', 'success');
           break;
         case 'request_tutoring':
           updated = await studentWorkService.requestTutoring(work.id, token);
-          setWork(updated);
+          mergeWorkState({ ...updated, tutoringRequested: updated?.tutoringRequested ?? true });
           showToast('Tutoría solicitada exitosamente al equipo docente', 'success');
           break;
         case 'mark_tutored':
           updated = await studentWorkService.markTutored(work.id, token);
-          setWork(updated);
+          mergeWorkState(updated);
           showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
+      }
+
+      if (projectId) {
+        try {
+          const refreshedWork = await studentWorkService.getWorkByProject(projectId, token);
+          if (refreshedWork) {
+            setWork((prev) => (prev ? { ...prev, ...refreshedWork } : refreshedWork));
+          }
+        } catch {
+          // Conservar el estado combinado si falla la recarga silenciosa
+        }
       }
       setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
     } catch (actionError: any) {
