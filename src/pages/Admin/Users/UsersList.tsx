@@ -77,7 +77,7 @@ const UsersList: React.FC = () => {
   const canManage = (targetRole?: string, _targetUser?: any) => {
     if (targetRole) {
       const normalizedRole = String(targetRole).toUpperCase().trim();
-      return ['SUPERADMIN', 'ADMIN', 'DOCENTE', 'ESTUDIANTE', 'TEACHER', 'PROFESSOR', 'STUDENT'].includes(normalizedRole);
+      return ['SUPERADMIN', 'ADMIN', 'DOCENTE', 'ESTUDIANTE'].includes(normalizedRole);
     }
     return true;
   };

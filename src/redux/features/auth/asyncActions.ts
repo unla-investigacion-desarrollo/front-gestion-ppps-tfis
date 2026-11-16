@@ -31,23 +31,14 @@ export const normalizeRole = (role: any): string => {
   }
 
   switch (roleStr) {
-    case 'STUDEN':
     case 'STUDENT':
-    case 'ALUMNO':
-    case 'ALUMNA':
       return 'ESTUDIANTE';
-    case 'TEACHER':
     case 'PROFESSOR':
       return 'DOCENTE';
     case 'SUPERADMIN':
-    case 'SUPER_ADMIN':
       return 'SUPERADMIN';
     case 'ADMIN':
-    case 'ADMINISTRADOR':
       return 'ADMIN';
-    case 'DOCENTE':
-    case 'ESTUDIANTE':
-      return roleStr;
     default:
       return roleStr;
   }

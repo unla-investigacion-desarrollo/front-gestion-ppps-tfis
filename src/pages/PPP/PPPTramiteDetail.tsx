@@ -60,9 +60,9 @@ export const PPPTramiteDetail: React.FC = () => {
   }, [currentUser]);
 
   const isAdmin = roles.some((roleName: string) =>
-    ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)
+    ['ADMIN', 'SUPERADMIN'].includes(roleName)
   );
-  const isTeacher = roles.some((r: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(r));
+  const isTeacher = roles.some((r: string) => ['DOCENTE', 'PROFESSOR'].includes(r));
   const isTutor = !isAdmin && isTeacher && Boolean(currentUser?.isTutor);
   const isStudent = !isAdmin && !isTeacher;
 

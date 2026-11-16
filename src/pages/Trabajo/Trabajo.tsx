@@ -113,17 +113,17 @@ const Trabajo: React.FC = () => {
   }, [currentUser]);
 
   const isAdmin = useMemo(
-    () => roles.some((roleName: string) => ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)),
+    () => roles.some((roleName: string) => ['ADMIN', 'SUPERADMIN'].includes(roleName)),
     [roles]
   );
   const isTeacher = useMemo(
-    () => roles.some((roleName: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)),
+    () => roles.some((roleName: string) => ['DOCENTE', 'PROFESSOR'].includes(roleName)),
     [roles]
   );
   const { isTutor: profileIsTutor, user: userProfile } = useUserProfile();
   const isTutor = Boolean(currentUser?.isTutor ?? userProfile?.isTutor ?? profileIsTutor);
   const isStudent = useMemo(
-    () => roles.some((roleName: string) => ['ESTUDIANTE', 'STUDENT', 'ALUMNO'].includes(roleName)),
+    () => roles.some((roleName: string) => ['ESTUDIANTE', 'STUDENT'].includes(roleName)),
     [roles]
   );
 

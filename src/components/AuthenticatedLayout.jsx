@@ -41,8 +41,8 @@ const AuthenticatedLayout = ({ children }) => {
   if (user?.rol) rawRoles.push(user.rol);
   const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
   const isSuperAdmin = normalizedRoles.includes('SUPERADMIN');
-  const isAdmin = hookIsAdmin || isSuperAdmin || normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
-  const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'PROFESOR', 'TUTOR', 'EVALUADOR'].includes(r)));
+  const isAdmin = hookIsAdmin || isSuperAdmin || normalizedRoles.some((r) => r === 'ADMIN');
+  const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'PROFESSOR'].includes(r)));
   const roleLabel = isSuperAdmin
     ? 'Superadmin'
     : isAdmin
