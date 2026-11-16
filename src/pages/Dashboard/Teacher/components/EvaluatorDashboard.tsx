@@ -8,6 +8,7 @@ import {
   FaBullhorn,
 } from 'react-icons/fa6';
 import { pppService } from '../../../../services/pppService';
+import { projectService } from '../../../../services/projectService';
 
 interface EvaluatorDashboardProps {
   userName: string;
@@ -27,32 +28,48 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
     conObservaciones: number;
     pendDocumentacion: number;
     pendSiu: number;
-    loaded: boolean;
-  }>({
-    totalActivas: 12,
-    totalPendientes: 0,
-    enRevision: 0,
-    conObservaciones: 0,
-    pendDocumentacion: 0,
-    pendSiu: 0,
-    loaded: false,
-  });
+  } | null>(null);
 
   const [proposalsSummary, setProposalsSummary] = useState<{
     open: number;
     total: number;
-    loaded: boolean;
-  }>({
-    open: 3,
-    total: 0,
-    loaded: false,
-  });
+  } | null>(null);
+  const [projectSummary, setProjectSummary] = useState<{
+    inProgress: number;
+    withoutStudents: number;
+  } | null>(null);
+  const [requestCounts, setRequestCounts] = useState<{
+    students: number;
+    professors: number;
+  } | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadCounts = async () => {
       const token = localStorage.getItem('token') || '';
-      try {
-        const tramites = await pppService.getPPPTramites(token);
+      if (!token) {
+        setErrors({ sesión: 'No se encontró una sesión activa. Iniciá sesión nuevamente.' });
+        setLoading(false);
+        return;
+      }
+
+      const results = await Promise.allSettled([
+        pppService.getPPPTramites(token),
+        projectService.getPendingRequests(token),
+        projectService.getProjectsOverview(token),
+        pppService.getProposals(token, false),
+      ]);
+
+      if (!isMounted) return;
+
+      const [tramitesResult, requestsResult, projectsResult, proposalsResult] = results;
+      const nextErrors: Record<string, string> = {};
+
+      if (tramitesResult.status === 'fulfilled') {
+        const tramites = tramitesResult.value;
         let revisionCount = 0;
         let observacionesCount = 0;
         let documentacionCount = 0;
@@ -106,31 +123,92 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
           conObservaciones: observacionesCount,
           pendDocumentacion: documentacionCount,
           pendSiu: siuCount,
-          loaded: true,
         });
-      } catch {
-        // Silenciosamente conservar conteos por defecto si no hay conexión
+      } else {
+        nextErrors.ppp = `No se pudieron cargar los trámites PPP: ${
+          tramitesResult.reason instanceof Error ? tramitesResult.reason.message : 'Error desconocido.'
+        }`;
       }
 
-      try {
-        const proposals = await pppService.getProposals(token, false);
-        const openCount = proposals.filter((p) => p.isOpen).length;
+      if (requestsResult.status === 'fulfilled') {
+        setRequestCounts({
+          students: requestsResult.value.pendingStudents.length,
+          professors: requestsResult.value.pendingProfessors.length,
+        });
+      } else {
+        nextErrors.requests = `No se pudieron cargar las solicitudes de proyectos: ${
+          requestsResult.reason instanceof Error ? requestsResult.reason.message : 'Error desconocido.'
+        }`;
+      }
+
+      if (projectsResult.status === 'fulfilled') {
+        if (!Array.isArray(projectsResult.value)) {
+          nextErrors.projects = 'La respuesta de proyectos no tiene un formato válido.';
+        } else {
+          const inProgressProjects = projectsResult.value.filter((project: any) => {
+            const status = String(project.status || project.estado || '').toLowerCase().trim();
+            const isFinished = /(final|termin|aprob|complet|cerrad|cancel|rechaz|archiv|abandon)/.test(status);
+            return project.active !== false && status !== 'inactive' && status !== 'inactivo' && !isFinished;
+          });
+          const withoutStudents = inProgressProjects.filter((project: any) => {
+            const students =
+              (Array.isArray(project.activeStudents) && project.activeStudents.length > 0
+                ? project.activeStudents
+                : Array.isArray(project.students)
+                ? project.students
+                : Array.isArray(project.alumnos)
+                ? project.alumnos
+                : Array.isArray(project.users)
+                ? project.users
+                : []);
+            return students.filter((student: any) => student && student.active !== false).length === 0;
+          }).length;
+
+          setProjectSummary({
+            inProgress: inProgressProjects.length,
+            withoutStudents,
+          });
+        }
+      } else {
+        nextErrors.projects = `No se pudieron cargar los proyectos: ${
+          projectsResult.reason instanceof Error ? projectsResult.reason.message : 'Error desconocido.'
+        }`;
+      }
+
+      if (proposalsResult.status === 'fulfilled') {
+        const proposals = proposalsResult.value;
+        const openCount = proposals.filter((proposal) => proposal.isOpen).length;
         setProposalsSummary({
           open: openCount,
           total: proposals.length,
-          loaded: true,
         });
-      } catch {}
+      } else {
+        nextErrors.proposals = `No se pudieron cargar las convocatorias: ${
+          proposalsResult.reason instanceof Error ? proposalsResult.reason.message : 'Error desconocido.'
+        }`;
+      }
+
+      setErrors(nextErrors);
+      setLoading(false);
     };
+
     loadCounts();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const solicitudesItems = [
-    { label: 'Esperando aprobación', count: 2 },
-    { label: 'Tutores que solicitan incorporarse', count: 1 },
-    { label: 'Pendientes de completar integrantes', count: 1 },
+    { label: 'Esperando aprobación', count: requestCounts?.students ?? null },
+    { label: 'Tutores que solicitan incorporarse', count: requestCounts?.professors ?? null },
+    { label: 'Pendientes de completar integrantes', count: projectSummary?.withoutStudents ?? null },
   ];
-  const totalSolicitudesPendientes = solicitudesItems.reduce((acc, item) => acc + item.count, 0);
+  const totalSolicitudesPendientes =
+    requestCounts && projectSummary
+      ? requestCounts.students + requestCounts.professors + projectSummary.withoutStudents
+      : null;
+  const displayCount = (count: number | null | undefined) =>
+    loading ? '…' : count ?? '—';
 
   return (
     <div>
@@ -141,6 +219,12 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
       <p className="teacher-page-subtitle">
         Gestioná los procesos de evaluación de Prácticas Profesionales y Proyectos.
       </p>
+
+      {Object.entries(errors).map(([section, message]) => (
+        <div key={section} className="alert alert-danger py-2 small" role="alert">
+          {message}
+        </div>
+      ))}
 
       {/* Fila de 2 Tarjetas Superiores con Desglose */}
       <div className="row g-3 mb-4">
@@ -155,7 +239,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                 <h3 className="teacher-breakdown-title">PPP pendientes de revisión</h3>
               </div>
               <span className="teacher-counter-badge" title="Total pendientes">
-                {pppCounts.totalPendientes}
+                {displayCount(pppCounts?.totalPendientes)}
               </span>
             </div>
 
@@ -171,7 +255,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                   <span className="teacher-dot-subtle" />
                   <span>En revisión</span>
                 </div>
-                <span className="teacher-breakdown-count">{pppCounts.enRevision}</span>
+                <span className="teacher-breakdown-count">{displayCount(pppCounts?.enRevision)}</span>
               </li>
               <li
                 className="teacher-breakdown-item"
@@ -184,7 +268,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                   <span className="teacher-dot-subtle" />
                   <span>Con observaciones</span>
                 </div>
-                <span className="teacher-breakdown-count">{pppCounts.conObservaciones}</span>
+                <span className="teacher-breakdown-count">{displayCount(pppCounts?.conObservaciones)}</span>
               </li>
               <li
                 className="teacher-breakdown-item"
@@ -197,7 +281,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                   <span className="teacher-dot-subtle" />
                   <span>Pend. de documentación</span>
                 </div>
-                <span className="teacher-breakdown-count">{pppCounts.pendDocumentacion}</span>
+                <span className="teacher-breakdown-count">{displayCount(pppCounts?.pendDocumentacion)}</span>
               </li>
               <li
                 className="teacher-breakdown-item"
@@ -210,7 +294,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                   <span className="teacher-dot-subtle" />
                   <span>Pend. de carga en SIU</span>
                 </div>
-                <span className="teacher-breakdown-count">{pppCounts.pendSiu}</span>
+                <span className="teacher-breakdown-count">{displayCount(pppCounts?.pendSiu)}</span>
               </li>
             </ul>
 
@@ -235,7 +319,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                 <h3 className="teacher-breakdown-title">Solicitudes de proyectos</h3>
               </div>
               <span className="teacher-counter-badge" title="Total pendientes">
-                {totalSolicitudesPendientes}
+                {displayCount(totalSolicitudesPendientes)}
               </span>
             </div>
 
@@ -253,7 +337,7 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
                     <span className="teacher-dot-subtle" />
                     <span>{item.label}</span>
                   </div>
-                  <span className="teacher-breakdown-count">{item.count}</span>
+                  <span className="teacher-breakdown-count">{displayCount(item.count)}</span>
                 </li>
               ))}
             </ul>
@@ -280,9 +364,9 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
             <div className="teacher-submetric-icon">
               <FaArrowTrendUp size={17} />
             </div>
-            <div className="teacher-submetric-num">{pppCounts.totalActivas}</div>
+            <div className="teacher-submetric-num">{displayCount(pppCounts?.totalActivas)}</div>
             <div className="teacher-submetric-label">PPP activas</div>
-            {pppCounts.loaded && (
+            {pppCounts && (
               <div className="teacher-submetric-context">
                 {pppCounts.enRevision} en revisión · {pppCounts.conObservaciones} con observaciones
               </div>
@@ -293,10 +377,10 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
             <div className="teacher-submetric-icon">
               <FaFolder size={17} />
             </div>
-            <div className="teacher-submetric-num">8</div>
+            <div className="teacher-submetric-num">{displayCount(projectSummary?.inProgress)}</div>
             <div className="teacher-submetric-label">Proyectos en curso</div>
             <div className="teacher-submetric-context">
-              {totalSolicitudesPendientes} solicitudes pendientes de revisión
+              {displayCount(totalSolicitudesPendientes)} solicitudes pendientes de revisión
             </div>
           </div>
 
@@ -304,9 +388,9 @@ export const EvaluatorDashboard: React.FC<EvaluatorDashboardProps> = ({
             <div className="teacher-submetric-icon">
               <FaBullhorn size={17} />
             </div>
-            <div className="teacher-submetric-num">{proposalsSummary.open}</div>
+            <div className="teacher-submetric-num">{displayCount(proposalsSummary?.open)}</div>
             <div className="teacher-submetric-label">Convocatorias abiertas</div>
-            {proposalsSummary.loaded && proposalsSummary.total > 0 && (
+            {proposalsSummary && proposalsSummary.total > 0 && (
               <div className="teacher-submetric-context">
                 de {proposalsSummary.total} convocatorias en el catálogo
               </div>
