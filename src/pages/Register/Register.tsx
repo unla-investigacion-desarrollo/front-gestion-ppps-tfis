@@ -68,7 +68,6 @@ const matchStudentBackendErrorToField = (
 
 /**
  * Pantalla de Registro de Estudiante.
- * Todas las validaciones provienen del backend al enviar el formulario.
  */
 const Register: React.FC = () => {
   const dispatch = useDispatch();
@@ -115,7 +114,14 @@ const Register: React.FC = () => {
 
   const handleChange = (changeEvent: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = changeEvent.target;
-    setForm((previousForm) => ({ ...previousForm, [name]: value }));
+    const sanitizedValue =
+      name === 'nombre' || name === 'apellido'
+        ? value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')
+        : name === 'dni'
+        ? value.replace(/\D/g, '').slice(0, 8)
+        : value;
+
+    setForm((previousForm) => ({ ...previousForm, [name]: sanitizedValue }));
     if (errors[name]) {
       setErrors((previousErrors) => ({ ...previousErrors, [name]: '' }));
     }
@@ -129,6 +135,22 @@ const Register: React.FC = () => {
     setErrors({});
     setGeneralError(null);
     dispatch(clearUsersError());
+
+    const validationErrors: Record<string, string> = {};
+    const namePattern = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/;
+    if (!form.nombre.trim() || !namePattern.test(form.nombre.trim())) {
+      validationErrors.nombre = 'Ingresá un nombre usando solo letras.';
+    }
+    if (!form.apellido.trim() || !namePattern.test(form.apellido.trim())) {
+      validationErrors.apellido = 'Ingresá un apellido usando solo letras.';
+    }
+    if (!/^\d{7,8}$/.test(form.dni)) {
+      validationErrors.dni = 'El DNI debe tener 7 u 8 dígitos numéricos.';
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
 
     try {
       await dispatch<any>(
@@ -308,6 +330,8 @@ const Register: React.FC = () => {
                     name="dni"
                     className={`register-input ${errors.dni ? 'is-invalid' : ''}`}
                     placeholder="7 u 8 dígitos"
+                    inputMode="numeric"
+                    maxLength={8}
                     value={form.dni}
                     onChange={handleChange}
                   />
