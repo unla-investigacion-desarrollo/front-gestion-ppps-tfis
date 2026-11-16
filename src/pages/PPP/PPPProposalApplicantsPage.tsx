@@ -515,7 +515,7 @@ export const PPPProposalApplicantsPage: React.FC = () => {
 
                       {/* Columna: Estudiante */}
                       <td>
-                        <div className="d-flex align-items-center gap-2.5">
+                        <div className="d-flex align-items-center gap-3">
                           <div
                             className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
                             style={{
