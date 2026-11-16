@@ -58,6 +58,8 @@ const createInitialFormState = (rol: 'DOCENTE' | 'ADMIN' = 'DOCENTE') => ({
   rol,
 });
 
+const allowedNameCharacters = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*$/;
+
 const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
   isOpen,
   role = 'DOCENTE',
@@ -65,7 +67,7 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
   onSubmit,
 }) => {
   const [form, setForm] = useState(() => createInitialFormState(role));
-  // Errores por campo devueltos exclusivamente por el backend
+  // Errores de validación local y del backend
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -107,9 +109,23 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
 
     setFieldErrors({});
     setGeneralError(null);
+    const validationErrors: Record<string, string> = {};
+    if (!form.nombre.trim() || !allowedNameCharacters.test(form.nombre)) {
+      validationErrors.nombre = 'Ingresá un nombre usando solo letras.';
+    }
+    if (!form.apellido.trim() || !allowedNameCharacters.test(form.apellido)) {
+      validationErrors.apellido = 'Ingresá un apellido usando solo letras.';
+    }
+    if (!/^\d{1,8}$/.test(form.dni)) {
+      validationErrors.dni = 'El DNI debe contener solo números y tener hasta 8 dígitos.';
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      return;
+    }
+
     setSubmitting(true);
     try {
-      // Todas las validaciones las realiza el backend
       const result = await onSubmit({
         ...form,
         nombre: form.nombre.trim(),
@@ -206,7 +222,10 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                       value={form.nombre}
                       onChange={(e) => {
                         clearFieldError('nombre');
-                        setForm(prev => ({ ...prev, nombre: e.target.value }));
+                        setForm(prev => ({
+                          ...prev,
+                          nombre: e.target.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, ''),
+                        }));
                       }}
                     />
                     {fieldErrors.nombre && <div className="invalid-feedback d-block">{fieldErrors.nombre}</div>}
@@ -219,7 +238,10 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                       value={form.apellido}
                       onChange={(e) => {
                         clearFieldError('apellido');
-                        setForm(prev => ({ ...prev, apellido: e.target.value }));
+                        setForm(prev => ({
+                          ...prev,
+                          apellido: e.target.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, ''),
+                        }));
                       }}
                     />
                     {fieldErrors.apellido && <div className="invalid-feedback d-block">{fieldErrors.apellido}</div>}
@@ -232,10 +254,15 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                     <input
                       type="text"
                       className={`form-control ${fieldErrors.dni ? 'is-invalid' : ''}`}
+                      inputMode="numeric"
+                      maxLength={8}
                       value={form.dni}
                       onChange={(e) => {
                         clearFieldError('dni');
-                        setForm(prev => ({ ...prev, dni: e.target.value }));
+                        setForm(prev => ({
+                          ...prev,
+                          dni: e.target.value.replace(/\D/g, '').slice(0, 8),
+                        }));
                       }}
                     />
                     {fieldErrors.dni && <div className="invalid-feedback d-block">{fieldErrors.dni}</div>}
