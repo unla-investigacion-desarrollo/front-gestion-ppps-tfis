@@ -219,14 +219,29 @@ export const PPPExpedientesList: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <Link
-                          to={`/ppp/${exp.id}`}
-                          className="project-title-link fw-semibold text-decoration-none d-inline-block"
-                          style={{ maxWidth: '280px', color: 'var(--unla-primary, #64001d)' }}
-                          title="Ver toda la información de la PPP"
-                        >
-                          {exp.proposalTitle || exp.proposal?.title || 'Práctica Profesional Supervisada'}
-                        </Link>
+                        {(() => {
+                          const proposalId = exp.proposalId || exp.proposal?.id;
+                          const isPendingApproval = exp.status === 'pending_application';
+                          const targetUrl =
+                            isPendingApproval && proposalId
+                              ? `/ppp/convocatorias/${proposalId}/postulaciones`
+                              : `/ppp/${exp.id}`;
+                          const linkTitle =
+                            isPendingApproval && proposalId
+                              ? 'Ver postulaciones de esta convocatoria'
+                              : 'Ver toda la información de la PPP';
+
+                          return (
+                            <Link
+                              to={targetUrl}
+                              className="project-title-link fw-semibold text-decoration-none d-inline-block"
+                              style={{ maxWidth: '280px', color: 'var(--unla-primary, #64001d)' }}
+                              title={linkTitle}
+                            >
+                              {exp.proposalTitle || exp.proposal?.title || 'Práctica Profesional Supervisada'}
+                            </Link>
+                          );
+                        })()}
                       </td>
                       <td>
                         <span className={`ppp-status-badge ppp-status-${exp.status}`}>

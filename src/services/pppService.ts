@@ -574,17 +574,19 @@ export const pppService = {
   },
 
   /**
-   * Notificar Entrega de Documentación: PATCH /ppp/:id/notify-sent (cuerpo vacío {})
+   * Notificar Entrega de Documentación: PATCH /ppp/:id/notify-sent (FormData con key 'file')
    * Exclusivo Estudiante.
    */
-  notifySent: async (id: number | string, token: string): Promise<any> => {
+  notifySent: async (id: number | string, token: string, file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
     const res = await fetch(`${API_URL}/ppp/${id}/notify-sent`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({}),
+      body: formData,
     });
     return await handleResponse(res, 'Error al notificar entrega de documentación');
   },

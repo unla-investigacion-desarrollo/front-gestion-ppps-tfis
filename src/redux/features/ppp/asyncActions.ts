@@ -264,12 +264,12 @@ export const loadSiuPPPExpediente = createAsyncThunk<
 
 export const notifyPPPDocSent = createAsyncThunk<
   number | string,
-  number | string,
+  { id: number | string; file: File },
   { rejectValue: string }
->('ppp/notifyDocSent', async (id, { rejectWithValue, dispatch }) => {
+>('ppp/notifyDocSent', async ({ id, file }, { rejectWithValue, dispatch }) => {
   try {
     const token = localStorage.getItem('token') || '';
-    await pppService.notifySent(id, token);
+    await pppService.notifySent(id, token, file);
     dispatch(fetchPPPExpedienteById(id));
     dispatch(fetchMyPPPApplications());
     return id;

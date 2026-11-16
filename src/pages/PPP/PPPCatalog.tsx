@@ -278,7 +278,7 @@ export const PPPCatalog: React.FC = () => {
                                     handleOpenEdit(item);
                                   }}
                                 >
-                                  Editar PPP
+                                  Editar
                                 </button>
                                 <li className="dropdown-divider" style={{ margin: '4px 0' }} />
                                 <button
@@ -289,7 +289,7 @@ export const PPPCatalog: React.FC = () => {
                                     handleDeleteProposal(item);
                                   }}
                                 >
-                                  Eliminar PPP
+                                  Eliminar
                                 </button>
                               </ul>
                             </>

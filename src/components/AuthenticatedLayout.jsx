@@ -173,7 +173,7 @@ const AuthenticatedLayout = ({ children }) => {
             <nav className="unla-nav-links">
               <NavLink to="/dashboard">Inicio</NavLink>
               <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
-              <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
+              <NavLink to="/ppp/convocatorias">Postulaciones PPP</NavLink>
               <NavLink to="/ppp/catalogo">Catálogo de PPP</NavLink>
               <NavLink to="/ppp/expedientes">Trámites de Estudiantes (PPP)</NavLink>
               <NavLink to="/admin/approvals">Solicitudes</NavLink>
