@@ -367,7 +367,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               </td>
             </tr>
           ) : (
-            projects.map((project) => (
+            projects.map((project, projectIndex) => (
               <tr key={project.id}>
                 {/* Columna: Proyecto (Fusión de Título, Descripción, Categoría y Fecha) */}
                 <td style={{ padding: '12px 16px' }}>
@@ -559,7 +559,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             onClick={() => setActiveDropdownProjectId(null)}
                           />
                           <ul
-                            className={`custom-dropdown-menu dropdown-menu-end ${projects.length === 1 ? 'opens-upward' : ''}`}
+                            className={`custom-dropdown-menu dropdown-menu-end ${projectIndex === projects.length - 1 ? 'opens-upward' : ''}`}
                           >
                             {/* Acción: Ver proyecto (Redirige a pantalla Trabajo) */}
                             <button
