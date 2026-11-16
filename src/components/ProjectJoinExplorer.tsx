@@ -10,6 +10,7 @@ import {
   ProjectRequestsTable,
 } from './ProjectExplorer';
 import Pagination from './Pagination';
+import TFIHowItWorks from './TFIHowItWorks';
 import './ProjectJoinExplorer.css';
 
 export interface ProjectJoinExplorerProps {
@@ -62,6 +63,7 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({ onJoin
           title="Mis solicitudes"
           subtitle="Postulaciones a proyectos TFI que están esperando aprobación."
         />
+        <TFIHowItWorks highlightStep={2} />
         {loading ? (
           <div className="project-join-loading-state">
             <div className="spinner-border text-primary" role="status" />
@@ -89,6 +91,8 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({ onJoin
         title="Proyectos disponibles"
         subtitle="Explorá los proyectos TFI y postulate al que te interese. Solo podés tener un TFI."
       />
+
+      <TFIHowItWorks highlightStep={1} />
 
       {/* Aviso: el estudiante ya tiene su TFI asignado */}
       {hasActiveTfi && (
