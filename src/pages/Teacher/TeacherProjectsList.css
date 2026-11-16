@@ -405,6 +405,12 @@
   background-color: #fff;
 }
 
+.custom-dropdown-menu.opens-upward {
+  top: auto;
+  bottom: 100%;
+  margin: 0 0 4px;
+}
+
 .custom-dropdown-item {
   display: flex;
   align-items: center;

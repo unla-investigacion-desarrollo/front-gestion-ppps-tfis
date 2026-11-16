@@ -558,7 +558,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             className="dropdown-click-outside-backdrop"
                             onClick={() => setActiveDropdownProjectId(null)}
                           />
-                          <ul className="custom-dropdown-menu dropdown-menu-end">
+                          <ul
+                            className={`custom-dropdown-menu dropdown-menu-end ${projects.length === 1 ? 'opens-upward' : ''}`}
+                          >
                             {/* Acción: Ver proyecto (Redirige a pantalla Trabajo) */}
                             <button
                               type="button"
