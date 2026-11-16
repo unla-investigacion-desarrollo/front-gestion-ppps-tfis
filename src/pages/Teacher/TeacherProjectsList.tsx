@@ -32,7 +32,7 @@ import {
 
 // Styles & Assets
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaGraduationCap } from 'react-icons/fa6';
+import { FaGraduationCap, FaTriangleExclamation } from 'react-icons/fa6';
 import './TeacherProjectsList.css';
 import { projectService } from '../../services/projectService';
 
@@ -54,7 +54,7 @@ const TeacherProjectsList: React.FC = () => {
   const users = useSelector(selectUsers);
 
   // Determinar si el usuario actual tiene rol de Tutor desde la BD
-  const { isTutor: userIsTutor } = useUserProfile();
+  const { isTutor: userIsTutor, isProfessor } = useUserProfile();
   const isTutor = Boolean(currentUser?.isTutor ?? userIsTutor);
 
   // Determinar si el usuario actual es ADMIN o SUPERADMIN
@@ -79,6 +79,14 @@ const TeacherProjectsList: React.FC = () => {
   // --- ESTADO DE CONTROL DE MODALES ---
   const [activeActivityProject, setActiveActivityProject] = useState<Project | null>(null);
   const [activeEditProject, setActiveEditProject] = useState<Project | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<{
+    projectId: string;
+    memberId: string;
+    type: 'student' | 'professor';
+  } | null>(null);
+  const [isRemovingMember, setIsRemovingMember] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
 
   // --- SOLICITUDES Y PROYECTOS ACTIVOS DEL USUARIO ---
   const [myRequests, setMyRequests] = useState<any[]>([]);
@@ -329,54 +337,47 @@ const TeacherProjectsList: React.FC = () => {
   // --- MANEJADORES DE ACCIONES ---
 
   // Quitar alumno del proyecto
-  const handleRemoveStudent = async (projectId: string, studentId: string) => {
-    if (window.confirm('¿Seguro que querés quitar este alumno del proyecto?')) {
-      const response = await dispatch(removeStudentFromProject({ projectId, studentId }));
-      if (!(response as any).error) {
-        try {
-          window.dispatchEvent(
-            new CustomEvent('toast', { detail: { message: 'Alumno quitado del proyecto', type: 'success' } })
-          );
-        } catch { }
-      } else {
-        try {
-          window.dispatchEvent(
-            new CustomEvent('toast', {
-              detail: {
-                message: (response as any).payload || 'Error al quitar el alumno',
-                type: 'error',
-              },
-            })
-          );
-        } catch { }
-      }
-    }
+  const handleRemoveStudent = (projectId: string, studentId: string) => {
+    setMemberToRemove({ projectId, memberId: studentId, type: 'student' });
   };
 
-
-
   // Quitar co-docente
-  const handleRemoveCoTeacher = async (projectId: string, teacherId: string) => {
-    if (window.confirm('¿Seguro que querés quitar este co-docente del proyecto?')) {
-      const response = await dispatch(removeCoTeacher({ projectId, teacherId }));
-      if (!(response as any).error) {
-        try {
-          window.dispatchEvent(
-            new CustomEvent('toast', { detail: { message: 'Co-docente quitado del proyecto', type: 'success' } })
-          );
-        } catch { }
-      } else {
-        try {
-          window.dispatchEvent(
-            new CustomEvent('toast', {
-              detail: {
-                message: (response as any).payload || 'Error al quitar el co-docente',
-                type: 'error',
-              },
+  const handleRemoveCoTeacher = (projectId: string, teacherId: string) => {
+    setMemberToRemove({ projectId, memberId: teacherId, type: 'professor' });
+  };
+
+  const handleConfirmMemberRemoval = async () => {
+    if (!memberToRemove || isRemovingMember) return;
+
+    setIsRemovingMember(true);
+    try {
+      const isStudent = memberToRemove.type === 'student';
+      const response = await dispatch(
+        isStudent
+          ? removeStudentFromProject({
+              projectId: memberToRemove.projectId,
+              studentId: memberToRemove.memberId,
             })
-          );
-        } catch { }
-      }
+          : removeCoTeacher({
+              projectId: memberToRemove.projectId,
+              teacherId: memberToRemove.memberId,
+            })
+      );
+      const hasError = Boolean((response as any).error);
+
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: hasError
+              ? (response as any).payload || `Error al quitar el ${isStudent ? 'alumno' : 'co-docente'}`
+              : `${isStudent ? 'Alumno' : 'Co-docente'} quitado del proyecto`,
+            type: hasError ? 'error' : 'success',
+          },
+        })
+      );
+      setMemberToRemove(null);
+    } finally {
+      setIsRemovingMember(false);
     }
   };
 
@@ -417,31 +418,31 @@ const TeacherProjectsList: React.FC = () => {
   };
 
   // Eliminar proyecto (solo ADMIN y SUPERADMIN)
-  const handleDeleteProject = async (project: Project) => {
-    if (!window.confirm(`¿Seguro que querés eliminar el proyecto "${project.titulo}"?`)) {
-      return;
-    }
+  const handleDeleteProject = (project: Project) => {
+    setProjectToDelete(project);
+  };
 
-    const response = await dispatch(deleteProject({ projectId: String(project.id) }));
-    if (!(response as any).error) {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('toast', {
-            detail: { message: 'Proyecto eliminado exitosamente', type: 'success' },
-          })
-        );
-      } catch { }
-    } else {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('toast', {
-            detail: {
-              message: (response as any).payload || 'Error al eliminar el proyecto',
-              type: 'error',
-            },
-          })
-        );
-      } catch { }
+  const handleConfirmProjectDeletion = async () => {
+    if (!projectToDelete || isDeletingProject) return;
+
+    setIsDeletingProject(true);
+    try {
+      const response = await dispatch(deleteProject({ projectId: String(projectToDelete.id) }));
+      const hasError = Boolean((response as any).error);
+
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: hasError
+              ? (response as any).payload || 'Error al eliminar el proyecto'
+              : 'Proyecto eliminado exitosamente',
+            type: hasError ? 'error' : 'success',
+          },
+        })
+      );
+      setProjectToDelete(null);
+    } finally {
+      setIsDeletingProject(false);
     }
   };
 
@@ -490,6 +491,7 @@ const TeacherProjectsList: React.FC = () => {
           projects={paginatedProjects}
           users={users}
           isTutor={isTutor}
+          canRemoveProjectMembers={isAdminOrSuperAdmin || (isProfessor && !isTutor)}
           canDeleteProject={isAdminOrSuperAdmin}
           onRemoveStudent={handleRemoveStudent}
           onRemoveCoTeacher={handleRemoveCoTeacher}
@@ -542,6 +544,120 @@ const TeacherProjectsList: React.FC = () => {
           onClose={() => setActiveEditProject(null)}
           onSave={handleSaveProjectEdit}
         />
+      )}
+
+      {memberToRemove && (
+        <>
+          <div
+            className="modal fade show custom-modal-dialog-wrapper"
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-member-title"
+          >
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
+                  <h5 id="remove-member-title" className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary, #64001d)' }}>
+                    Quitar integrante del proyecto
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setMemberToRemove(null)}
+                    aria-label="Cerrar"
+                    disabled={isRemovingMember}
+                  />
+                </div>
+                <div className="modal-body custom-modal-body text-center py-4">
+                  <FaTriangleExclamation size={44} color="var(--unla-primary, #64001d)" className="mb-3" />
+                  <p className="mb-0" style={{ fontSize: '17px', fontWeight: 500 }}>
+                    ¿Seguro que querés quitar a este {memberToRemove.type === 'student' ? 'alumno' : 'co-docente'}?
+                  </p>
+                  <p className="text-muted small mt-2 mb-0">
+                    Dejará de formar parte del proyecto.
+                  </p>
+                </div>
+                <div className="modal-footer custom-modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setMemberToRemove(null)}
+                    disabled={isRemovingMember}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={handleConfirmMemberRemoval}
+                    disabled={isRemovingMember}
+                  >
+                    {isRemovingMember ? 'Quitando...' : 'Quitar integrante'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="custom-modal-backdrop" />
+        </>
+      )}
+
+      {projectToDelete && (
+        <>
+          <div
+            className="modal fade show custom-modal-dialog-wrapper"
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-project-title"
+          >
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
+                  <h5 id="delete-project-title" className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary, #64001d)' }}>
+                    Confirmar eliminación
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setProjectToDelete(null)}
+                    aria-label="Cerrar"
+                    disabled={isDeletingProject}
+                  />
+                </div>
+                <div className="modal-body custom-modal-body text-center py-4">
+                  <FaTriangleExclamation size={44} color="var(--unla-primary, #64001d)" className="mb-3" />
+                  <p className="mb-0" style={{ fontSize: '17px', fontWeight: 500 }}>
+                    ¿Seguro que querés eliminar el proyecto <strong>{projectToDelete.titulo}</strong>?
+                  </p>
+                  <p className="text-muted small mt-2 mb-0">
+                    Esta acción no se puede deshacer.
+                  </p>
+                </div>
+                <div className="modal-footer custom-modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setProjectToDelete(null)}
+                    disabled={isDeletingProject}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={handleConfirmProjectDeletion}
+                    disabled={isDeletingProject}
+                  >
+                    {isDeletingProject ? 'Eliminando...' : 'Eliminar proyecto'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="custom-modal-backdrop" />
+        </>
       )}
     </div>
   );

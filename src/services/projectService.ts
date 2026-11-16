@@ -339,6 +339,31 @@ export const projectService = {
     }
   },
 
+  removeStudentFromProject: async (projectId: number | string, studentId: number | string, token: string) => {
+    const res = await fetch(`${API_URL}/project/${projectId}/remove-student/${studentId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      throw new Error(parsedError?.message || text || `Error ${res.status}: Falló la remoción del alumno`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: text };
+    }
+  },
+
   /**
    * Solicitud de docente tutor para unirse a un proyecto.
    */
@@ -401,6 +426,31 @@ export const projectService = {
   rejectProfessorRequest: async (projectId: number | string, professorUserId: number | string, token: string) => {
     const res = await fetch(`${API_URL}/project/${projectId}/reject-professor/${professorUserId}`, {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      throw new Error(parsedError?.message || text || `Error ${res.status}: Falló la remoción del docente`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: text };
+    }
+  },
+
+  removeProfessorFromProject: async (projectId: number | string, professorId: number | string, token: string) => {
+    const res = await fetch(`${API_URL}/project/${projectId}/remove-professor/${professorId}`, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
