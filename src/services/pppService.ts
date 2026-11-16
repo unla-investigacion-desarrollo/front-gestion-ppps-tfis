@@ -286,6 +286,46 @@ export const pppService = {
   },
 
   /**
+   * Editar Propuesta PPP: PATCH /ppp/proposals/:proposalId
+   * Exclusivo Docente evaluador / Administrador / Superadmin.
+   */
+  updateProposal: async (
+    proposalId: number | string,
+    payload: {
+      title: string;
+      description: string;
+      driveFolderUrl?: string;
+    },
+    token: string
+  ): Promise<any> => {
+    const sanitizedBody = {
+      title: payload.title.trim(),
+      description: payload.description.trim(),
+      driveFolderUrl: payload.driveFolderUrl?.trim() || undefined,
+    };
+
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(sanitizedBody),
+    });
+    return await handleResponse(res, 'Error al actualizar la propuesta de PPP');
+  },
+
+  deleteProposal: async (proposalId: number | string, token: string): Promise<any> => {
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return await handleResponse(res, 'Error al eliminar la propuesta de PPP');
+  },
+
+  /**
    * Postulación a Propuesta: POST /ppp/proposals/:id/apply
    * Exclusivo Estudiante.
    */
@@ -474,16 +514,16 @@ export const pppService = {
   },
 
   /**
-   * Observar Trámite: PATCH /ppp/:id/observe (cuerpo vacío {})
+   * Observar Trámite: PATCH /ppp/:id/observe
    */
-  observeExpediente: async (id: number | string, token: string): Promise<any> => {
+  observeExpediente: async (id: number | string, token: string, feedback: string): Promise<any> => {
     const res = await fetch(`${API_URL}/ppp/${id}/observe`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ feedback }),
     });
     return await handleResponse(res, 'Error al observar expediente');
   },
@@ -534,17 +574,19 @@ export const pppService = {
   },
 
   /**
-   * Notificar Entrega de Documentación: PATCH /ppp/:id/notify-sent (cuerpo vacío {})
+   * Notificar Entrega de Documentación: PATCH /ppp/:id/notify-sent (FormData con key 'file')
    * Exclusivo Estudiante.
    */
-  notifySent: async (id: number | string, token: string): Promise<any> => {
+  notifySent: async (id: number | string, token: string, file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
     const res = await fetch(`${API_URL}/ppp/${id}/notify-sent`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({}),
+      body: formData,
     });
     return await handleResponse(res, 'Error al notificar entrega de documentación');
   },

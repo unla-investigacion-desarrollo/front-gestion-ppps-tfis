@@ -72,12 +72,42 @@ export const PPPProposalsCatalog: React.FC = () => {
     setCurrentPage(1);
   }, [searchQuery, filterState]);
 
-  const totalItems = filteredProposals.length;
+  const getPendingApplicantsCount = (proposalItem: any): number => {
+    const rawApplicants = Array.isArray(proposalItem.applicants)
+      ? proposalItem.applicants
+      : Array.isArray(proposalItem.applications)
+        ? proposalItem.applications
+        : null;
+    if (rawApplicants) {
+      return rawApplicants.filter(
+        (app: any) =>
+          !app?.status ||
+          app.status === 'pending_application' ||
+          app.status === 'pending'
+      ).length;
+    }
+    return (
+      proposalItem.pendingApplicantsCount ??
+      proposalItem.applicantsCount ??
+      proposalItem.applicationsCount ??
+      proposalItem._count?.applications ??
+      proposalItem._count?.applicants ??
+      0
+    );
+  };
+
+  const sortedProposals = useMemo(() => {
+    return [...filteredProposals].sort(
+      (a, b) => getPendingApplicantsCount(b) - getPendingApplicantsCount(a)
+    );
+  }, [filteredProposals]);
+
+  const totalItems = sortedProposals.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const paginatedProposals = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
-    return filteredProposals.slice(startIndex, startIndex + pageSize);
-  }, [filteredProposals, currentPage, pageSize]);
+    return sortedProposals.slice(startIndex, startIndex + pageSize);
+  }, [sortedProposals, currentPage, pageSize]);
 
   return (
     <div className="ppp-page-wrapper">
@@ -89,7 +119,7 @@ export const PPPProposalsCatalog: React.FC = () => {
               <FaIdCard size={28} />
             </div>
             <div>
-              <h1 className="ppp-title">Catálogo de Convocatorias PPP</h1>
+              <h1 className="ppp-title">Gestión de Convocatorias y Postulaciones PPP</h1>
               <p className="ppp-subtitle">
                 {isStudent
                   ? 'Explorá las convocatorias de Prácticas Profesionales Supervisadas abiertas y postulate o gestioná una práctica externa.'

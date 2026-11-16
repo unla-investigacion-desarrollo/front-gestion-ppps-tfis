@@ -40,8 +40,18 @@ const AuthenticatedLayout = ({ children }) => {
   if (user?.role) rawRoles.push(user.role);
   if (user?.rol) rawRoles.push(user.rol);
   const normalizedRoles = rawRoles.map((r) => String(r).toUpperCase().trim());
-  const isAdmin = hookIsAdmin || normalizedRoles.some((r) => ['ADMIN', 'ADMINISTRADOR'].includes(r));
-  const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'TEACHER', 'PROFESSOR', 'PROFESOR', 'TUTOR', 'EVALUADOR'].includes(r)));
+  const isSuperAdmin = normalizedRoles.includes('SUPERADMIN');
+  const isAdmin = hookIsAdmin || isSuperAdmin || normalizedRoles.some((r) => r === 'ADMIN');
+  const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'PROFESSOR'].includes(r)));
+  const roleLabel = isSuperAdmin
+    ? 'Superadmin'
+    : isAdmin
+      ? 'Administrador'
+      : isTeacher
+        ? user?.isTutor
+          ? 'Profesor tutor'
+          : 'Profesor evaluador'
+        : 'Estudiante';
 
   // Toast handling con cola por usuario (localStorage 'userNotifications')
   const [toast, setToast] = useState(null);
@@ -163,8 +173,9 @@ const AuthenticatedLayout = ({ children }) => {
             <nav className="unla-nav-links">
               <NavLink to="/dashboard">Inicio</NavLink>
               <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
-              <NavLink to="/ppp/convocatorias">Convocatorias PPP</NavLink>
-              <NavLink to="/ppp/expedientes">Expedientes PPP</NavLink>
+              <NavLink to="/ppp/convocatorias">Postulaciones PPP</NavLink>
+              <NavLink to="/ppp/catalogo">Catálogo de PPP</NavLink>
+              <NavLink to="/ppp/expedientes">Trámites de Estudiantes (PPP)</NavLink>
               <NavLink to="/admin/approvals">Solicitudes</NavLink>
               {isAdmin && <NavLink to="/admin/users">Usuarios</NavLink>}
             </nav>
@@ -179,7 +190,12 @@ const AuthenticatedLayout = ({ children }) => {
                 <div className="profile-dropdown-avatar">
                   {user.email.charAt(0).toUpperCase()}
                 </div>
-                <span>{user.email}</span>
+                <div className="d-flex flex-column align-items-start lh-sm text-start">
+                  <span>{user.email}</span>
+                  <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
+                    {roleLabel}
+                  </span>
+                </div>
                 <FaChevronDown size={12} />
               </button>
               <ul className={`profile-dropdown-menu ${dropdownOpen ? 'open' : ''}`}>

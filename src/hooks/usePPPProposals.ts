@@ -51,9 +51,9 @@ export const usePPPProposals = () => {
     );
   }, [currentUser]);
 
-  const isAdmin = profileIsAdmin || userRoles.includes('ADMIN') || userRoles.includes('ADMINISTRADOR') || userRoles.includes('SUPERADMIN');
+  const isAdmin = profileIsAdmin || userRoles.includes('ADMIN') || userRoles.includes('SUPERADMIN');
   const isTeacher = profileIsProfessor || userRoles.some((roleName: string) =>
-    ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)
+    ['DOCENTE', 'PROFESSOR'].includes(roleName)
   );
   const isTutor = Boolean(
     currentUser?.isTutor ?? userProfile?.isTutor ?? profileIsTutor

@@ -15,12 +15,10 @@ interface UserTableProps {
   showActionsColumn: boolean;
   canManage: (role: string, user: any) => boolean;
   canEditUser: (user: any) => boolean;
-  canResetPassword: (user: any) => boolean;
   canDeleteUser: (user: any) => boolean;
   canDeactivateUser: (user: any) => boolean;
   sort: { key: string; dir: 'asc' | 'desc' };
   onToggleSort: (key: string) => void;
-  onResetPassword: (user: any) => void;
   onToggleActivation: (user: any, enable: boolean) => void;
   onDeleteUser: (user: any) => void;
   onEditClick: (user: any) => void; // Prop para abrir el modal de edición de un usuario
@@ -36,12 +34,10 @@ const UserTable: React.FC<UserTableProps> = ({
   showActionsColumn,
   canManage,
   canEditUser,
-  canResetPassword,
   canDeleteUser,
   canDeactivateUser,
   sort,
   onToggleSort,
-  onResetPassword,
   onToggleActivation,
   onDeleteUser,
   onEditClick,
@@ -115,12 +111,6 @@ const UserTable: React.FC<UserTableProps> = ({
         bgColor = '#ffe4e6';
         textColor = '#be123c';
         label = 'Rechazado';
-        break;
-      case 'papelera':
-        dotColor = '#4b5563';
-        bgColor = '#e5e7eb';
-        textColor = '#4b5563';
-        label = 'Papelera';
         break;
     }
 
@@ -256,23 +246,6 @@ const UserTable: React.FC<UserTableProps> = ({
                                   >
                                     <FaPencil size={14} />
                                     Editar usuario
-                                  </button>
-                                </li>
-                              )}
-
-                              {/* Acción: Resetear Contraseña (solo si el usuario tiene DNI registrado) */}
-                              {userItem.dni && userItem.estado !== 'papelera' && canResetPassword(userItem) && (
-                                <li>
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item"
-                                    onClick={() => {
-                                      setOpenDropdownId(null);
-                                      onResetPassword(userItem);
-                                    }}
-                                  >
-                                    <FaKey size={14} />
-                                    Resetear contraseña
                                   </button>
                                 </li>
                               )}

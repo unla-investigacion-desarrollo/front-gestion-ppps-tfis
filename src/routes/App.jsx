@@ -15,9 +15,10 @@ import ChangePassword from '../pages/Auth/ChangePassword';
 import TeacherProjectsList from '../pages/Teacher/TeacherProjectsList';
 import MyProjects from '../pages/Student/MyProjects';
 import StudentDeliveries from '../pages/Student/Deliveries';
-import TeacherProjectCreate from '../pages/Teacher/TeacherProjectCreate';
+import ProjectCreate from '../pages/Projects/ProjectCreate';
 import Trabajo from '../pages/Trabajo/Trabajo';
 import PPPProposalsCatalog from '../pages/PPP/PPPProposalsCatalog';
+import PPPCatalog from '../pages/PPP/PPPCatalog';
 import PPPExpedientesList from '../pages/PPP/PPPExpedientesList';
 import PPPTramiteDetail from '../pages/PPP/PPPTramiteDetail';
 import PPPStudentMyTramite from '../pages/PPP/PPPStudentMyTramite';
@@ -128,7 +129,7 @@ const App = () => {
           <Route path="/docente/proyectos/nuevo" element={
             <PrivateRoute>
               <AuthenticatedLayout>
-                <TeacherProjectCreate />
+                <ProjectCreate />
               </AuthenticatedLayout>
             </PrivateRoute>
           } />
@@ -186,6 +187,17 @@ const App = () => {
                 <AuthenticatedLayout>
                   <TeacherPPPLayoutRoute view="convocatorias-ppp">
                     <PPPProposalApplicantsPage />
+                  </TeacherPPPLayoutRoute>
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp/catalogo" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <TeacherPPPLayoutRoute view="convocatorias-ppp">
+                    <PPPCatalog />
                   </TeacherPPPLayoutRoute>
                 </AuthenticatedLayout>
               </TeacherRoute>

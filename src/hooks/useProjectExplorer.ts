@@ -68,7 +68,7 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
     ? [currentUser.roles]
     : [];
   const isTeacher = userRoles.some((roleName: string) =>
-    ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(String(roleName).toUpperCase().trim())
+    ['DOCENTE', 'PROFESSOR'].includes(String(roleName).toUpperCase().trim())
   );
 
   // Carga de datos del backend

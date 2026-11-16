@@ -113,17 +113,17 @@ const Trabajo: React.FC = () => {
   }, [currentUser]);
 
   const isAdmin = useMemo(
-    () => roles.some((roleName: string) => ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)),
+    () => roles.some((roleName: string) => ['ADMIN', 'SUPERADMIN'].includes(roleName)),
     [roles]
   );
   const isTeacher = useMemo(
-    () => roles.some((roleName: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(roleName)),
+    () => roles.some((roleName: string) => ['DOCENTE', 'PROFESSOR'].includes(roleName)),
     [roles]
   );
   const { isTutor: profileIsTutor, user: userProfile } = useUserProfile();
   const isTutor = Boolean(currentUser?.isTutor ?? userProfile?.isTutor ?? profileIsTutor);
   const isStudent = useMemo(
-    () => roles.some((roleName: string) => ['ESTUDIANTE', 'STUDENT', 'ALUMNO'].includes(roleName)),
+    () => roles.some((roleName: string) => ['ESTUDIANTE', 'STUDENT'].includes(roleName)),
     [roles]
   );
 
@@ -156,7 +156,7 @@ const Trabajo: React.FC = () => {
         userIdOrObj = targetUserObj.id || targetUserObj.id_user || userIdOrObj.id || userIdOrObj.id_user;
       }
       const idString = String(userIdOrObj);
-      const userFound = users.find((userCandidate) => String(userCandidate.id) === idString || String(userCandidate.id_user) === idString);
+      const userFound = users.find((userCandidate: any) => String(userCandidate.id) === idString || String(userCandidate.id_user) === idString);
       if (userFound) {
         return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${idString}`;
       }
@@ -911,50 +911,27 @@ const Trabajo: React.FC = () => {
                         </button>
                       )}
 
-                      {/* Aprobar Entrega (Docente evaluador / Admin) */}
+                      {/* Calificar Entrega (Docente evaluador / Admin) */}
                       {((isTeacher && !isTutor) || isAdmin) && (
                         <button
                           type="button"
-                          className="trabajo-action-card approve"
-                          onClick={() => handleOpenQualifyModal(
-                            work.qualification !== null && work.qualification !== undefined && work.qualification >= 4
-                              ? work.qualification
-                              : 7
-                          )}
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            handleOpenQualifyModal(
+                              work.qualification !== null && work.qualification !== undefined
+                                ? work.qualification
+                                : 7
+                            )
+                          }
                           disabled={actionLoading}
                         >
-                          <div className="trabajo-action-icon-circle green">
+                          <div className="trabajo-action-icon-circle">
                             <FaCheck size={16} />
                           </div>
                           <div className="trabajo-action-card-text">
-                            <div className="trabajo-action-card-title">Aprobar entrega</div>
+                            <div className="trabajo-action-card-title">Calificar entrega</div>
                             <div className="trabajo-action-card-desc">
-                              La entrega será marcada como aprobada y el estado se actualizará.
-                            </div>
-                          </div>
-                          <FaChevronRight className="trabajo-action-chevron" />
-                        </button>
-                      )}
-
-                      {/* Rechazar / Desaprobar (Docente evaluador / Admin) */}
-                      {((isTeacher && !isTutor) || isAdmin) && (
-                        <button
-                          type="button"
-                          className="trabajo-action-card disapprove"
-                          onClick={() => handleOpenQualifyModal(
-                            work.qualification !== null && work.qualification !== undefined && work.qualification > 0 && work.qualification <= 3
-                              ? work.qualification
-                              : 2
-                          )}
-                          disabled={actionLoading}
-                        >
-                          <div className="trabajo-action-icon-circle red">
-                            <FaXmark size={16} />
-                          </div>
-                          <div className="trabajo-action-card-text">
-                            <div className="trabajo-action-card-title">Rechazar / Desaprobar</div>
-                            <div className="trabajo-action-card-desc">
-                              La entrega será desaprobada y el estudiante notificado.
+                              Asignar calificación y actualizar el estado de la entrega.
                             </div>
                           </div>
                           <FaChevronRight className="trabajo-action-chevron" />

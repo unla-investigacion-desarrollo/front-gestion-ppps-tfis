@@ -77,7 +77,7 @@ const UsersList: React.FC = () => {
   const canManage = (targetRole?: string, _targetUser?: any) => {
     if (targetRole) {
       const normalizedRole = String(targetRole).toUpperCase().trim();
-      return ['SUPERADMIN', 'ADMIN', 'DOCENTE', 'ESTUDIANTE', 'TEACHER', 'PROFESSOR', 'STUDENT'].includes(normalizedRole);
+      return ['SUPERADMIN', 'ADMIN', 'DOCENTE', 'ESTUDIANTE'].includes(normalizedRole);
     }
     return true;
   };
@@ -360,19 +360,6 @@ const UsersList: React.FC = () => {
       return { ok: true };
     } catch (error: any) {
       return { ok: false, message: error?.message || 'Error al procesar la solicitud' };
-    }
-  };
-
-  // Resetear contraseña
-  const handleResetPassword = async (targetUser: any) => {
-    if (!canResetPassword(targetUser)) {
-      showToast('Solo el superadmin puede resetear la contraseña de una cuenta de superadmin.', 'error');
-      return;
-    }
-
-    const res = await dispatch<any>(resetPassword({ id: targetUser.id }));
-    if (res && res.payload) {
-      showToast('Contraseña reseteada correctamente', 'success');
     }
   };
 
@@ -670,12 +657,10 @@ const UsersList: React.FC = () => {
           showActionsColumn={showActionsColumn}
           canManage={canManage}
           canEditUser={canEditUser}
-          canResetPassword={canResetPassword}
           canDeleteUser={canDeleteUser}
           canDeactivateUser={canDeactivateUser}
           sort={sort}
           onToggleSort={toggleSort}
-          onResetPassword={handleResetPassword}
           onToggleActivation={handleToggleActivation}
           onDeleteUser={handleDeleteUser}
           onEditClick={handleStartEdit}
@@ -763,20 +748,6 @@ const UsersList: React.FC = () => {
                         onChange={(e) => setEditingUser((u: any) => ({ ...u, legajo: e.target.value }))}
                       />
                     </div>
-                    {isAdmin && (
-                      <div>
-                        <label className="form-label" style={{ fontWeight: 500 }}>Rol</label>
-                        <select
-                          className="form-select"
-                          value={editingUser.rol || 'DOCENTE'}
-                          onChange={(e) => setEditingUser((u: any) => ({ ...u, rol: e.target.value }))}
-                        >
-                          <option value="ESTUDIANTE">Estudiante</option>
-                          <option value="DOCENTE">Docente</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
-                      </div>
-                    )}
 
                     {/* Campos específicos de Estudiante */}
                     {editingUser.rol === 'ESTUDIANTE' && (

@@ -88,8 +88,170 @@
 .admin-dashboard-container {
   max-width: 100%;
   margin: 0 auto;
-  padding: 1rem 4rem;
+  padding: 2rem 4rem;
   width: 100%;
+  background-color: #f8fafc;
+  min-height: calc(100vh - 58px);
+}
+
+.admin-realtime-pill {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.admin-minimal-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 22px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.admin-minimal-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.admin-minimal-summary-card {
+  cursor: default;
+}
+
+.admin-minimal-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.admin-minimal-card-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.admin-minimal-card-icon {
+  color: #94a3b8;
+}
+
+.admin-minimal-card-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+  margin: 12px 0 10px;
+}
+
+.admin-minimal-card-footer {
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.admin-summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #334155;
+}
+
+.admin-summary-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-summary-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.admin-summary-dot.dot-tfi {
+  background-color: #2563eb;
+}
+
+.admin-summary-dot.dot-ppp {
+  background-color: #e11d48;
+}
+
+.admin-summary-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.admin-summary-total {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.admin-summary-total strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+/* Overrides minimalistas para Actividad Reciente en Admin */
+.admin-dashboard-container .activity-icon-wrapper {
+  background: transparent !important;
+  color: #94a3b8 !important;
+  width: 24px;
+  height: 24px;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.admin-dashboard-container .activity-time {
+  color: #94a3b8 !important;
+  font-size: 12.5px !important;
+  font-weight: 400 !important;
+}
+
+.admin-dashboard-container .activity-badge {
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  padding: 3px 10px !important;
+  border-radius: 6px !important;
+}
+
+.admin-dashboard-container .activity-badge-en-curso,
+.admin-dashboard-container .activity-badge-activo,
+.admin-dashboard-container .activity-badge-aprobado {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.admin-dashboard-container .activity-badge-pendiente,
+.admin-dashboard-container .activity-badge-revision {
+  background-color: #fef9c3 !important;
+  color: #a16207 !important;
+}
+
+.admin-dashboard-container .activity-badge-inactivo,
+.admin-dashboard-container .activity-badge-mensaje {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
 }
 
 .admin-dashboard-title-section {

@@ -86,13 +86,13 @@ export const useUserProfile = () => {
 
   const isSuperAdmin = allRoles.includes('SUPERADMIN');
   const isAdmin = isSuperAdmin || allRoles.some((r) =>
-    r === 'ADMIN' || r === 'ADMINISTRADOR'
+    r === 'ADMIN'
   );
   const isProfessor = !isAdmin && allRoles.some((r) =>
-    r === 'PROFESSOR' || r === 'DOCENTE' || r === 'TEACHER' || r === 'PROFESOR'
+    r === 'PROFESSOR' || r === 'DOCENTE'
   );
   const isStudent = !isAdmin && !isProfessor && allRoles.some((r) =>
-    r === 'STUDENT' || r === 'ESTUDIANTE' || r === 'ALUMNO' || r === 'ALUMNA'
+    r === 'STUDENT' || r === 'ESTUDIANTE'
   );
 
   const role = isAdmin ? 'admin' : isProfessor ? 'professor' : 'student';

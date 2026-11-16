@@ -44,7 +44,7 @@ const steps = [
 
 export const PPPHowItWorks: React.FC<PPPHowItWorksProps> = ({
   highlightStep,
-  defaultOpen = true,
+  defaultOpen = false,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(defaultOpen);
 

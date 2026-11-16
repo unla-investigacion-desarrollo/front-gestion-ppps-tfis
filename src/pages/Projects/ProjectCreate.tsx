@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './TeacherProjectCreate.css';
+import './ProjectCreate.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import { createProject, fetchProjectTypes, selectProjectTypes, ProjectType } from '../../../redux/slices/projectsSlice';
@@ -145,7 +145,7 @@ const TeacherProjectCreate: React.FC = () => {
                   <option value="">Selecciona un tipo de proyecto</option>
                   {projectTypes.map((type) => (
                     <option key={type.id} value={type.id}>
-                      {type.name.toUpperCase() === 'PPP' ? 'PPP (Práctica Profesional Supervisada)' : `TFI - ${type.name}`}
+                      {type.name}
                     </option>
                   ))}
                 </select>

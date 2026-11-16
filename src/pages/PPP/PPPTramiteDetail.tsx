@@ -60,9 +60,9 @@ export const PPPTramiteDetail: React.FC = () => {
   }, [currentUser]);
 
   const isAdmin = roles.some((roleName: string) =>
-    ['ADMIN', 'ADMINISTRADOR', 'SUPERADMIN', 'SUPER_ADMIN', 'ROLE_SUPERADMIN', 'ROLE_SUPER_ADMIN'].includes(roleName)
+    ['ADMIN', 'SUPERADMIN'].includes(roleName)
   );
-  const isTeacher = roles.some((r: string) => ['DOCENTE', 'TEACHER', 'PROFESSOR'].includes(r));
+  const isTeacher = roles.some((r: string) => ['DOCENTE', 'PROFESSOR'].includes(r));
   const isTutor = !isAdmin && isTeacher && Boolean(currentUser?.isTutor);
   const isStudent = !isAdmin && !isTeacher;
 
@@ -73,6 +73,10 @@ export const PPPTramiteDetail: React.FC = () => {
   const pppError = useSelector(selectPPPError);
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [notifyFile, setNotifyFile] = useState<File | null>(null);
+  const [showObserveModal, setShowObserveModal] = useState(false);
+  const [observeFeedback, setObserveFeedback] = useState('');
   const [showDriveModal, setShowDriveModal] = useState(false);
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
@@ -189,12 +193,20 @@ export const PPPTramiteDetail: React.FC = () => {
   const progress = getStepProgress(expediente.status, expediente.isSiuLoaded);
 
   // --- ACCIONES DOCENTE / ADMIN ---
-  const handleObserve = async () => {
-    if (!window.confirm('¿Confirmás pasar este expediente al estado "Con Observaciones"? El alumno será notificado para reenviar la documentación.')) return;
+  const handleObserve = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedFeedback = observeFeedback.trim();
+    if (!trimmedFeedback) {
+      showToast('Debés ingresar una observación o feedback para el estudiante.', 'error');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      await dispatch(observePPPExpediente(expediente.id)).unwrap();
-      showToast('Expediente marcado con observaciones', 'info');
+      await dispatch(observePPPExpediente({ id: expediente.id, feedback: trimmedFeedback })).unwrap();
+      setShowObserveModal(false);
+      setObserveFeedback('');
+      showToast('Expediente marcado con observaciones y feedback enviado correctamente.', 'success');
     } catch (err: any) {
       showToast(err || 'Error al observar expediente', 'error');
     } finally {
@@ -257,11 +269,18 @@ export const PPPTramiteDetail: React.FC = () => {
   };
 
   // --- ACCIONES ESTUDIANTE ---
-  const handleNotifySent = async () => {
-    if (!window.confirm('¿Confirmás que ya enviaste la documentación y convenios solicitados a la cátedra? El expediente pasará a revisión docente.')) return;
+  const handleNotifySent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notifyFile) {
+      showToast('Debés adjuntar un archivo PDF para notificar el envío.', 'error');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      await dispatch(notifyPPPDocSent(expediente.id)).unwrap();
+      await dispatch(notifyPPPDocSent({ id: expediente.id, file: notifyFile })).unwrap();
+      setShowNotifyModal(false);
+      setNotifyFile(null);
       showToast('¡Entrega de documentación notificada! Tu trámite está en revisión académica.', 'success');
     } catch (err: any) {
       showToast(err || 'Error al notificar entrega', 'error');
@@ -596,7 +615,10 @@ export const PPPTramiteDetail: React.FC = () => {
                   type="button"
                   className="btn-unla-primary d-inline-flex align-items-center gap-1.5"
                   disabled={!canNotifyDocumentation || actionLoading}
-                  onClick={handleNotifySent}
+                  onClick={() => {
+                    setNotifyFile(null);
+                    setShowNotifyModal(true);
+                  }}
                 >
                   <FaPaperPlane size={14} />
                   Notificar entrega de documentación
@@ -644,7 +666,10 @@ export const PPPTramiteDetail: React.FC = () => {
                     className="btn btn-light bg-white border-0 d-inline-flex align-items-center gap-2 px-3 py-2 fw-medium text-dark"
                     style={{ fontSize: '13.5px', borderRadius: 0 }}
                     disabled={expediente.status === 'observed' || actionLoading}
-                    onClick={handleObserve}
+                    onClick={() => {
+                      setObserveFeedback('');
+                      setShowObserveModal(true);
+                    }}
                   >
                     <span
                       style={{
@@ -773,6 +798,130 @@ export const PPPTramiteDetail: React.FC = () => {
                     </button>
                     <button type="submit" className="btn-unla-primary" disabled={actionLoading}>
                       Guardar URL
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Notificar Entrega de Documentación (Estudiante) */}
+        {showNotifyModal && (
+          <div className="modal show d-block" style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '16px' }}>
+                <div className="modal-header border-bottom px-4 py-3">
+                  <h5 className="modal-title fw-bold">Notificar entrega de documentación</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setShowNotifyModal(false);
+                      setNotifyFile(null);
+                    }}
+                  />
+                </div>
+                <form onSubmit={handleNotifySent}>
+                  <div className="modal-body p-4">
+                    <p className="text-muted small mb-3">
+                      Adjuntá el archivo PDF con la documentación.
+                    </p>
+                    <div>
+                      <label className="form-label fw-semibold small">
+                        Archivo PDF <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept=".pdf,application/pdf"
+                        required
+                        onChange={(e) => {
+                          const selectedFile = e.target.files?.[0] || null;
+                          setNotifyFile(selectedFile);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer border-top px-4 py-3">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      disabled={actionLoading}
+                      onClick={() => {
+                        setShowNotifyModal(false);
+                        setNotifyFile(null);
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-unla-primary"
+                      disabled={actionLoading || !notifyFile}
+                    >
+                      {actionLoading ? 'Enviando...' : 'Notificar envío'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Marcar con Observaciones (Docente / Admin) */}
+        {showObserveModal && (
+          <div className="modal show d-block" style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '16px' }}>
+                <div className="modal-header border-bottom px-4 py-3">
+                  <h5 className="modal-title fw-bold">Marcar con observaciones</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setShowObserveModal(false);
+                      setObserveFeedback('');
+                    }}
+                  />
+                </div>
+                <form onSubmit={handleObserve}>
+                  <div className="modal-body p-4">
+                    <p className="text-muted small mb-3">
+                      Indicá las observaciones o correcciones que debe realizar el estudiante antes de reenviar la documentación.
+                    </p>
+                    <div>
+                      <label className="form-label fw-semibold small">
+                        Observación / Feedback <span className="text-danger">*</span>
+                      </label>
+                      <textarea
+                        className="form-control"
+                        rows={4}
+                        required
+                        placeholder="Ej: Por favor, corregir y reenviar."
+                        value={observeFeedback}
+                        onChange={(e) => setObserveFeedback(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer border-top px-4 py-3">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      disabled={actionLoading}
+                      onClick={() => {
+                        setShowObserveModal(false);
+                        setObserveFeedback('');
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-unla-primary"
+                      disabled={actionLoading || !observeFeedback.trim()}
+                    >
+                      {actionLoading ? 'Enviando...' : 'Enviar observaciones'}
                     </button>
                   </div>
                 </form>

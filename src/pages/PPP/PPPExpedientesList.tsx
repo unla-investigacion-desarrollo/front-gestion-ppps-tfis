@@ -5,6 +5,8 @@ import { FaFileLines, FaMagnifyingGlass } from 'react-icons/fa6';
 import {
   fetchPPPExpedientes,
   selectPPPExpedientes,
+  fetchPPPProposals,
+  selectPPPProposals,
 } from '../../../redux/slices/pppSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 import {
@@ -20,6 +22,7 @@ export const PPPExpedientesList: React.FC = () => {
   const navigate = useNavigate();
 
   const expedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
+  const proposals = useSelector(selectPPPProposals) as any[];
   const allUsers = useSelector(selectUsers);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +33,7 @@ export const PPPExpedientesList: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchPPPExpedientes());
+    dispatch(fetchPPPProposals());
     dispatch(fetchUsers());
   }, [dispatch]);
 
@@ -111,9 +115,9 @@ export const PPPExpedientesList: React.FC = () => {
               <FaFileLines size={28} />
             </div>
             <div>
-              <h1 className="ppp-title">Bandeja General de Expedientes PPP</h1>
+              <h1 className="ppp-title">Trámites de Estudiantes (PPP)</h1>
               <p className="ppp-subtitle">
-                Seguimiento consolidado del ciclo de vida de prácticas profesionales internas y externas.
+                Listado individual de trámites y postulaciones de cada <estudiante></estudiante>, con su estado de avance y carga en SIU Guaraní.
               </p>
             </div>
           </div>
@@ -219,14 +223,34 @@ export const PPPExpedientesList: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <Link
-                          to={`/ppp/${exp.id}`}
-                          className="project-title-link fw-semibold text-decoration-none d-inline-block"
-                          style={{ maxWidth: '280px', color: 'var(--unla-primary, #64001d)' }}
-                          title="Ver toda la información de la PPP"
-                        >
-                          {exp.proposalTitle || exp.proposal?.title || 'Práctica Profesional Supervisada'}
-                        </Link>
+                        {(() => {
+                          const titleToMatch = (exp.proposalTitle || exp.proposal?.title || '').trim().toLowerCase();
+                          const matchedProposal = titleToMatch
+                            ? proposals.find((p) => (p.title || '').trim().toLowerCase() === titleToMatch)
+                            : undefined;
+                          const proposalId = exp.proposalId || exp.proposal?.id || matchedProposal?.id;
+                          const isPendingApproval = exp.status === 'pending_application';
+                          const targetUrl =
+                            isPendingApproval && proposalId
+                              ? `/ppp/convocatorias/${proposalId}/postulaciones`
+                              : `/ppp/${exp.id}`;
+                          const linkTitle =
+                            isPendingApproval && proposalId
+                              ? 'Ver postulaciones de esta convocatoria'
+                              : 'Ver toda la información de la PPP';
+
+                          return (
+                            <Link
+                              to={targetUrl}
+                              onClick={() => console.log('Navegando desde PPPExpedientesList:', { expId: exp.id, status: exp.status, proposalId, targetUrl, exp })}
+                              className="project-title-link fw-semibold text-decoration-none d-inline-block"
+                              style={{ maxWidth: '280px', color: 'var(--unla-primary, #64001d)' }}
+                              title={linkTitle}
+                            >
+                              {exp.proposalTitle || exp.proposal?.title || 'Práctica Profesional Supervisada'}
+                            </Link>
+                          );
+                        })()}
                       </td>
                       <td>
                         <span className={`ppp-status-badge ppp-status-${exp.status}`}>
@@ -240,13 +264,19 @@ export const PPPExpedientesList: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-unla-primary"
-                          onClick={() => navigate(`/ppp/${exp.id}`)}
-                        >
-                          Ver expediente
-                        </button>
+                        {exp.status === 'pending_application' ? (
+                          <span className="badge bg-light text-secondary border fw-normal px-2 py-1">
+                            Pendiente de aprobación
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-unla-primary"
+                            onClick={() => navigate(`/ppp/${exp.id}`)}
+                          >
+                            Ver expediente
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

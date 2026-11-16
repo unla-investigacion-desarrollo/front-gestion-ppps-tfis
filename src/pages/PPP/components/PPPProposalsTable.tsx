@@ -69,14 +69,24 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
         </thead>
         <tbody>
           {proposals.map((proposalItem) => {
-            const applicantsCount =
-              (proposalItem as any).applicantsCount ??
-              (proposalItem as any).applicationsCount ??
-              (proposalItem as any)._count?.applications ??
-              (proposalItem as any)._count?.applicants ??
-              proposalItem.applicants?.length ??
-              (proposalItem as any).applications?.length ??
-              0;
+            const rawApplicants = Array.isArray(proposalItem.applicants)
+              ? proposalItem.applicants
+              : Array.isArray((proposalItem as any).applications)
+                ? (proposalItem as any).applications
+                : null;
+            const pendingApplicantsCount = rawApplicants
+              ? rawApplicants.filter(
+                  (app: any) =>
+                    !app?.status ||
+                    app.status === 'pending_application' ||
+                    app.status === 'pending'
+                ).length
+              : (proposalItem as any).pendingApplicantsCount ??
+                (proposalItem as any).applicantsCount ??
+                (proposalItem as any).applicationsCount ??
+                (proposalItem as any)._count?.applications ??
+                (proposalItem as any)._count?.applicants ??
+                0;
 
             return (
               <tr key={proposalItem.id}>
@@ -206,7 +216,7 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                       title="Ver postulaciones recibidas para esta convocatoria"
                     >
                       <FaUsers size={13} />
-                      Postulantes ({applicantsCount})
+                      Postulantes ({pendingApplicantsCount})
                     </button>
                   )}
                 </td>

@@ -22,6 +22,7 @@ import {
   StudentWorkStatus,
 } from '../../services/studentWorkService';
 import { showToast } from '../../utils/toast';
+import TFIHowItWorks from '../../components/TFIHowItWorks';
 import '../Trabajo/Trabajo.css';
 
 const StudentDeliveries: React.FC = () => {
@@ -359,6 +360,8 @@ const StudentDeliveries: React.FC = () => {
             </div>
           )}
         </div>
+
+        <TFIHowItWorks highlightStep={3} defaultOpen={myProjects.length === 0} />
 
         {/* Mensaje de error del backend (ej. cuando no tiene proyecto asignado o falla validación) */}
         {backendError && (
