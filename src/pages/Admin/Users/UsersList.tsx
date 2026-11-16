@@ -748,20 +748,6 @@ const UsersList: React.FC = () => {
                         onChange={(e) => setEditingUser((u: any) => ({ ...u, legajo: e.target.value }))}
                       />
                     </div>
-                    {isAdmin && (
-                      <div>
-                        <label className="form-label" style={{ fontWeight: 500 }}>Rol</label>
-                        <select
-                          className="form-select"
-                          value={editingUser.rol || 'DOCENTE'}
-                          onChange={(e) => setEditingUser((u: any) => ({ ...u, rol: e.target.value }))}
-                        >
-                          <option value="ESTUDIANTE">Estudiante</option>
-                          <option value="DOCENTE">Docente</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
-                      </div>
-                    )}
 
                     {/* Campos específicos de Estudiante */}
                     {editingUser.rol === 'ESTUDIANTE' && (

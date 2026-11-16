@@ -200,12 +200,12 @@ export const rejectPPPApplicant = createAsyncThunk<
 
 export const observePPPExpediente = createAsyncThunk<
   number | string,
-  number | string,
+  { id: number | string; feedback: string },
   { rejectValue: string }
->('ppp/observeExpediente', async (id, { rejectWithValue, dispatch }) => {
+>('ppp/observeExpediente', async ({ id, feedback }, { rejectWithValue, dispatch }) => {
   try {
     const token = localStorage.getItem('token') || '';
-    await pppService.observeExpediente(id, token);
+    await pppService.observeExpediente(id, token, feedback);
     dispatch(fetchPPPExpedienteById(id));
     dispatch(fetchPPPExpedientes());
     return id;

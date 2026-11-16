@@ -75,6 +75,8 @@ export const PPPTramiteDetail: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [notifyFile, setNotifyFile] = useState<File | null>(null);
+  const [showObserveModal, setShowObserveModal] = useState(false);
+  const [observeFeedback, setObserveFeedback] = useState('');
   const [showDriveModal, setShowDriveModal] = useState(false);
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
@@ -191,12 +193,20 @@ export const PPPTramiteDetail: React.FC = () => {
   const progress = getStepProgress(expediente.status, expediente.isSiuLoaded);
 
   // --- ACCIONES DOCENTE / ADMIN ---
-  const handleObserve = async () => {
-    if (!window.confirm('¿Confirmás pasar este expediente al estado "Con Observaciones"? El alumno será notificado para reenviar la documentación.')) return;
+  const handleObserve = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedFeedback = observeFeedback.trim();
+    if (!trimmedFeedback) {
+      showToast('Debés ingresar una observación o feedback para el estudiante.', 'error');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      await dispatch(observePPPExpediente(expediente.id)).unwrap();
-      showToast('Expediente marcado con observaciones', 'info');
+      await dispatch(observePPPExpediente({ id: expediente.id, feedback: trimmedFeedback })).unwrap();
+      setShowObserveModal(false);
+      setObserveFeedback('');
+      showToast('Expediente marcado con observaciones y feedback enviado correctamente.', 'success');
     } catch (err: any) {
       showToast(err || 'Error al observar expediente', 'error');
     } finally {
@@ -656,7 +666,10 @@ export const PPPTramiteDetail: React.FC = () => {
                     className="btn btn-light bg-white border-0 d-inline-flex align-items-center gap-2 px-3 py-2 fw-medium text-dark"
                     style={{ fontSize: '13.5px', borderRadius: 0 }}
                     disabled={expediente.status === 'observed' || actionLoading}
-                    onClick={handleObserve}
+                    onClick={() => {
+                      setObserveFeedback('');
+                      setShowObserveModal(true);
+                    }}
                   >
                     <span
                       style={{
@@ -848,6 +861,67 @@ export const PPPTramiteDetail: React.FC = () => {
                       disabled={actionLoading || !notifyFile}
                     >
                       {actionLoading ? 'Enviando...' : 'Notificar envío'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Marcar con Observaciones (Docente / Admin) */}
+        {showObserveModal && (
+          <div className="modal show d-block" style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '16px' }}>
+                <div className="modal-header border-bottom px-4 py-3">
+                  <h5 className="modal-title fw-bold">Marcar con observaciones</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setShowObserveModal(false);
+                      setObserveFeedback('');
+                    }}
+                  />
+                </div>
+                <form onSubmit={handleObserve}>
+                  <div className="modal-body p-4">
+                    <p className="text-muted small mb-3">
+                      Indicá las observaciones o correcciones que debe realizar el estudiante antes de reenviar la documentación.
+                    </p>
+                    <div>
+                      <label className="form-label fw-semibold small">
+                        Observación / Feedback <span className="text-danger">*</span>
+                      </label>
+                      <textarea
+                        className="form-control"
+                        rows={4}
+                        required
+                        placeholder="Ej: Por favor, corregir y reenviar."
+                        value={observeFeedback}
+                        onChange={(e) => setObserveFeedback(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer border-top px-4 py-3">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      disabled={actionLoading}
+                      onClick={() => {
+                        setShowObserveModal(false);
+                        setObserveFeedback('');
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-unla-primary"
+                      disabled={actionLoading || !observeFeedback.trim()}
+                    >
+                      {actionLoading ? 'Enviando...' : 'Enviar observaciones'}
                     </button>
                   </div>
                 </form>

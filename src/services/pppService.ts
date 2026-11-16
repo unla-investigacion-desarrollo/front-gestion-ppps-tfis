@@ -514,16 +514,16 @@ export const pppService = {
   },
 
   /**
-   * Observar Trámite: PATCH /ppp/:id/observe (cuerpo vacío {})
+   * Observar Trámite: PATCH /ppp/:id/observe
    */
-  observeExpediente: async (id: number | string, token: string): Promise<any> => {
+  observeExpediente: async (id: number | string, token: string, feedback: string): Promise<any> => {
     const res = await fetch(`${API_URL}/ppp/${id}/observe`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ feedback }),
     });
     return await handleResponse(res, 'Error al observar expediente');
   },

@@ -5,6 +5,8 @@ import { FaFileLines, FaMagnifyingGlass } from 'react-icons/fa6';
 import {
   fetchPPPExpedientes,
   selectPPPExpedientes,
+  fetchPPPProposals,
+  selectPPPProposals,
 } from '../../../redux/slices/pppSlice';
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 import {
@@ -20,6 +22,7 @@ export const PPPExpedientesList: React.FC = () => {
   const navigate = useNavigate();
 
   const expedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
+  const proposals = useSelector(selectPPPProposals) as any[];
   const allUsers = useSelector(selectUsers);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +33,7 @@ export const PPPExpedientesList: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchPPPExpedientes());
+    dispatch(fetchPPPProposals());
     dispatch(fetchUsers());
   }, [dispatch]);
 
@@ -220,7 +224,11 @@ export const PPPExpedientesList: React.FC = () => {
                       </td>
                       <td>
                         {(() => {
-                          const proposalId = exp.proposalId || exp.proposal?.id;
+                          const titleToMatch = (exp.proposalTitle || exp.proposal?.title || '').trim().toLowerCase();
+                          const matchedProposal = titleToMatch
+                            ? proposals.find((p) => (p.title || '').trim().toLowerCase() === titleToMatch)
+                            : undefined;
+                          const proposalId = exp.proposalId || exp.proposal?.id || matchedProposal?.id;
                           const isPendingApproval = exp.status === 'pending_application';
                           const targetUrl =
                             isPendingApproval && proposalId
@@ -234,6 +242,7 @@ export const PPPExpedientesList: React.FC = () => {
                           return (
                             <Link
                               to={targetUrl}
+                              onClick={() => console.log('Navegando desde PPPExpedientesList:', { expId: exp.id, status: exp.status, proposalId, targetUrl, exp })}
                               className="project-title-link fw-semibold text-decoration-none d-inline-block"
                               style={{ maxWidth: '280px', color: 'var(--unla-primary, #64001d)' }}
                               title={linkTitle}
