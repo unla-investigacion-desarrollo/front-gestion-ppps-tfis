@@ -196,6 +196,22 @@ const Trabajo: React.FC = () => {
     loadProjectAndWork();
   }, [loadProjectAndWork]);
 
+  const applyWorkUpdate = useCallback(
+    async (patch: Partial<StudentWork>) => {
+      setWork((prev) => (prev ? { ...prev, ...patch } : (patch as StudentWork)));
+      if (!projectId || !token) return;
+      try {
+        const refreshedWork = await studentWorkService.getWorkByProject(projectId, token);
+        if (refreshedWork) {
+          setWork((prev) => (prev ? { ...prev, ...refreshedWork } : refreshedWork));
+        }
+      } catch {
+        // Conservar el estado combinado si falla la recarga silenciosa
+      }
+    },
+    [projectId, token]
+  );
+
   // Validaciones de URLs
   const validateUrls = (docUrl: string, driveUrl: string) => {
     const errs: { doc?: string; drive?: string } = {};
@@ -241,7 +257,7 @@ const Trabajo: React.FC = () => {
           },
           token
         );
-        setWork(updated);
+        await applyWorkUpdate(updated);
         showToast('Enlaces de entrega actualizados correctamente', 'success');
       } else {
         // POST /student-work/project/:projectId
@@ -253,7 +269,7 @@ const Trabajo: React.FC = () => {
           },
           token
         );
-        setWork(created);
+        await applyWorkUpdate(created);
         showToast('Entrega registrada exitosamente', 'success');
       }
       setShowLinksModal(false);
@@ -285,7 +301,7 @@ const Trabajo: React.FC = () => {
     setActionLoading(true);
     try {
       const updated = await studentWorkService.qualify(work.id, parsedScore, token);
-      setWork(updated);
+      await applyWorkUpdate(updated);
       showToast(`Calificación ${parsedScore} registrada correctamente`, 'success');
       setShowQualifyModal(false);
     } catch (qualifyError: any) {
@@ -302,42 +318,27 @@ const Trabajo: React.FC = () => {
 
     try {
       let updated: StudentWork;
-      const mergeWorkState = (patch: Partial<StudentWork>) => {
-        setWork((prev) => (prev ? { ...prev, ...patch } : (patch as StudentWork)));
-      };
-
       switch (confirmActionModal.actionType) {
         case 'mark_observed':
           updated = await studentWorkService.markObserved(work.id, token);
-          mergeWorkState(updated);
+          await applyWorkUpdate(updated);
           showToast('La entrega fue marcada con observaciones', 'success');
           break;
         case 'notify_advances':
           updated = await studentWorkService.notifyAdvances(work.id, token);
-          mergeWorkState(updated);
+          await applyWorkUpdate(updated);
           showToast('Se notificaron los avances. Estado: Pendiente de revisión', 'success');
           break;
         case 'request_tutoring':
           updated = await studentWorkService.requestTutoring(work.id, token);
-          mergeWorkState({ ...updated, tutoringRequested: updated?.tutoringRequested ?? true });
+          await applyWorkUpdate({ ...updated, tutoringRequested: updated?.tutoringRequested ?? true });
           showToast('Tutoría solicitada exitosamente al equipo docente', 'success');
           break;
         case 'mark_tutored':
           updated = await studentWorkService.markTutored(work.id, token);
-          mergeWorkState(updated);
+          await applyWorkUpdate(updated);
           showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
-      }
-
-      if (projectId) {
-        try {
-          const refreshedWork = await studentWorkService.getWorkByProject(projectId, token);
-          if (refreshedWork) {
-            setWork((prev) => (prev ? { ...prev, ...refreshedWork } : refreshedWork));
-          }
-        } catch {
-          // Conservar el estado combinado si falla la recarga silenciosa
-        }
       }
       setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
     } catch (actionError: any) {
