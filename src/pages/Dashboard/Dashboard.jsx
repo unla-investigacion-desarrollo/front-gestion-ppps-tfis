@@ -21,8 +21,11 @@ import { fetchUsers, selectUsers, selectUsersStatus } from '../../../redux/slice
 import { fetchProjects, selectProjects, selectProjectsStatus } from '../../../redux/slices/projectsSlice';
 import {
   fetchPPPExpedientes,
+  fetchPPPProposals,
   selectPPPExpedientes,
   selectPPPExpedientesStatus,
+  selectPPPProposals,
+  selectPPPStatus,
 } from '../../../redux/slices/pppSlice';
 
 const normalizeProjectStatus = (project) =>
@@ -61,6 +64,8 @@ const Dashboard = () => {
   const projectsStatus = useSelector(selectProjectsStatus);
   const pppExpedientes = useSelector(selectPPPExpedientes);
   const pppExpedientesStatus = useSelector(selectPPPExpedientesStatus);
+  const pppProposals = useSelector(selectPPPProposals);
+  const pppProposalsStatus = useSelector(selectPPPStatus);
   const isAdminDashboard = isAdmin || role === 'admin';
   const [, setActivityVersion] = useState(0);
 
@@ -71,6 +76,7 @@ const Dashboard = () => {
       dispatch(fetchUsers());
       dispatch(fetchProjects());
       dispatch(fetchPPPExpedientes({ useLocalFallback: false }));
+      dispatch(fetchPPPProposals({ isStudent: false }));
     };
 
     const refreshWhenVisible = () => {
@@ -102,7 +108,7 @@ const Dashboard = () => {
   const activeUsersCount = users.filter((userItem) => userItem.estado === 'active').length;
   const inProgressProjectsCount = projects.filter(isProjectInProgress).length;
   const tfiProjectCount = projects.filter((projectItem) => !isPPPProject(projectItem)).length;
-  const pppCount = pppExpedientes.length;
+  const pppCount = pppProposals.length;
   const projectCount = tfiProjectCount + pppCount;
 
   const getMetricValue = (status, count) => status === 'succeeded' ? count : '—';
@@ -292,6 +298,8 @@ const Dashboard = () => {
 
   recentActivities.sort((activityA, activityB) => activityB.timestamp - activityA.timestamp);
   const latestActivities = recentActivities.slice(0, 5);
+  const summaryTotalsLoaded =
+    projectsStatus === 'succeeded' && pppProposalsStatus === 'succeeded';
   const allDataLoaded =
     usersStatus === 'succeeded' &&
     projectsStatus === 'succeeded' &&
@@ -380,13 +388,13 @@ const Dashboard = () => {
                     PPP
                   </span>
                   <span className="admin-summary-value">
-                    {getMetricValue(pppExpedientesStatus, pppCount)}
+                    {getMetricValue(pppProposalsStatus, pppCount)}
                   </span>
                 </div>
               </div>
               <div className="admin-summary-total">
                 <span>Proyectos totales</span>
-                <strong>{allDataLoaded ? projectCount : '—'}</strong>
+                <strong>{summaryTotalsLoaded ? projectCount : '—'}</strong>
               </div>
             </div>
           </div>
