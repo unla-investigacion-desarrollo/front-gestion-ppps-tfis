@@ -286,6 +286,46 @@ export const pppService = {
   },
 
   /**
+   * Editar Propuesta PPP: PATCH /ppp/proposals/:proposalId
+   * Exclusivo Docente evaluador / Administrador / Superadmin.
+   */
+  updateProposal: async (
+    proposalId: number | string,
+    payload: {
+      title: string;
+      description: string;
+      driveFolderUrl?: string;
+    },
+    token: string
+  ): Promise<any> => {
+    const sanitizedBody = {
+      title: payload.title.trim(),
+      description: payload.description.trim(),
+      driveFolderUrl: payload.driveFolderUrl?.trim() || undefined,
+    };
+
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(sanitizedBody),
+    });
+    return await handleResponse(res, 'Error al actualizar la propuesta de PPP');
+  },
+
+  deleteProposal: async (proposalId: number | string, token: string): Promise<any> => {
+    const res = await fetch(`${API_URL}/ppp/proposals/${proposalId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return await handleResponse(res, 'Error al eliminar la propuesta de PPP');
+  },
+
+  /**
    * Postulación a Propuesta: POST /ppp/proposals/:id/apply
    * Exclusivo Estudiante.
    */

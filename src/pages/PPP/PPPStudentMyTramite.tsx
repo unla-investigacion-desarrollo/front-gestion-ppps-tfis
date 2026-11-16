@@ -129,12 +129,18 @@ export const PPPStudentMyTramite: React.FC = () => {
                   <span className={`ppp-siu-badge ${expedienteItem.isSiuLoaded ? 'loaded' : 'pending'}`}>
                     {expedienteItem.isSiuLoaded ? '✓ SIU Asentado' : '○ SIU Pendiente'}
                   </span>
-                  <Link
-                    to={`/ppp/${expedienteItem.id}`}
-                    className="btn-unla-primary text-decoration-none"
-                  >
-                    Ver seguimiento →
-                  </Link>
+                  {expedienteItem.status === 'pending_application' ? (
+                    <span className="badge bg-light text-secondary border fw-normal px-2 py-1">
+                      Pendiente de aprobación
+                    </span>
+                  ) : (
+                    <Link
+                      to={`/ppp/${expedienteItem.id}`}
+                      className="btn-unla-primary text-decoration-none"
+                    >
+                      Ver seguimiento →
+                    </Link>
+                  )}
                 </div>
               </div>
               );

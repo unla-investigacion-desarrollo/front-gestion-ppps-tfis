@@ -111,9 +111,9 @@ export const PPPExpedientesList: React.FC = () => {
               <FaFileLines size={28} />
             </div>
             <div>
-              <h1 className="ppp-title">Bandeja General de Expedientes PPP</h1>
+              <h1 className="ppp-title">Trámites de Estudiantes (PPP)</h1>
               <p className="ppp-subtitle">
-                Seguimiento consolidado del ciclo de vida de prácticas profesionales internas y externas.
+                Listado individual de trámites y postulaciones de cada <estudiante></estudiante>, con su estado de avance y carga en SIU Guaraní.
               </p>
             </div>
           </div>
@@ -240,13 +240,19 @@ export const PPPExpedientesList: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-unla-primary"
-                          onClick={() => navigate(`/ppp/${exp.id}`)}
-                        >
-                          Ver expediente
-                        </button>
+                        {exp.status === 'pending_application' ? (
+                          <span className="badge bg-light text-secondary border fw-normal px-2 py-1">
+                            Pendiente de aprobación
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-unla-primary"
+                            onClick={() => navigate(`/ppp/${exp.id}`)}
+                          >
+                            Ver expediente
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
