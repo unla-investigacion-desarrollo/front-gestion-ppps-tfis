@@ -264,6 +264,17 @@ export const PPPCatalog: React.FC = () => {
                                   style={{ color: 'var(--unla-primary, #64001d)' }}
                                   onClick={() => {
                                     setActiveDropdownId(null);
+                                    navigate(`/ppp/catalogo/${item.id}`);
+                                  }}
+                                >
+                                  Ver proyecto
+                                </button>
+                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item"
+                                  onClick={() => {
+                                    setActiveDropdownId(null);
                                     navigate(`/ppp/convocatorias/${item.id}/postulaciones`);
                                   }}
                                 >

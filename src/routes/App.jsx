@@ -19,6 +19,7 @@ import ProjectCreate from '../pages/Projects/ProjectCreate';
 import Trabajo from '../pages/Trabajo/Trabajo';
 import PPPProposalsCatalog from '../pages/PPP/PPPProposalsCatalog';
 import PPPCatalog from '../pages/PPP/PPPCatalog';
+import PPPProposalDetailPage from '../pages/PPP/PPPProposalDetailPage';
 import PPPExpedientesList from '../pages/PPP/PPPExpedientesList';
 import PPPTramiteDetail from '../pages/PPP/PPPTramiteDetail';
 import PPPStudentMyTramite from '../pages/PPP/PPPStudentMyTramite';
@@ -198,6 +199,17 @@ const App = () => {
                 <AuthenticatedLayout>
                   <TeacherPPPLayoutRoute view="convocatorias-ppp">
                     <PPPCatalog />
+                  </TeacherPPPLayoutRoute>
+                </AuthenticatedLayout>
+              </TeacherRoute>
+            </PrivateRoute>
+          } />
+          <Route path="/ppp/catalogo/:id" element={
+            <PrivateRoute>
+              <TeacherRoute>
+                <AuthenticatedLayout>
+                  <TeacherPPPLayoutRoute view="convocatorias-ppp">
+                    <PPPProposalDetailPage />
                   </TeacherPPPLayoutRoute>
                 </AuthenticatedLayout>
               </TeacherRoute>

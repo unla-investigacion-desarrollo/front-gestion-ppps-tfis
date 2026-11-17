@@ -619,3 +619,78 @@ export const PPPAppliedFeedbackModal: React.FC<AppliedFeedbackModalProps> = ({
     </div>
   );
 };
+
+// =========================================================================
+// MODAL 6: Confirmar cierre de convocatoria PPP
+// =========================================================================
+export interface CloseProposalModalProps {
+  proposal: PPPProposal | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  actionLoading: boolean;
+}
+
+export const PPPCloseProposalModal: React.FC<CloseProposalModalProps> = ({
+  proposal,
+  onClose,
+  onConfirm,
+  actionLoading,
+}) => {
+  if (!proposal) return null;
+
+  return (
+    <div
+      className="modal fade show d-block"
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content border-0 shadow-lg rounded-4">
+          <div className="modal-header border-bottom px-4 py-3">
+            <h5 className="modal-title fw-bold text-dark">Cerrar convocatoria PPP</h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+              disabled={actionLoading}
+              aria-label="Cerrar"
+            />
+          </div>
+          <div className="modal-body p-4 d-flex flex-column gap-3">
+            <div className="p-3 bg-light rounded-3 border">
+              <div className="small text-muted mb-1">Convocatoria seleccionada</div>
+              <div className="fw-semibold text-dark">{proposal.title}</div>
+            </div>
+
+            <div className="alert alert-warning mb-0 rounded-3 small" role="alert">
+              <div className="fw-bold mb-1">¿Estás seguro de que querés cerrar esta convocatoria?</div>
+              <div>
+                Al cerrarla, todas las postulaciones pendientes serán rechazadas automáticamente por el sistema.
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer border-top px-4 py-3">
+            <button
+              type="button"
+              className="btn btn-light"
+              onClick={onClose}
+              disabled={actionLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={onConfirm}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Cerrando...' : 'Sí, cerrar convocatoria'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -10,7 +10,17 @@ import {
   rejectStudentProjectRequest,
   approveProfessorProjectRequest,
   rejectProfessorProjectRequest,
+  UnifiedPendingRequest,
 } from '../../../../redux/slices/projectsSlice';
+import {
+  fetchPPPExpedientes,
+  fetchPPPProposals,
+  selectPPPExpedientes,
+  selectPPPExpedientesStatus,
+  selectPPPProposals,
+  acceptPPPApplicant,
+  rejectPPPApplicant,
+} from '../../../../redux/slices/pppSlice';
 import {
   fetchUsers,
   selectUsers,
@@ -27,6 +37,7 @@ import {
 const ApprovalQueue: React.FC = () => {
   const dispatch = useDispatch<any>();
 
+  const [activeTab, setActiveTab] = useState<'tfi' | 'ppp'>('tfi');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');
   const [sortBy, setSortBy] = useState('recientes');
@@ -35,21 +46,78 @@ const ApprovalQueue: React.FC = () => {
 
   const rawPendingProjectRequests = useSelector(selectPendingProjectRequests);
   const pendingRequestsStatus = useSelector(selectPendingProjectRequestsStatus);
+  const pppExpedientes = useSelector(selectPPPExpedientes);
+  const pppExpedientesStatus = useSelector(selectPPPExpedientesStatus);
+  const pppProposals = useSelector(selectPPPProposals);
   const allUsers = useSelector(selectUsers);
   const allProjects = useSelector(selectProjects);
 
   useEffect(() => {
     dispatch(fetchProjects());
     dispatch(fetchPendingProjectRequests());
+    dispatch(fetchPPPExpedientes());
+    dispatch(fetchPPPProposals());
     dispatch(fetchUsers());
   }, [dispatch]);
 
   // Solicitudes pendientes reales traídas de la base de datos a través de Redux
   const pendingProjectRequests = rawPendingProjectRequests || [];
 
-  // Filtrado de solicitudes a proyectos
-  const filteredProjectRequests = useMemo(() => {
-    let list = [...pendingProjectRequests];
+  // Postulaciones PPP pendientes de evaluación mapeadas al formato de tabla unificada
+  const pendingPPPRequests: UnifiedPendingRequest[] = useMemo(() => {
+    return (pppExpedientes || [])
+      .filter((exp) => exp.status === 'pending_application')
+      .map((exp) => {
+        const matchedProposal = (pppProposals || []).find(
+          (p) =>
+            String(p.title || '').trim().toLowerCase() ===
+            String(exp.proposalTitle || exp.proposal?.title || '').trim().toLowerCase()
+        );
+        const proposalId = String(
+          exp.proposalId ??
+            exp.proposal_id ??
+            exp.proposal?.id ??
+            exp.convocatoria?.id ??
+            exp.propuesta?.id ??
+            matchedProposal?.id ??
+            exp.id ??
+            ''
+        );
+        const studentId = String(
+          exp.student?.id_user ??
+            exp.studentUserId ??
+            exp.student?.user?.id ??
+            exp.student?.user?.id_user ??
+            exp.studentId ??
+            exp.student?.id ??
+            exp.userId ??
+            ''
+        );
+        const isExternal = exp.type === 'externa' || exp.type === 'external';
+        const rawStudent = exp.student?.user || exp.student || exp.user || exp.estudiante || exp.alumno;
+
+        return {
+          id: `ppp-${exp.id}`,
+          projectId: proposalId,
+          projectTitle: exp.proposalTitle || exp.proposal?.title || 'Convocatoria PPP',
+          projectType: isExternal ? 'PPP Externa' : 'PPP Interna',
+          studentUserId: studentId,
+          applicantId: studentId,
+          applicantRole: 'student',
+          applicantRoleLabel: 'Estudiante',
+          applicantName: exp.studentName || 'Estudiante',
+          applicantEmail: exp.studentEmail || '',
+          createdAt: exp.createdAt,
+          rawApplicant: rawStudent,
+        };
+      });
+  }, [pppExpedientes, pppProposals]);
+
+  const activeSourceRequests = activeTab === 'tfi' ? pendingProjectRequests : pendingPPPRequests;
+
+  // Filtrado de solicitudes según la pestaña activa
+  const filteredRequests = useMemo(() => {
+    let list = [...activeSourceRequests];
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -83,7 +151,7 @@ const ApprovalQueue: React.FC = () => {
     }
 
     return list;
-  }, [pendingProjectRequests, searchQuery, sortBy, allUsers]);
+  }, [activeSourceRequests, searchQuery, sortBy, allUsers]);
 
   // Resetear filtros
   const handleClearFilters = () => {
@@ -94,13 +162,13 @@ const ApprovalQueue: React.FC = () => {
   };
 
   // Paginación
-  const activeItemsCount = filteredProjectRequests.length;
+  const activeItemsCount = filteredRequests.length;
   const totalPages = Math.max(1, Math.ceil(activeItemsCount / pageSize));
 
-  const paginatedProjects = useMemo(() => {
+  const paginatedRequests = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredProjectRequests.slice(start, start + pageSize);
-  }, [filteredProjectRequests, currentPage, pageSize]);
+    return filteredRequests.slice(start, start + pageSize);
+  }, [filteredRequests, currentPage, pageSize]);
 
   // Manejador para aprobar solicitud de proyecto (estudiante o docente)
   const handleApproveProjectRequest = async (
@@ -150,6 +218,30 @@ const ApprovalQueue: React.FC = () => {
     }
   };
 
+  // Manejadores para aprobar/rechazar postulación PPP
+  const handleApprovePPPRequest = async (proposalId: string, studentId: string) => {
+    const result: any = await dispatch(acceptPPPApplicant({ proposalId, studentId }));
+    if (!result.error) {
+      showToast('¡Postulación PPP aprobada con éxito!', 'success');
+    } else {
+      showToast(result.payload || 'Error al aprobar la postulación PPP', 'error');
+    }
+  };
+
+  const handleRejectPPPRequest = async (proposalId: string, studentId: string) => {
+    const result: any = await dispatch(rejectPPPApplicant({ proposalId, studentId }));
+    if (!result.error) {
+      showToast('Postulación PPP rechazada.', 'info');
+    } else {
+      showToast(result.payload || 'Error al rechazar la postulación PPP', 'error');
+    }
+  };
+
+  const handleSelectTab = (tab: 'tfi' | 'ppp') => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
   // Cálculo de texto mostrando X - Y de Z
   const startIndex = activeItemsCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, activeItemsCount);
@@ -175,11 +267,22 @@ const ApprovalQueue: React.FC = () => {
           <div className="approvals-tabs">
             <button
               type="button"
-              className="approvals-tab-button active"
+              className={`approvals-tab-button ${activeTab === 'tfi' ? 'active' : ''}`}
+              onClick={() => handleSelectTab('tfi')}
             >
               <span>Solicitudes a Proyectos TFI</span>
               <span className="approvals-tab-counter">
                 {pendingProjectRequests.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`approvals-tab-button ${activeTab === 'ppp' ? 'active' : ''}`}
+              onClick={() => handleSelectTab('ppp')}
+            >
+              <span>Solicitudes PPP</span>
+              <span className="approvals-tab-counter">
+                {pendingPPPRequests.length}
               </span>
             </button>
           </div>
@@ -237,14 +340,25 @@ const ApprovalQueue: React.FC = () => {
             </button>
           </div>
 
-          {/* Contenido: Solicitudes de Proyectos */}
+          {/* Contenido: Solicitudes de Proyectos TFI o PPP */}
           <ProjectApprovalTable
-            requests={paginatedProjects}
+            requests={paginatedRequests}
             users={allUsers}
-            projects={allProjects}
-            onApprove={handleApproveProjectRequest}
-            onReject={handleRejectProjectRequest}
-            loading={pendingRequestsStatus === 'loading'}
+            projects={
+              activeTab === 'tfi'
+                ? allProjects
+                : pppProposals.map((p) => ({
+                    id: p.id,
+                    descripcion: p.description,
+                  }))
+            }
+            onApprove={activeTab === 'tfi' ? handleApproveProjectRequest : handleApprovePPPRequest}
+            onReject={activeTab === 'tfi' ? handleRejectProjectRequest : handleRejectPPPRequest}
+            loading={
+              activeTab === 'tfi'
+                ? pendingRequestsStatus === 'loading'
+                : pppExpedientesStatus === 'loading'
+            }
           />
 
           {/* Paginación idéntica al Mockup */}

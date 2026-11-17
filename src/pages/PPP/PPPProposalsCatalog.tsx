@@ -16,8 +16,10 @@ import {
   PPPApplicantsModal,
   PPPDriveModal,
   PPPAppliedFeedbackModal,
+  PPPCloseProposalModal,
   PPPHowItWorks,
 } from './components';
+import { PPPProposal } from '../../services/pppService';
 import './PPP.css';
 
 export const PPPProposalsCatalog: React.FC = () => {
@@ -67,6 +69,21 @@ export const PPPProposalsCatalog: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
+  const [proposalToClose, setProposalToClose] = useState<PPPProposal | null>(null);
+
+  const handleSwitchStatus = (proposalItem: PPPProposal) => {
+    if (proposalItem.isOpen) {
+      setProposalToClose(proposalItem);
+      return;
+    }
+    handleToggleOpenStatus(proposalItem);
+  };
+
+  const handleConfirmCloseProposal = async () => {
+    if (!proposalToClose) return;
+    await handleToggleOpenStatus(proposalToClose);
+    setProposalToClose(null);
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -235,7 +252,7 @@ export const PPPProposalsCatalog: React.FC = () => {
             canManageApplicants={canManageApplicants}
             isTutor={isTutor}
             actionLoading={actionLoading}
-            onToggleOpenStatus={handleToggleOpenStatus}
+            onToggleOpenStatus={handleSwitchStatus}
             onOpenApplyModal={(proposalItem) => {
               setSelectedProposalToApply(proposalItem);
               setShowApplyModal(true);
@@ -255,7 +272,7 @@ export const PPPProposalsCatalog: React.FC = () => {
               canManageApplicants={canManageApplicants}
               isTutor={isTutor}
               actionLoading={actionLoading}
-              onToggleOpenStatus={handleToggleOpenStatus}
+              onToggleOpenStatus={handleSwitchStatus}
               onOpenApplyModal={(proposalItem) => {
                 setSelectedProposalToApply(proposalItem);
                 setShowApplyModal(true);
@@ -368,6 +385,14 @@ export const PPPProposalsCatalog: React.FC = () => {
           feedback={appliedFeedback}
           onClose={() => setAppliedFeedback(null)}
           onViewTramite={handleViewTramite}
+        />
+
+        {/* Modal de Confirmación para Cerrar Convocatoria */}
+        <PPPCloseProposalModal
+          proposal={proposalToClose}
+          onClose={() => setProposalToClose(null)}
+          onConfirm={handleConfirmCloseProposal}
+          actionLoading={actionLoading}
         />
       </div>
     </div>
