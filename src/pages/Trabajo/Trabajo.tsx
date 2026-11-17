@@ -75,7 +75,7 @@ const Trabajo: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   // Estados de navegación visual y controles de documento (Mockup)
-  const [activeTab, setActiveTab] = useState<'documento' | 'informacion' | 'historial'>('documento');
+  const [activeTab, setActiveTab] = useState<'documento' | 'drive' | 'historial'>('documento');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
 
   // Estados de modales
@@ -93,7 +93,7 @@ const Trabajo: React.FC = () => {
     title: string;
     message: string;
     confirmText: string;
-    actionType: 'mark_observed' | 'notify_advances' | 'request_tutoring' | 'mark_tutored' | null;
+    actionType: 'mark_observed' | 'notify_advances' | 'request_tutoring' | 'mark_tutored' | 'finish_tfi' | null;
   }>({
     open: false,
     title: '',
@@ -196,6 +196,22 @@ const Trabajo: React.FC = () => {
     loadProjectAndWork();
   }, [loadProjectAndWork]);
 
+  const applyWorkUpdate = useCallback(
+    async (patch: Partial<StudentWork>) => {
+      setWork((prev) => (prev ? { ...prev, ...patch } : (patch as StudentWork)));
+      if (!projectId || !token) return;
+      try {
+        const refreshedWork = await studentWorkService.getWorkByProject(projectId, token);
+        if (refreshedWork) {
+          setWork((prev) => (prev ? { ...prev, ...refreshedWork } : refreshedWork));
+        }
+      } catch {
+        // Conservar el estado combinado si falla la recarga silenciosa
+      }
+    },
+    [projectId, token]
+  );
+
   // Validaciones de URLs
   const validateUrls = (docUrl: string, driveUrl: string) => {
     const errs: { doc?: string; drive?: string } = {};
@@ -241,7 +257,7 @@ const Trabajo: React.FC = () => {
           },
           token
         );
-        setWork(updated);
+        await applyWorkUpdate(updated);
         showToast('Enlaces de entrega actualizados correctamente', 'success');
       } else {
         // POST /student-work/project/:projectId
@@ -253,7 +269,7 @@ const Trabajo: React.FC = () => {
           },
           token
         );
-        setWork(created);
+        await applyWorkUpdate(created);
         showToast('Entrega registrada exitosamente', 'success');
       }
       setShowLinksModal(false);
@@ -285,7 +301,7 @@ const Trabajo: React.FC = () => {
     setActionLoading(true);
     try {
       const updated = await studentWorkService.qualify(work.id, parsedScore, token);
-      setWork(updated);
+      await applyWorkUpdate(updated);
       showToast(`Calificación ${parsedScore} registrada correctamente`, 'success');
       setShowQualifyModal(false);
     } catch (qualifyError: any) {
@@ -305,24 +321,28 @@ const Trabajo: React.FC = () => {
       switch (confirmActionModal.actionType) {
         case 'mark_observed':
           updated = await studentWorkService.markObserved(work.id, token);
-          setWork(updated);
+          await applyWorkUpdate(updated);
           showToast('La entrega fue marcada con observaciones', 'success');
           break;
         case 'notify_advances':
           updated = await studentWorkService.notifyAdvances(work.id, token);
-          setWork(updated);
+          await applyWorkUpdate(updated);
           showToast('Se notificaron los avances. Estado: Pendiente de revisión', 'success');
           break;
         case 'request_tutoring':
           updated = await studentWorkService.requestTutoring(work.id, token);
-          setWork(updated);
+          await applyWorkUpdate({ ...updated, tutoringRequested: updated?.tutoringRequested ?? true });
           showToast('Tutoría solicitada exitosamente al equipo docente', 'success');
           break;
         case 'mark_tutored':
           updated = await studentWorkService.markTutored(work.id, token);
-          setWork(updated);
+          await applyWorkUpdate(updated);
           showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
+        case 'finish_tfi':
+          // Pendiente de conectar al endpoint de finalización de proyecto TFI en el backend
+          setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
+          return;
       }
       setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
     } catch (actionError: any) {
@@ -403,22 +423,24 @@ const Trabajo: React.FC = () => {
   return (
     <div className="trabajo-page-container">
       <div className="trabajo-wrapper">
-        {/* Barra superior con navegación */}
-        <div className="trabajo-top-bar">
-          <Link
-            to={backDestination}
-            state={backState}
-            className="trabajo-back-btn d-inline-flex align-items-center gap-1.5"
-          >
-            <FaArrowLeft size={16} />
-            {isFromMisProyectos && isStudent ? 'Ir a Mi TFI' : backLabel}
-          </Link>
-          <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-light text-dark border">
-              Proyecto #{projectId}
-            </span>
+        {/* Barra superior con navegación (oculta para vista de estudiante) */}
+        {!(isStudent && !isAdmin && !isTeacher) && (
+          <div className="trabajo-top-bar">
+            <Link
+              to={backDestination}
+              state={backState}
+              className="trabajo-back-btn d-inline-flex align-items-center gap-1.5"
+            >
+              <FaArrowLeft size={16} />
+              {backLabel}
+            </Link>
+            <div className="d-flex align-items-center gap-2">
+              <span className="badge bg-light text-dark border">
+                Proyecto #{projectId}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Banner Informativo si es Proyecto PPP */}
         {(project?.categoria?.toUpperCase() === 'PPP' || project?.projectType?.name?.toUpperCase() === 'PPP') && (
@@ -645,11 +667,18 @@ const Trabajo: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className={`trabajo-tab-btn ${activeTab === 'informacion' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('informacion')}
+                    className={`trabajo-tab-btn ${activeTab === 'drive' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('drive')}
                   >
-                    <FaCircleInfo size={14} />
-                    Información
+                    <svg width="15" height="15" viewBox="0 0 87.3 78" aria-hidden="true">
+                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
+                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" />
+                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335" />
+                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" />
+                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" />
+                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" />
+                    </svg>
+                    Drive
                   </button>
                 </div>
                 {work.documentUrl && (
@@ -668,30 +697,9 @@ const Trabajo: React.FC = () => {
               <div className="trabajo-delivery-grid">
                 {/* Columna Principal */}
                 <div className="trabajo-main-column">
-                  {activeTab === 'informacion' ? (
-                    /* Pestaña Información: Enlaces y detalles de archivos */
-                    <div className="trabajo-links-grid mb-0">
-                      <div className="trabajo-link-box">
-                        <div className="trabajo-link-box-header">
-                          <div className="trabajo-link-icon docs">
-                            <FaFileLines size={20} />
-                          </div>
-                          <div>
-                            <h4 className="trabajo-link-title">Documento de Entrega (Google Docs)</h4>
-                            <span className="trabajo-link-sub">Enlace obligatorio a la documentación oficial</span>
-                          </div>
-                        </div>
-                        <a
-                          href={work.documentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="trabajo-link-action-btn flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1.5"
-                        >
-                          <FaArrowUpRightFromSquare size={14} />
-                          Abrir en Google Docs
-                        </a>
-                      </div>
-
+                  {activeTab === 'drive' ? (
+                    /* Pestaña Drive: Carpeta de archivos en Google Drive */
+                    <div className="trabajo-links-grid mb-0" style={{ gridTemplateColumns: '1fr' }}>
                       <div className="trabajo-link-box">
                         <div className="trabajo-link-box-header">
                           <div className="trabajo-link-icon drive">
@@ -932,6 +940,39 @@ const Trabajo: React.FC = () => {
                             <div className="trabajo-action-card-title">Calificar entrega</div>
                             <div className="trabajo-action-card-desc">
                               Asignar calificación y actualizar el estado de la entrega.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Finalizar TFI (Docente evaluador / Admin / Superadmin) */}
+                      {((isTeacher && !isTutor) || isAdmin) && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            setConfirmActionModal({
+                              open: true,
+                              title: 'Finalizar TFI',
+                              message:
+                                '¿Estás seguro de que querés finalizar este proyecto TFI? Esta acción dará por concluido todo el proyecto y cambiará su estado a finalizado.',
+                              confirmText: 'Sí, finalizar TFI',
+                              actionType: 'finish_tfi',
+                            })
+                          }
+                          disabled={actionLoading}
+                        >
+                          <div
+                            className="trabajo-action-icon-circle"
+                            style={{ backgroundColor: '#fef2f2', color: '#b91c1c' }}
+                          >
+                            <FaCheck size={16} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Finalizar TFI</div>
+                            <div className="trabajo-action-card-desc">
+                              Dar por concluido el proyecto y marcarlo como finalizado.
                             </div>
                           </div>
                           <FaChevronRight className="trabajo-action-chevron" />

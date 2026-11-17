@@ -237,7 +237,7 @@
   cursor: pointer;
 }
 
-/* Modal Reestablecer Contraseña */
+/* Modal Restablecer Contraseña */
 .login-modal-overlay {
   position: fixed;
   inset: 0;
@@ -382,12 +382,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(100, 0, 29, 0.72) 0%,
-    rgba(80, 0, 23, 0.55) 45%,
-    rgba(17, 24, 39, 0.75) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(100, 0, 29, 0.72) 0%,
+      rgba(80, 0, 23, 0.55) 45%,
+      rgba(17, 24, 39, 0.75) 100%);
   z-index: 1;
 }
 

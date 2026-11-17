@@ -347,13 +347,6 @@ export const PPPTramiteDetail: React.FC = () => {
               <Link to="/ppp/expedientes" className="btn-unla-outline">
                 ← Volver a expedientes
               </Link>
-              <button
-                type="button"
-                className="btn-unla-outline"
-                onClick={() => setShowDriveModal(true)}
-              >
-                Configurar Drive oficial
-              </button>
             </div>
           )}
         </div>

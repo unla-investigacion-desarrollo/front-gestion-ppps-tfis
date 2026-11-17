@@ -200,7 +200,9 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           ultimaTutoria,
           tutoringRequested,
           workId,
-          rawProject: projectData,
+          rawProject: work
+            ? { ...projectData, studentWork: projectData.studentWork || work }
+            : projectData,
         };
       });
 

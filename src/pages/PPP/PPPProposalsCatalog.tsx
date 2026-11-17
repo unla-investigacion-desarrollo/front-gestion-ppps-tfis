@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   FaIdCard,
   FaPlus,
@@ -7,7 +9,7 @@ import {
   FaTableList,
   FaTableCellsLarge,
 } from 'react-icons/fa6';
-import { usePPPProposals } from '../../hooks/usePPPProposals';
+import { usePPPProposals, CreateProposalFormData } from '../../hooks/usePPPProposals';
 import {
   PPPProposalsTable,
   PPPProposalsCards,
@@ -16,8 +18,13 @@ import {
   PPPApplicantsModal,
   PPPDriveModal,
   PPPAppliedFeedbackModal,
+  PPPCloseProposalModal,
+  PPPEditProposalModal,
   PPPHowItWorks,
 } from './components';
+import { PPPProposal, pppService } from '../../services/pppService';
+import { fetchPPPProposals } from '../../../redux/slices/pppSlice';
+import { showToast } from '../../utils/toast';
 import './PPP.css';
 
 export const PPPProposalsCatalog: React.FC = () => {
@@ -65,8 +72,92 @@ export const PPPProposalsCatalog: React.FC = () => {
     handleViewTramite,
   } = usePPPProposals();
 
+  const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
+  const [proposalToClose, setProposalToClose] = useState<PPPProposal | null>(null);
+  const [editingProposal, setEditingProposal] = useState<PPPProposal | null>(null);
+  const [editForm, setEditForm] = useState<CreateProposalFormData>({
+    title: '',
+    description: '',
+    driveFolderUrl: '',
+  });
+  const [savingEdit, setSavingEdit] = useState<boolean>(false);
+
+  const handleOpenEdit = (proposalItem: PPPProposal) => {
+    setEditingProposal(proposalItem);
+    setEditForm({
+      title: proposalItem.title || '',
+      description: proposalItem.description || '',
+      driveFolderUrl: proposalItem.driveFolderUrl || '',
+    });
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProposal) return;
+    if (!editForm.title.trim() || !editForm.description.trim()) {
+      showToast('El título y la descripción son obligatorios.', 'error');
+      return;
+    }
+
+    const token = localStorage.getItem('token') || '';
+    if (!token) {
+      showToast('Sesión no válida o expirada.', 'error');
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      await pppService.updateProposal(
+        editingProposal.id,
+        {
+          title: editForm.title,
+          description: editForm.description,
+          driveFolderUrl: editForm.driveFolderUrl,
+        },
+        token
+      );
+      showToast('Propuesta PPP actualizada correctamente.', 'success');
+      setEditingProposal(null);
+      await dispatch(fetchPPPProposals({ isStudent }));
+    } catch (err: any) {
+      showToast(err?.message || 'Error al actualizar la propuesta PPP.', 'error');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteProposal = async (proposalItem: PPPProposal) => {
+    const confirmed = window.confirm(
+      `¿Estás seguro de eliminar la propuesta "${proposalItem.title}"? Esta acción es definitiva.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token') || '';
+      await pppService.deleteProposal(proposalItem.id, token);
+      showToast('Propuesta PPP eliminada correctamente.', 'success');
+      await dispatch(fetchPPPProposals({ isStudent }));
+    } catch (err: any) {
+      showToast(err?.message || 'Error al eliminar la propuesta PPP.', 'error');
+    }
+  };
+
+  const handleSwitchStatus = (proposalItem: PPPProposal) => {
+    if (proposalItem.isOpen) {
+      setProposalToClose(proposalItem);
+      return;
+    }
+    handleToggleOpenStatus(proposalItem);
+  };
+
+  const handleConfirmCloseProposal = async () => {
+    if (!proposalToClose) return;
+    await handleToggleOpenStatus(proposalToClose);
+    setProposalToClose(null);
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -235,7 +326,7 @@ export const PPPProposalsCatalog: React.FC = () => {
             canManageApplicants={canManageApplicants}
             isTutor={isTutor}
             actionLoading={actionLoading}
-            onToggleOpenStatus={handleToggleOpenStatus}
+            onToggleOpenStatus={handleSwitchStatus}
             onOpenApplyModal={(proposalItem) => {
               setSelectedProposalToApply(proposalItem);
               setShowApplyModal(true);
@@ -245,6 +336,9 @@ export const PPPProposalsCatalog: React.FC = () => {
               setShowApplicantsModal(true);
             }}
             onNavigateToApplicantsPage={handleNavigateToApplicantsPage}
+            onViewProject={(proposalItem) => navigate(`/ppp/catalogo/${proposalItem.id}`)}
+            onEditProposal={handleOpenEdit}
+            onDeleteProposal={handleDeleteProposal}
           />
         ) : (
           <>
@@ -255,7 +349,7 @@ export const PPPProposalsCatalog: React.FC = () => {
               canManageApplicants={canManageApplicants}
               isTutor={isTutor}
               actionLoading={actionLoading}
-              onToggleOpenStatus={handleToggleOpenStatus}
+              onToggleOpenStatus={handleSwitchStatus}
               onOpenApplyModal={(proposalItem) => {
                 setSelectedProposalToApply(proposalItem);
                 setShowApplyModal(true);
@@ -368,6 +462,24 @@ export const PPPProposalsCatalog: React.FC = () => {
           feedback={appliedFeedback}
           onClose={() => setAppliedFeedback(null)}
           onViewTramite={handleViewTramite}
+        />
+
+        {/* Modal de Confirmación para Cerrar Convocatoria */}
+        <PPPCloseProposalModal
+          proposal={proposalToClose}
+          onClose={() => setProposalToClose(null)}
+          onConfirm={handleConfirmCloseProposal}
+          actionLoading={actionLoading}
+        />
+
+        {/* Modal para Editar Propuesta PPP */}
+        <PPPEditProposalModal
+          proposal={editingProposal}
+          form={editForm}
+          onFormChange={setEditForm}
+          onClose={() => setEditingProposal(null)}
+          onSubmit={handleSaveEdit}
+          actionLoading={savingEdit}
         />
       </div>
     </div>

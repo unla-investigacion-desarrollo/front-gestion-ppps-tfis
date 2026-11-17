@@ -619,3 +619,179 @@ export const PPPAppliedFeedbackModal: React.FC<AppliedFeedbackModalProps> = ({
     </div>
   );
 };
+
+// =========================================================================
+// MODAL 6: Confirmar cierre de convocatoria PPP
+// =========================================================================
+export interface CloseProposalModalProps {
+  proposal: PPPProposal | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  actionLoading: boolean;
+}
+
+export const PPPCloseProposalModal: React.FC<CloseProposalModalProps> = ({
+  proposal,
+  onClose,
+  onConfirm,
+  actionLoading,
+}) => {
+  if (!proposal) return null;
+
+  return (
+    <div
+      className="modal fade show d-block"
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content border-0 shadow-lg rounded-4">
+          <div className="modal-header border-bottom px-4 py-3">
+            <h5 className="modal-title fw-bold text-dark">Cerrar convocatoria PPP</h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+              disabled={actionLoading}
+              aria-label="Cerrar"
+            />
+          </div>
+          <div className="modal-body p-4 d-flex flex-column gap-3">
+            <div className="p-3 bg-light rounded-3 border">
+              <div className="small text-muted mb-1">Convocatoria seleccionada</div>
+              <div className="fw-semibold text-dark">{proposal.title}</div>
+            </div>
+
+            <div className="alert alert-warning mb-0 rounded-3 small" role="alert">
+              <div className="fw-bold mb-1">¿Estás seguro de que querés cerrar esta convocatoria?</div>
+              <div>
+                Al cerrarla, todas las postulaciones pendientes serán rechazadas automáticamente por el sistema.
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer border-top px-4 py-3">
+            <button
+              type="button"
+              className="btn btn-light"
+              onClick={onClose}
+              disabled={actionLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={onConfirm}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Cerrando...' : 'Sí, cerrar convocatoria'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
+// MODAL 7: Editar Propuesta PPP
+// =========================================================================
+export interface EditProposalModalProps {
+  proposal: PPPProposal | null;
+  form: CreateProposalFormData;
+  onFormChange: (updatedForm: CreateProposalFormData) => void;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  actionLoading: boolean;
+}
+
+export const PPPEditProposalModal: React.FC<EditProposalModalProps> = ({
+  proposal,
+  form,
+  onFormChange,
+  onClose,
+  onSubmit,
+  actionLoading,
+}) => {
+  if (!proposal) return null;
+
+  return (
+    <div
+      className="modal fade show d-block"
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content border-0 shadow-lg rounded-4">
+          <div className="modal-header border-bottom px-4 py-3">
+            <h5 className="modal-title fw-bold text-dark">Editar PPP</h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+              disabled={actionLoading}
+              aria-label="Cerrar"
+            />
+          </div>
+          <form onSubmit={onSubmit}>
+            <div className="modal-body p-4 d-flex flex-column gap-3">
+              <div>
+                <label className="form-label small fw-semibold text-dark">Título *</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={form.title}
+                  onChange={(e) => onFormChange({ ...form, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label small fw-semibold text-dark">Descripción *</label>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) => onFormChange({ ...form, description: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label small fw-semibold text-dark">
+                  Carpeta Google Drive (Opcional)
+                </label>
+                <input
+                  type="url"
+                  className="form-control"
+                  placeholder="https://drive.google.com/drive/folders/..."
+                  value={form.driveFolderUrl}
+                  onChange={(e) => onFormChange({ ...form, driveFolderUrl: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="modal-footer border-top px-4 py-3">
+              <button
+                type="button"
+                className="btn btn-light"
+                onClick={onClose}
+                disabled={actionLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn-unla-primary"
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
