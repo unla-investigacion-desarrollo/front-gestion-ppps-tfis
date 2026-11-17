@@ -562,4 +562,39 @@ export const projectService = {
       return { pendingProfessors: [], pendingStudents: [] };
     }
   },
+
+  /**
+   * Finaliza un proyecto TFI (PATCH /project/:id/finalize).
+   * Requiere rol ADMIN o PROFESSOR y que la entrega tenga calificación definitiva.
+   */
+  finalizeProject: async (
+    projectId: number | string,
+    token: string
+  ): Promise<{ message: string; id: number; status: string }> => {
+    const res = await fetch(`${API_URL}/project/${projectId}/finalize`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      const errorMessage = Array.isArray(parsedError?.message)
+        ? parsedError.message.join(', ')
+        : parsedError?.message;
+      throw new Error(errorMessage || text || `Error ${res.status}: Falló la finalización del proyecto`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: text || 'Proyecto finalizado con éxito', id: Number(projectId), status: 'finalized' };
+    }
+  },
 };
