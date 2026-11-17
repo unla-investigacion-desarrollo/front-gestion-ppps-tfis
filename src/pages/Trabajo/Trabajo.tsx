@@ -75,7 +75,7 @@ const Trabajo: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   // Estados de navegación visual y controles de documento (Mockup)
-  const [activeTab, setActiveTab] = useState<'documento' | 'informacion' | 'historial'>('documento');
+  const [activeTab, setActiveTab] = useState<'documento' | 'drive' | 'historial'>('documento');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
 
   // Estados de modales
@@ -661,11 +661,11 @@ const Trabajo: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className={`trabajo-tab-btn ${activeTab === 'informacion' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('informacion')}
+                    className={`trabajo-tab-btn ${activeTab === 'drive' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('drive')}
                   >
-                    <FaCircleInfo size={14} />
-                    Información
+                    <FaFolderOpen size={14} />
+                    Drive
                   </button>
                 </div>
                 {work.documentUrl && (
@@ -684,30 +684,9 @@ const Trabajo: React.FC = () => {
               <div className="trabajo-delivery-grid">
                 {/* Columna Principal */}
                 <div className="trabajo-main-column">
-                  {activeTab === 'informacion' ? (
-                    /* Pestaña Información: Enlaces y detalles de archivos */
-                    <div className="trabajo-links-grid mb-0">
-                      <div className="trabajo-link-box">
-                        <div className="trabajo-link-box-header">
-                          <div className="trabajo-link-icon docs">
-                            <FaFileLines size={20} />
-                          </div>
-                          <div>
-                            <h4 className="trabajo-link-title">Documento de Entrega (Google Docs)</h4>
-                            <span className="trabajo-link-sub">Enlace obligatorio a la documentación oficial</span>
-                          </div>
-                        </div>
-                        <a
-                          href={work.documentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="trabajo-link-action-btn flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1.5"
-                        >
-                          <FaArrowUpRightFromSquare size={14} />
-                          Abrir en Google Docs
-                        </a>
-                      </div>
-
+                  {activeTab === 'drive' ? (
+                    /* Pestaña Drive: Carpeta de archivos en Google Drive */
+                    <div className="trabajo-links-grid mb-0" style={{ gridTemplateColumns: '1fr' }}>
                       <div className="trabajo-link-box">
                         <div className="trabajo-link-box-header">
                           <div className="trabajo-link-icon drive">

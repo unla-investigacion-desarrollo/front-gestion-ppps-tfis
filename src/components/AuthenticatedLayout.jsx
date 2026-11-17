@@ -174,7 +174,6 @@ const AuthenticatedLayout = ({ children }) => {
               <NavLink to="/dashboard">Inicio</NavLink>
               <NavLink to="/docente/proyectos">Proyectos TFI</NavLink>
               <NavLink to="/ppp/convocatorias">Postulaciones PPP</NavLink>
-              <NavLink to="/ppp/catalogo">Catálogo de PPP</NavLink>
               <NavLink to="/ppp/expedientes">Trámites de Estudiantes (PPP)</NavLink>
               <NavLink to="/admin/approvals">Solicitudes</NavLink>
               {isAdmin && <NavLink to="/admin/users">Usuarios</NavLink>}

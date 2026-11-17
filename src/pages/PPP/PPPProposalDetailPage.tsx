@@ -120,9 +120,9 @@ export const PPPProposalDetailPage: React.FC = () => {
             <button
               type="button"
               className="btn-unla-primary"
-              onClick={() => navigate('/ppp/catalogo')}
+              onClick={() => navigate('/ppp/convocatorias')}
             >
-              Volver al Catálogo de PPP
+              Volver a Convocatorias PPP
             </button>
           </div>
         </div>
@@ -138,10 +138,10 @@ export const PPPProposalDetailPage: React.FC = () => {
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2 bg-white"
-            onClick={() => navigate('/ppp/catalogo')}
+            onClick={() => navigate('/ppp/convocatorias')}
           >
             <FaArrowLeft size={12} />
-            Volver al Catálogo de PPP
+            Volver a Convocatorias PPP
           </button>
 
           <div className="d-flex align-items-center gap-2">
