@@ -93,7 +93,7 @@ const Trabajo: React.FC = () => {
     title: string;
     message: string;
     confirmText: string;
-    actionType: 'mark_observed' | 'notify_advances' | 'request_tutoring' | 'mark_tutored' | null;
+    actionType: 'mark_observed' | 'notify_advances' | 'request_tutoring' | 'mark_tutored' | 'finish_tfi' | null;
   }>({
     open: false,
     title: '',
@@ -339,6 +339,10 @@ const Trabajo: React.FC = () => {
           await applyWorkUpdate(updated);
           showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
+        case 'finish_tfi':
+          // Pendiente de conectar al endpoint de finalización de proyecto TFI en el backend
+          setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
+          return;
       }
       setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
     } catch (actionError: any) {
@@ -419,22 +423,24 @@ const Trabajo: React.FC = () => {
   return (
     <div className="trabajo-page-container">
       <div className="trabajo-wrapper">
-        {/* Barra superior con navegación */}
-        <div className="trabajo-top-bar">
-          <Link
-            to={backDestination}
-            state={backState}
-            className="trabajo-back-btn d-inline-flex align-items-center gap-1.5"
-          >
-            <FaArrowLeft size={16} />
-            {isFromMisProyectos && isStudent ? 'Ir a Mi TFI' : backLabel}
-          </Link>
-          <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-light text-dark border">
-              Proyecto #{projectId}
-            </span>
+        {/* Barra superior con navegación (oculta para vista de estudiante) */}
+        {!(isStudent && !isAdmin && !isTeacher) && (
+          <div className="trabajo-top-bar">
+            <Link
+              to={backDestination}
+              state={backState}
+              className="trabajo-back-btn d-inline-flex align-items-center gap-1.5"
+            >
+              <FaArrowLeft size={16} />
+              {backLabel}
+            </Link>
+            <div className="d-flex align-items-center gap-2">
+              <span className="badge bg-light text-dark border">
+                Proyecto #{projectId}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Banner Informativo si es Proyecto PPP */}
         {(project?.categoria?.toUpperCase() === 'PPP' || project?.projectType?.name?.toUpperCase() === 'PPP') && (
@@ -664,7 +670,14 @@ const Trabajo: React.FC = () => {
                     className={`trabajo-tab-btn ${activeTab === 'drive' ? 'active' : ''}`}
                     onClick={() => setActiveTab('drive')}
                   >
-                    <FaFolderOpen size={14} />
+                    <svg width="15" height="15" viewBox="0 0 87.3 78" aria-hidden="true">
+                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
+                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" />
+                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335" />
+                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" />
+                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" />
+                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" />
+                    </svg>
                     Drive
                   </button>
                 </div>
@@ -927,6 +940,39 @@ const Trabajo: React.FC = () => {
                             <div className="trabajo-action-card-title">Calificar entrega</div>
                             <div className="trabajo-action-card-desc">
                               Asignar calificación y actualizar el estado de la entrega.
+                            </div>
+                          </div>
+                          <FaChevronRight className="trabajo-action-chevron" />
+                        </button>
+                      )}
+
+                      {/* Finalizar TFI (Docente evaluador / Admin / Superadmin) */}
+                      {((isTeacher && !isTutor) || isAdmin) && (
+                        <button
+                          type="button"
+                          className="trabajo-action-card"
+                          onClick={() =>
+                            setConfirmActionModal({
+                              open: true,
+                              title: 'Finalizar TFI',
+                              message:
+                                '¿Estás seguro de que querés finalizar este proyecto TFI? Esta acción dará por concluido todo el proyecto y cambiará su estado a finalizado.',
+                              confirmText: 'Sí, finalizar TFI',
+                              actionType: 'finish_tfi',
+                            })
+                          }
+                          disabled={actionLoading}
+                        >
+                          <div
+                            className="trabajo-action-icon-circle"
+                            style={{ backgroundColor: '#fef2f2', color: '#b91c1c' }}
+                          >
+                            <FaCheck size={16} />
+                          </div>
+                          <div className="trabajo-action-card-text">
+                            <div className="trabajo-action-card-title">Finalizar TFI</div>
+                            <div className="trabajo-action-card-desc">
+                              Dar por concluido el proyecto y marcarlo como finalizado.
                             </div>
                           </div>
                           <FaChevronRight className="trabajo-action-chevron" />

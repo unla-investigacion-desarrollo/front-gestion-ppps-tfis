@@ -45,8 +45,8 @@ export const usePPPProposals = () => {
     const rawRoles = Array.isArray(currentUser?.roles)
       ? currentUser.roles
       : currentUser?.rol
-      ? [currentUser.rol]
-      : [];
+        ? [currentUser.rol]
+        : [];
     return rawRoles.map((roleRecord: any) =>
       String(roleRecord).toUpperCase().trim()
     );

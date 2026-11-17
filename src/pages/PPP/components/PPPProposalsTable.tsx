@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaEllipsisVertical, FaFolderOpen, FaLock, FaUsers } from 'react-icons/fa6';
+import { FaEllipsisVertical, FaFolderOpen, FaLock, FaPowerOff, FaUsers } from 'react-icons/fa6';
 import { PPPProposal } from '../../../services/pppService';
 import '../../Teacher/TeacherProjectsList.css';
 
@@ -70,7 +70,7 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
             <th style={{ width: '8%' }}>Ref</th>
             <th style={{ width: showActionsColumn ? '24%' : '28%' }}>Convocatoria</th>
             <th style={{ width: showActionsColumn ? '26%' : '30%' }}>Descripción</th>
-            <th style={{ width: '14%' }}>Estado</th>
+            <th style={{ width: '14%' }}>Convocatoria</th>
             <th style={{ width: '10%' }}>Recursos</th>
             <th style={{ width: '10%', textAlign: 'center' }}>
               {isStudent ? 'Acción' : 'Postulantes'}
@@ -167,9 +167,11 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                             : 'Abrir convocatoria'
                         }
                       >
-                        <span className="ppp-toggle-thumb" />
+                        <span className="ppp-toggle-thumb">
+                          <FaPowerOff size={11} />
+                        </span>
                         <span className="ppp-toggle-label">
-                          {proposalItem.isOpen ? 'ON' : 'OFF'}
+                          {proposalItem.isOpen ? 'Abierta' : 'Cerrada'}
                         </span>
                       </button>
                     </div>
@@ -218,7 +220,23 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                   ) : (
                     <button
                       type="button"
-                      className="btn btn-sm btn-unla-outline d-inline-flex align-items-center gap-1"
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 ${
+                        pendingApplicantsCount > 0 ? '' : 'btn-unla-outline'
+                      }`}
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: '8px',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        ...(pendingApplicantsCount > 0
+                          ? {
+                              backgroundColor: '#ecfdf5',
+                              border: '1px solid #86efac',
+                              color: '#047857',
+                            }
+                          : {}),
+                      }}
                       onClick={() => {
                         if (onNavigateToApplicantsPage) {
                           onNavigateToApplicantsPage(proposalItem);
@@ -229,7 +247,10 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                       title="Ver postulaciones recibidas para esta convocatoria"
                     >
                       <FaUsers size={13} />
-                      Postulantes ({pendingApplicantsCount})
+                      <span>
+                        {pendingApplicantsCount}{' '}
+                        {pendingApplicantsCount === 1 ? 'postulante' : 'postulantes'}
+                      </span>
                     </button>
                   )}
                 </td>
