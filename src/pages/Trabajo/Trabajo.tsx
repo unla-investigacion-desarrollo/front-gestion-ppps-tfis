@@ -339,10 +339,17 @@ const Trabajo: React.FC = () => {
           await applyWorkUpdate(updated);
           showToast('Tutoría confirmada con éxito. Se actualizó el registro de atención.', 'success');
           break;
-        case 'finish_tfi':
-          // Pendiente de conectar al endpoint de finalización de proyecto TFI en el backend
-          setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
-          return;
+        case 'finish_tfi': {
+          if (!projectId) return;
+          const result = await projectService.finalizeProject(projectId, token);
+          const nextStatus = result?.status || 'finalized';
+          setProject((prev: any) =>
+            prev ? { ...prev, status: nextStatus, estado: nextStatus } : prev
+          );
+          dispatch(fetchProjects());
+          showToast(result?.message || 'Proyecto finalizado con éxito', 'success');
+          break;
+        }
       }
       setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
     } catch (actionError: any) {
@@ -947,37 +954,46 @@ const Trabajo: React.FC = () => {
                       )}
 
                       {/* Finalizar TFI (Docente evaluador / Admin / Superadmin) */}
-                      {((isTeacher && !isTutor) || isAdmin) && (
-                        <button
-                          type="button"
-                          className="trabajo-action-card"
-                          onClick={() =>
-                            setConfirmActionModal({
-                              open: true,
-                              title: 'Finalizar TFI',
-                              message:
-                                '¿Estás seguro de que querés finalizar este proyecto TFI? Esta acción dará por concluido todo el proyecto y cambiará su estado a finalizado.',
-                              confirmText: 'Sí, finalizar TFI',
-                              actionType: 'finish_tfi',
-                            })
-                          }
-                          disabled={actionLoading}
-                        >
-                          <div
-                            className="trabajo-action-icon-circle"
-                            style={{ backgroundColor: '#fef2f2', color: '#b91c1c' }}
+                      {((isTeacher && !isTutor) || isAdmin) && (() => {
+                        const normalizedProjectStatus = String(project?.estado || project?.status || '').toLowerCase();
+                        const isProjectClosed = normalizedProjectStatus === 'finalized' || normalizedProjectStatus === 'canceled';
+                        return (
+                          <button
+                            type="button"
+                            className="trabajo-action-card"
+                            onClick={() =>
+                              setConfirmActionModal({
+                                open: true,
+                                title: 'Finalizar TFI',
+                                message:
+                                  '¿Estás seguro de que querés finalizar este proyecto TFI? Esta acción dará por concluido todo el proyecto y cambiará su estado a finalizado.',
+                                confirmText: 'Sí, finalizar TFI',
+                                actionType: 'finish_tfi',
+                              })
+                            }
+                            disabled={actionLoading || isProjectClosed}
+                            title={isProjectClosed ? 'El proyecto ya no admite finalización' : undefined}
                           >
-                            <FaCheck size={16} />
-                          </div>
-                          <div className="trabajo-action-card-text">
-                            <div className="trabajo-action-card-title">Finalizar TFI</div>
-                            <div className="trabajo-action-card-desc">
-                              Dar por concluido el proyecto y marcarlo como finalizado.
+                            <div
+                              className="trabajo-action-icon-circle"
+                              style={{ backgroundColor: '#fef2f2', color: '#b91c1c' }}
+                            >
+                              <FaCheck size={16} />
                             </div>
-                          </div>
-                          <FaChevronRight className="trabajo-action-chevron" />
-                        </button>
-                      )}
+                            <div className="trabajo-action-card-text">
+                              <div className="trabajo-action-card-title">Finalizar TFI</div>
+                              <div className="trabajo-action-card-desc">
+                                {normalizedProjectStatus === 'finalized'
+                                  ? 'El proyecto ya se encuentra finalizado.'
+                                  : normalizedProjectStatus === 'canceled'
+                                    ? 'El proyecto se encuentra cancelado.'
+                                    : 'Dar por concluido el proyecto y marcarlo como finalizado.'}
+                              </div>
+                            </div>
+                            <FaChevronRight className="trabajo-action-chevron" />
+                          </button>
+                        );
+                      })()}
 
                       {/* Notificar Avances (Exclusivo Estudiante) */}
                       {isStudent && (
