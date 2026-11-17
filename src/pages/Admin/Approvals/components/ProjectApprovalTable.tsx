@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaHourglassHalf, FaCheck, FaXmark, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
+import { FaCheck, FaXmark, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
 import { UnifiedPendingRequest } from '../../../../../redux/slices/projectsSlice';
 import { User } from '../../../../../redux/slices/usersSlice';
 
@@ -61,11 +61,11 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
     if (req.applicantRole === 'professor') {
       detail = req.specialization ? `Especialidad: ${req.specialization}` : 'Docente postulado';
     } else {
-      const legajoOrDni = found?.legajo || found?.dni;
+      const dni = found?.dni;
       if (req.yearOfAdmission) {
-        detail = `Ingreso: ${req.yearOfAdmission}${legajoOrDni ? ` | Legajo/DNI: ${legajoOrDni}` : ''}`;
-      } else if (legajoOrDni) {
-        detail = `Legajo/DNI: ${legajoOrDni}`;
+        detail = `Ingreso: ${req.yearOfAdmission}${dni ? ` | DNI: ${dni}` : ''}`;
+      } else if (dni) {
+        detail = `DNI: ${dni}`;
       } else {
         detail = 'Estudiante postulado';
       }
@@ -214,7 +214,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                   {/* Columna Estado */}
                   <td>
                     <span className="badge-status-mockup-pending">
-                      <FaHourglassHalf size={12} style={{ marginRight: '4px' }} />
+                      <span className="badge-status-pending-dot" aria-hidden="true" />
                       Pendiente
                     </span>
                   </td>
