@@ -8,4 +8,5 @@ export {
   PPPDriveModal,
   PPPAppliedFeedbackModal,
   PPPCloseProposalModal,
+  PPPEditProposalModal,
 } from './PPPProposalsModals';

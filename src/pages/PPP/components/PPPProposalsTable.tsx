@@ -1,6 +1,7 @@
-import React from 'react';
-import { FaFolderOpen, FaLock, FaUsers } from 'react-icons/fa6';
+import React, { useState } from 'react';
+import { FaEllipsisVertical, FaFolderOpen, FaLock, FaUsers } from 'react-icons/fa6';
 import { PPPProposal } from '../../../services/pppService';
+import '../../Teacher/TeacherProjectsList.css';
 
 export interface PPPProposalsTableProps {
   proposals: PPPProposal[];
@@ -19,6 +20,9 @@ export interface PPPProposalsTableProps {
   onOpenApplyModal: (proposalItem: PPPProposal) => void;
   onOpenApplicantsModal: (proposalItem: PPPProposal) => void;
   onNavigateToApplicantsPage?: (proposalItem: PPPProposal) => void;
+  onViewProject?: (proposalItem: PPPProposal) => void;
+  onEditProposal?: (proposalItem: PPPProposal) => void;
+  onDeleteProposal?: (proposalItem: PPPProposal) => void;
 }
 
 /**
@@ -41,7 +45,13 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
   onOpenApplyModal,
   onOpenApplicantsModal,
   onNavigateToApplicantsPage,
+  onViewProject,
+  onEditProposal,
+  onDeleteProposal,
 }) => {
+  const [activeDropdownId, setActiveDropdownId] = useState<string | number | null>(null);
+  const showActionsColumn = !isStudent && Boolean(onViewProject || onEditProposal || onDeleteProposal);
+
   if (totalItems === 0) {
     return (
       <div className="ppp-table-card">
@@ -58,13 +68,16 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
         <thead>
           <tr>
             <th style={{ width: '8%' }}>Ref</th>
-            <th style={{ width: '28%' }}>Convocatoria</th>
-            <th style={{ width: '30%' }}>Descripción</th>
+            <th style={{ width: showActionsColumn ? '24%' : '28%' }}>Convocatoria</th>
+            <th style={{ width: showActionsColumn ? '26%' : '30%' }}>Descripción</th>
             <th style={{ width: '14%' }}>Estado</th>
             <th style={{ width: '10%' }}>Recursos</th>
             <th style={{ width: '10%', textAlign: 'center' }}>
               {isStudent ? 'Acción' : 'Postulantes'}
             </th>
+            {showActionsColumn && (
+              <th style={{ width: '8%', textAlign: 'center' }}>Acciones</th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -220,6 +233,83 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
                     </button>
                   )}
                 </td>
+
+                {showActionsColumn && (
+                  <td style={{ textAlign: 'center' }}>
+                    <div className="d-inline-flex align-items-center justify-content-center">
+                      <div className="actions-dropdown-wrapper">
+                        <button
+                          type="button"
+                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${
+                            activeDropdownId === proposalItem.id ? 'active' : ''
+                          }`}
+                          onClick={() =>
+                            setActiveDropdownId(
+                              activeDropdownId === proposalItem.id ? null : proposalItem.id
+                            )
+                          }
+                          title="Acciones"
+                        >
+                          <FaEllipsisVertical size={15} />
+                        </button>
+
+                        {activeDropdownId === proposalItem.id && (
+                          <>
+                            <div
+                              className="dropdown-click-outside-backdrop"
+                              onClick={() => setActiveDropdownId(null)}
+                            />
+                            <ul className="custom-dropdown-menu dropdown-menu-end">
+                              {onViewProject && (
+                                <button
+                                  type="button"
+                                  className="custom-dropdown-item fw-semibold"
+                                  style={{ color: 'var(--unla-primary, #64001d)' }}
+                                  onClick={() => {
+                                    setActiveDropdownId(null);
+                                    onViewProject(proposalItem);
+                                  }}
+                                >
+                                  Ver proyecto
+                                </button>
+                              )}
+                              {onEditProposal && (
+                                <>
+                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item"
+                                    onClick={() => {
+                                      setActiveDropdownId(null);
+                                      onEditProposal(proposalItem);
+                                    }}
+                                  >
+                                    Editar
+                                  </button>
+                                </>
+                              )}
+                              {onDeleteProposal && (
+                                <>
+                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item text-danger"
+                                    onClick={() => {
+                                      setActiveDropdownId(null);
+                                      onDeleteProposal(proposalItem);
+                                    }}
+                                  >
+                                    Eliminar
+                                  </button>
+                                </>
+                              )}
+                            </ul>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                )}
               </tr>
             );
           })}
