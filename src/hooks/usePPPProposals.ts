@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { selectCurrentUser } from '../../redux/slices/authSlice';
 import {
   fetchPPPProposals,
+  fetchPPPExpedientes,
   createPPPProposal,
   updatePPPProposalStatus,
   applyToPPPProposal,
@@ -44,8 +45,8 @@ export const usePPPProposals = () => {
     const rawRoles = Array.isArray(currentUser?.roles)
       ? currentUser.roles
       : currentUser?.rol
-      ? [currentUser.rol]
-      : [];
+        ? [currentUser.rol]
+        : [];
     return rawRoles.map((roleRecord: any) =>
       String(roleRecord).toUpperCase().trim()
     );
@@ -172,6 +173,10 @@ export const usePPPProposals = () => {
           isOpen: newStatus,
         })
       ).unwrap();
+      await dispatch(fetchPPPProposals({ isStudent }));
+      if (!newStatus) {
+        dispatch(fetchPPPExpedientes());
+      }
       showToast(
         `Convocatoria ${newStatus ? 'abierta' : 'cerrada'} correctamente`,
         'success'

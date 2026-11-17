@@ -60,11 +60,11 @@ function LoginForm() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.message || 'No se pudo procesar la solicitud para reestablecer la contraseña.');
+        throw new Error(data?.message || 'No se pudo procesar la solicitud para restablecer la contraseña.');
       }
 
       setForgotSuccess(
-        data?.message || 'Te enviamos las instrucciones para reestablecer tu contraseña a tu correo electrónico.'
+        data?.message || 'Te enviamos las instrucciones para restablecer tu contraseña a tu correo electrónico.'
       );
     } catch (err: any) {
       setForgotError(err?.message || 'Error al conectar con el servidor.');
@@ -196,7 +196,7 @@ function LoginForm() {
                 className="login-link login-link-btn"
                 onClick={handleOpenForgotModal}
               >
-                Reestablecer contraseña
+                Restablecer contraseña
               </button>
             </div>
           </div>
@@ -246,7 +246,7 @@ function LoginForm() {
             ) : (
               <>
                 <h2 id="forgot-password-title" className="login-modal-title">
-                  Reestablecer contraseña
+                  Restablecer contraseña
                 </h2>
                 <p className="login-modal-subtitle">
                   Ingresá tu correo electrónico para recibir las instrucciones de recuperación.
@@ -278,7 +278,7 @@ function LoginForm() {
                       className="login-button"
                       disabled={forgotLoading}
                     >
-                      {forgotLoading ? 'Enviando...' : 'Reestablecer contraseña'}
+                      {forgotLoading ? 'Enviando...' : 'Restablecer contraseña'}
                     </button>
                     <button
                       type="button"

@@ -210,7 +210,7 @@ const StudentDeliveries: React.FC = () => {
     setBackendError(null);
     try {
       const updated = await studentWorkService.notifyAdvances(work.id, token);
-      setWork(updated);
+      setWork((prev) => (prev ? { ...prev, ...updated } : updated));
       showToast('Se notificaron los avances. Estado: Pendiente de revisión', 'success');
     } catch (err: any) {
       const message = err?.message || 'Error al notificar avances';
@@ -227,7 +227,11 @@ const StudentDeliveries: React.FC = () => {
     setBackendError(null);
     try {
       const updated = await studentWorkService.requestTutoring(work.id, token);
-      setWork(updated);
+      setWork((prev) =>
+        prev
+          ? { ...prev, ...updated, tutoringRequested: updated?.tutoringRequested ?? true }
+          : updated
+      );
       showToast('Tutoría solicitada exitosamente al equipo docente', 'success');
     } catch (err: any) {
       const message = err?.message || 'Error al solicitar tutoría';

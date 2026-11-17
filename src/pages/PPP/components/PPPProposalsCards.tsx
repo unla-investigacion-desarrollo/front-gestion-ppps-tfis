@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaFolderOpen, FaLock, FaUsers } from 'react-icons/fa6';
+import { FaFolderOpen, FaLock, FaPowerOff, FaUsers } from 'react-icons/fa6';
 import { PPPProposal } from '../../../services/pppService';
 
 export interface PPPProposalsCardsProps {
@@ -137,9 +137,11 @@ export const PPPProposalsCards: React.FC<PPPProposalsCardsProps> = ({
                           : 'Abrir convocatoria'
                       }
                     >
-                      <span className="ppp-toggle-thumb" />
+                      <span className="ppp-toggle-thumb">
+                        <FaPowerOff size={11} />
+                      </span>
                       <span className="ppp-toggle-label">
-                        {proposalItem.isOpen ? 'ON' : 'OFF'}
+                        {proposalItem.isOpen ? 'Abierta' : 'Cerrada'}
                       </span>
                     </button>
                   </div>
