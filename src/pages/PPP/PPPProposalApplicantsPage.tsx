@@ -466,7 +466,6 @@ export const PPPProposalApplicantsPage: React.FC = () => {
                   <th>Estudiante</th>
                   <th>Conocimientos / Motivación</th>
                   <th>Estado</th>
-                  <th style={{ width: '140px' }}>Trámite</th>
                   <th style={{ width: '220px', textAlign: 'center' }}>Acciones de Evaluación</th>
                 </tr>
               </thead>
@@ -571,22 +570,6 @@ export const PPPProposalApplicantsPage: React.FC = () => {
                           <span className="badge bg-warning-subtle text-warning px-2.5 py-1 rounded-pill">
                             Pendiente de evaluación
                           </span>
-                        )}
-                      </td>
-
-                      {/* Columna: Enlace a Trámite si existe */}
-                      <td>
-                        {applicantRecord.applicationId ? (
-                          <Link
-                            to={`/ppp/${applicantRecord.applicationId}`}
-                            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                            title="Ver expediente individual de este trámite"
-                          >
-                            <FaFileLines size={12} />
-                            Ver #{applicantRecord.applicationId}
-                          </Link>
-                        ) : (
-                          <span className="text-muted small">-</span>
                         )}
                       </td>
 
