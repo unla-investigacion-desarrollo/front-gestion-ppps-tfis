@@ -37,6 +37,7 @@ import {
   FaCircleExclamation,
   FaCircleXmark,
   FaCheck,
+  FaTriangleExclamation,
 } from 'react-icons/fa6';
 import './PPP.css';
 
@@ -71,6 +72,7 @@ export const PPPTramiteDetail: React.FC = () => {
   const pppError = useSelector(selectPPPError);
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [showAbandonModal, setShowAbandonModal] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [notifyFile, setNotifyFile] = useState<File | null>(null);
   const [showObserveModal, setShowObserveModal] = useState(false);
@@ -288,10 +290,10 @@ export const PPPTramiteDetail: React.FC = () => {
   };
 
   const handleAbandon = async () => {
-    if (!window.confirm('¿Estás seguro de que deseás dar de baja este trámite de PPP? Esta acción concluirá el expediente definitivamente.')) return;
     setActionLoading(true);
     try {
       await dispatch(abandonPPPExpediente(expediente.id)).unwrap();
+      setShowAbandonModal(false);
       showToast('Trámite dado de baja correctamente', 'info');
     } catch (err: any) {
       showToast(err || 'Error al dar de baja trámite', 'error');
@@ -597,7 +599,7 @@ export const PPPTramiteDetail: React.FC = () => {
                   type="button"
                   className="btn btn-outline-danger"
                   disabled={!canAbandon || actionLoading}
-                  onClick={handleAbandon}
+                  onClick={() => setShowAbandonModal(true)}
                 >
                   Dar de baja trámite
                 </button>
@@ -733,6 +735,73 @@ export const PPPTramiteDetail: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Modal para confirmar la baja definitiva del trámite */}
+        {showAbandonModal && (
+          <div
+            className="modal fade show d-block"
+            style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="abandon-ppp-title"
+            aria-describedby="abandon-ppp-description"
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg rounded-4">
+                <div className="modal-header border-bottom px-4 py-3">
+                  <h5 id="abandon-ppp-title" className="modal-title fw-bold text-dark">
+                    Dar de baja el trámite
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowAbandonModal(false)}
+                    disabled={actionLoading}
+                    aria-label="Cerrar"
+                  />
+                </div>
+                <div className="modal-body p-4">
+                  <div className="d-flex align-items-start gap-3">
+                    <div className="ppp-delete-warning-icon" aria-hidden="true">
+                      <FaTriangleExclamation size={20} />
+                    </div>
+                    <div>
+                      <p className="mb-2 fw-semibold text-dark">
+                        ¿Querés dar de baja este trámite?
+                      </p>
+                      <div className="ppp-delete-proposal-title mb-2">
+                        {resolvedProposalTitle}
+                        <span className="text-secondary fw-normal"> · Trámite #{expediente.id}</span>
+                      </div>
+                      <p id="abandon-ppp-description" className="mb-0 small text-secondary">
+                        El expediente se concluirá definitivamente y no podrás continuar con este trámite.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer border-top px-4 py-3">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={() => setShowAbandonModal(false)}
+                    disabled={actionLoading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ppp-delete-confirm-btn"
+                    onClick={handleAbandon}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? 'Dando de baja...' : 'Sí, dar de baja'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal: Configurar Drive General */}
         {showDriveModal && (
