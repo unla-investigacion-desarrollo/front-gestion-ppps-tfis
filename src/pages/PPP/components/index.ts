@@ -9,5 +9,6 @@ export {
   PPPAppliedFeedbackModal,
   PPPCloseProposalModal,
   PPPDeleteProposalModal,
+  PPPExternalProposalModal,
   PPPEditProposalModal,
 } from './PPPProposalsModals';

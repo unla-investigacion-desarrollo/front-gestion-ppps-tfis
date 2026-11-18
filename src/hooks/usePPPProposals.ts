@@ -92,6 +92,7 @@ export const usePPPProposals = () => {
 
   const [showDriveModal, setShowDriveModal] = useState<boolean>(false);
   const [driveInput, setDriveInput] = useState<string>('');
+  const [showExternalProposalModal, setShowExternalProposalModal] = useState<boolean>(false);
 
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
@@ -278,12 +279,11 @@ export const usePPPProposals = () => {
   };
 
   // Manejador: Iniciar Trámite Externo
-  const handleCreateExternal = async () => {
-    const confirmAction = window.confirm(
-      '¿Deseás iniciar un trámite de Práctica Profesional Supervisada externa? Podrás descargar los modelos y convenios oficiales a continuación.'
-    );
-    if (!confirmAction) return;
+  const handleCreateExternal = () => {
+    setShowExternalProposalModal(true);
+  };
 
+  const handleConfirmCreateExternal = async () => {
     setActionLoading(true);
     try {
       const studentInfo = {
@@ -297,6 +297,7 @@ export const usePPPProposals = () => {
       const newExpediente = await dispatch(
         createPPPExternal({ studentInfo })
       ).unwrap();
+      setShowExternalProposalModal(false);
       showToast('Trámite externo iniciado con éxito', 'success');
       if (newExpediente?.id) {
         navigate(`/ppp/${newExpediente.id}`);
@@ -407,12 +408,15 @@ export const usePPPProposals = () => {
     setSelectedProposalApplicants,
     showDriveModal,
     setShowDriveModal,
+    showExternalProposalModal,
+    setShowExternalProposalModal,
     driveInput,
     setDriveInput,
     handleToggleOpenStatus,
     handleCreateProposalSubmit,
     handleApplySubmit,
     handleCreateExternal,
+    handleConfirmCreateExternal,
     handleUpdateDriveSubmit,
     handleApplicantAction,
     handleNavigateToApplicantsPage,

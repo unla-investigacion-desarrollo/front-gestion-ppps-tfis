@@ -20,6 +20,7 @@ import {
   PPPAppliedFeedbackModal,
   PPPCloseProposalModal,
   PPPDeleteProposalModal,
+  PPPExternalProposalModal,
   PPPEditProposalModal,
   PPPHowItWorks,
 } from './components';
@@ -61,12 +62,15 @@ export const PPPProposalsCatalog: React.FC = () => {
     setSelectedProposalApplicants,
     showDriveModal,
     setShowDriveModal,
+    showExternalProposalModal,
+    setShowExternalProposalModal,
     driveInput,
     setDriveInput,
     handleToggleOpenStatus,
     handleCreateProposalSubmit,
     handleApplySubmit,
     handleCreateExternal,
+    handleConfirmCreateExternal,
     handleUpdateDriveSubmit,
     handleApplicantAction,
     handleNavigateToApplicantsPage,
@@ -460,6 +464,13 @@ export const PPPProposalsCatalog: React.FC = () => {
           onDriveInputChange={setDriveInput}
           onClose={() => setShowDriveModal(false)}
           onSubmit={handleUpdateDriveSubmit}
+          actionLoading={actionLoading}
+        />
+
+        <PPPExternalProposalModal
+          show={showExternalProposalModal}
+          onClose={() => setShowExternalProposalModal(false)}
+          onConfirm={handleConfirmCreateExternal}
           actionLoading={actionLoading}
         />
 
