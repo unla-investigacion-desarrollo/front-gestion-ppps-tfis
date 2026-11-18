@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaFileLines, FaMagnifyingGlass } from 'react-icons/fa6';
+import { FaFileLines, FaMagnifyingGlass, FaArrowRotateLeft } from 'react-icons/fa6';
 import {
   fetchPPPExpedientes,
   selectPPPExpedientes,
@@ -179,6 +179,29 @@ export const PPPExpedientesList: React.FC = () => {
               <option value="dropped_out">Dado de Baja</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2"
+            style={{
+              padding: '7px 14px',
+              borderRadius: '8px',
+              borderColor: '#e5e7eb',
+              color: '#4b5563',
+              backgroundColor: '#ffffff',
+              fontWeight: 500,
+              fontSize: '0.88rem',
+            }}
+            onClick={() => {
+              setSearchQuery('');
+              setFilterType('ALL');
+              setFilterStatus('ALL');
+              setCurrentPage(1);
+            }}
+          >
+            <FaArrowRotateLeft size={13} />
+            Limpiar filtros
+          </button>
         </div>
 
         {/* Tabla de Expedientes */}
