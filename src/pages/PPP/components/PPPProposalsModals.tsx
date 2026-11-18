@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaFileLines, FaTriangleExclamation } from 'react-icons/fa6';
 import { PPPProposal, PPPApplicant } from '../../../services/pppService';
 import { CreateProposalFormData } from '../../../hooks/usePPPProposals';
 
@@ -696,7 +697,171 @@ export const PPPCloseProposalModal: React.FC<CloseProposalModalProps> = ({
 };
 
 // =========================================================================
-// MODAL 7: Editar Propuesta PPP
+// MODAL 7: Confirmar eliminación de propuesta PPP
+// =========================================================================
+export interface DeleteProposalModalProps {
+  proposal: PPPProposal | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  actionLoading: boolean;
+}
+
+export const PPPDeleteProposalModal: React.FC<DeleteProposalModalProps> = ({
+  proposal,
+  onClose,
+  onConfirm,
+  actionLoading,
+}) => {
+  if (!proposal) return null;
+
+  return (
+    <div
+      className="modal fade show d-block"
+      style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-ppp-title"
+      aria-describedby="delete-ppp-description"
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content border-0 shadow-lg rounded-4">
+          <div className="modal-header border-bottom px-4 py-3">
+            <h5 id="delete-ppp-title" className="modal-title fw-bold text-dark">
+              Eliminar propuesta PPP
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+              disabled={actionLoading}
+              aria-label="Cerrar"
+            />
+          </div>
+          <div className="modal-body p-4">
+            <div className="d-flex align-items-start gap-3">
+              <div className="ppp-delete-warning-icon" aria-hidden="true">
+                <FaTriangleExclamation size={20} />
+              </div>
+              <div>
+                <p className="mb-2 fw-semibold text-dark">
+                  ¿Estás seguro de que querés eliminar esta propuesta?
+                </p>
+                <div className="ppp-delete-proposal-title mb-2">{proposal.title}</div>
+                <p id="delete-ppp-description" className="mb-0 small text-secondary">
+                  Esta acción es definitiva y no se puede deshacer.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer border-top px-4 py-3">
+            <button
+              type="button"
+              className="btn btn-light"
+              onClick={onClose}
+              disabled={actionLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn ppp-delete-confirm-btn"
+              onClick={onConfirm}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Eliminando...' : 'Sí, eliminar propuesta'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
+// MODAL 8: Confirmar inicio de trámite externo
+// =========================================================================
+export interface ExternalProposalModalProps {
+  show: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  actionLoading: boolean;
+}
+
+export const PPPExternalProposalModal: React.FC<ExternalProposalModalProps> = ({
+  show,
+  onClose,
+  onConfirm,
+  actionLoading,
+}) => {
+  if (!show) return null;
+
+  return (
+    <div
+      className="modal fade show d-block"
+      style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="external-ppp-title"
+      aria-describedby="external-ppp-description"
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content border-0 shadow-lg rounded-4">
+          <div className="modal-header border-bottom px-4 py-3">
+            <h5 id="external-ppp-title" className="modal-title fw-bold text-dark">
+              Iniciar trámite externo
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+              disabled={actionLoading}
+              aria-label="Cerrar"
+            />
+          </div>
+          <div className="modal-body p-4">
+            <div className="d-flex align-items-start gap-3">
+              <div className="ppp-action-confirm-icon primary" aria-hidden="true">
+                <FaFileLines size={20} />
+              </div>
+              <div>
+                <p className="mb-2 fw-semibold text-dark">
+                  ¿Querés iniciar un trámite de Práctica Profesional Supervisada externa?
+                </p>
+                <p id="external-ppp-description" className="mb-0 small text-secondary">
+                  Se creará un expediente a tu nombre. Desde el trámite podrás consultar los pasos
+                  y acceder a los modelos y convenios oficiales.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer border-top px-4 py-3">
+            <button
+              type="button"
+              className="btn btn-light"
+              onClick={onClose}
+              disabled={actionLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn-unla-primary"
+              onClick={onConfirm}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Iniciando trámite...' : 'Sí, iniciar trámite'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
+// MODAL 9: Editar Propuesta PPP
 // =========================================================================
 export interface EditProposalModalProps {
   proposal: PPPProposal | null;

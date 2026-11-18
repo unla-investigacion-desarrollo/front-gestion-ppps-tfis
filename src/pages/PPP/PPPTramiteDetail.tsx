@@ -37,8 +37,11 @@ import {
   FaCircleExclamation,
   FaCircleXmark,
   FaCheck,
+  FaTriangleExclamation,
 } from 'react-icons/fa6';
 import './PPP.css';
+
+type PPPActionConfirmation = 'approve' | 'disapprove' | 'siu';
 
 export const PPPTramiteDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,6 +74,8 @@ export const PPPTramiteDetail: React.FC = () => {
   const pppError = useSelector(selectPPPError);
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [showAbandonModal, setShowAbandonModal] = useState(false);
+  const [pendingConfirmation, setPendingConfirmation] = useState<PPPActionConfirmation | null>(null);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [notifyFile, setNotifyFile] = useState<File | null>(null);
   const [showObserveModal, setShowObserveModal] = useState(false);
@@ -213,10 +218,10 @@ export const PPPTramiteDetail: React.FC = () => {
   };
 
   const handleApprove = async () => {
-    if (!window.confirm('¿Confirmás la aprobación pedagógica de esta Práctica Profesional Supervisada?')) return;
     setActionLoading(true);
     try {
       await dispatch(approvePPPExpediente(expediente.id)).unwrap();
+      setPendingConfirmation(null);
       showToast('¡Práctica Profesional Aprobada con éxito!', 'success');
     } catch (err: any) {
       showToast(err || 'Error al aprobar expediente', 'error');
@@ -226,10 +231,10 @@ export const PPPTramiteDetail: React.FC = () => {
   };
 
   const handleDisapprove = async () => {
-    if (!window.confirm('¿Estás seguro de desaprobar esta práctica profesional? Esta acción concluye el expediente.')) return;
     setActionLoading(true);
     try {
       await dispatch(disapprovePPPExpediente(expediente.id)).unwrap();
+      setPendingConfirmation(null);
       showToast('Práctica desaprobada. Expediente concluido.', 'error');
     } catch (err: any) {
       showToast(err || 'Error al desaprobar expediente', 'error');
@@ -239,10 +244,10 @@ export const PPPTramiteDetail: React.FC = () => {
   };
 
   const handleSiuLoad = async () => {
-    if (!window.confirm('¿Confirmás que la aprobación de la PPP ya fue cargada y registrada en SIU Guaraní?')) return;
     setActionLoading(true);
     try {
       await dispatch(loadSiuPPPExpediente(expediente.id)).unwrap();
+      setPendingConfirmation(null);
       showToast('Carga en SIU Guaraní confirmada exitosamente', 'success');
     } catch (err: any) {
       showToast(err || 'Error al registrar en SIU Guaraní', 'error');
@@ -288,10 +293,10 @@ export const PPPTramiteDetail: React.FC = () => {
   };
 
   const handleAbandon = async () => {
-    if (!window.confirm('¿Estás seguro de que deseás dar de baja este trámite de PPP? Esta acción concluirá el expediente definitivamente.')) return;
     setActionLoading(true);
     try {
       await dispatch(abandonPPPExpediente(expediente.id)).unwrap();
+      setShowAbandonModal(false);
       showToast('Trámite dado de baja correctamente', 'info');
     } catch (err: any) {
       showToast(err || 'Error al dar de baja trámite', 'error');
@@ -314,6 +319,40 @@ export const PPPTramiteDetail: React.FC = () => {
     (isInterna ? 'Práctica Profesional Supervisada' : 'Práctica Profesional Externa');
   const resolvedDriveFolderUrl =
     expediente.driveFolderUrl || expediente.proposal?.driveFolderUrl;
+  const confirmationDetails = pendingConfirmation
+    ? {
+        approve: {
+          title: 'Aprobar práctica',
+          question: '¿Confirmás la aprobación pedagógica de esta práctica?',
+          description: 'El expediente quedará aprobado y habilitado para registrar su carga en SIU Guaraní.',
+          icon: <FaCheck size={20} />,
+          iconClass: 'success',
+          confirmLabel: 'Sí, aprobar práctica',
+          loadingLabel: 'Aprobando...',
+          confirmClass: 'btn btn-success',
+        },
+        disapprove: {
+          title: 'Desaprobar práctica',
+          question: '¿Estás seguro de que querés desaprobar esta práctica?',
+          description: 'Esta acción concluirá definitivamente el expediente y no se podrá retomar este trámite.',
+          icon: <FaCircleXmark size={20} />,
+          iconClass: 'danger',
+          confirmLabel: 'Sí, desaprobar práctica',
+          loadingLabel: 'Desaprobando...',
+          confirmClass: 'btn btn-danger',
+        },
+        siu: {
+          title: 'Registrar carga en SIU Guaraní',
+          question: '¿La aprobación ya fue cargada y registrada en SIU Guaraní?',
+          description: 'Al confirmar, el sistema dejará constancia de que la carga institucional ya se realizó.',
+          icon: <FaFileLines size={20} />,
+          iconClass: 'primary',
+          confirmLabel: 'Sí, confirmar carga',
+          loadingLabel: 'Registrando...',
+          confirmClass: 'btn ppp-delete-confirm-btn',
+        },
+      }[pendingConfirmation]
+    : null;
 
   return (
     <div className="ppp-page-wrapper">
@@ -597,7 +636,7 @@ export const PPPTramiteDetail: React.FC = () => {
                   type="button"
                   className="btn btn-outline-danger"
                   disabled={!canAbandon || actionLoading}
-                  onClick={handleAbandon}
+                  onClick={() => setShowAbandonModal(true)}
                 >
                   Dar de baja trámite
                 </button>
@@ -682,7 +721,7 @@ export const PPPTramiteDetail: React.FC = () => {
                       disabled={expediente.status === 'approved' || actionLoading}
                       onClick={() => {
                         setActionsMenuOpen(false);
-                        handleApprove();
+                        setPendingConfirmation('approve');
                       }}
                     >
                       <FaCheck size={14} />
@@ -695,7 +734,7 @@ export const PPPTramiteDetail: React.FC = () => {
                       disabled={expediente.status === 'disapproved' || actionLoading}
                       onClick={() => {
                         setActionsMenuOpen(false);
-                        handleDisapprove();
+                        setPendingConfirmation('disapprove');
                       }}
                     >
                       <FaCircleXmark size={14} />
@@ -716,7 +755,7 @@ export const PPPTramiteDetail: React.FC = () => {
                         disabled={expediente.isSiuLoaded || actionLoading}
                         onClick={() => {
                           setActionsMenuOpen(false);
-                          handleSiuLoad();
+                          setPendingConfirmation('siu');
                         }}
                       >
                         <FaCheck size={14} />
@@ -733,6 +772,144 @@ export const PPPTramiteDetail: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Modal de confirmación para acciones académicas y carga institucional */}
+        {confirmationDetails && (
+          <div
+            className="modal fade show d-block"
+            style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ppp-action-confirm-title"
+            aria-describedby="ppp-action-confirm-description"
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg rounded-4">
+                <div className="modal-header border-bottom px-4 py-3">
+                  <h5 id="ppp-action-confirm-title" className="modal-title fw-bold text-dark">
+                    {confirmationDetails.title}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setPendingConfirmation(null)}
+                    disabled={actionLoading}
+                    aria-label="Cerrar"
+                  />
+                </div>
+                <div className="modal-body p-4">
+                  <div className="d-flex align-items-start gap-3">
+                    <div className={`ppp-action-confirm-icon ${confirmationDetails.iconClass}`} aria-hidden="true">
+                      {confirmationDetails.icon}
+                    </div>
+                    <div>
+                      <p className="mb-2 fw-semibold text-dark">{confirmationDetails.question}</p>
+                      <div className="ppp-delete-proposal-title mb-2">
+                        {resolvedProposalTitle}
+                        <span className="text-secondary fw-normal"> · Trámite #{expediente.id}</span>
+                      </div>
+                      <p id="ppp-action-confirm-description" className="mb-0 small text-secondary">
+                        {confirmationDetails.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer border-top px-4 py-3">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={() => setPendingConfirmation(null)}
+                    disabled={actionLoading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className={confirmationDetails.confirmClass}
+                    onClick={() => {
+                      if (pendingConfirmation === 'approve') void handleApprove();
+                      if (pendingConfirmation === 'disapprove') void handleDisapprove();
+                      if (pendingConfirmation === 'siu') void handleSiuLoad();
+                    }}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading
+                      ? confirmationDetails.loadingLabel
+                      : confirmationDetails.confirmLabel}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para confirmar la baja definitiva del trámite */}
+        {showAbandonModal && (
+          <div
+            className="modal fade show d-block"
+            style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="abandon-ppp-title"
+            aria-describedby="abandon-ppp-description"
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg rounded-4">
+                <div className="modal-header border-bottom px-4 py-3">
+                  <h5 id="abandon-ppp-title" className="modal-title fw-bold text-dark">
+                    Dar de baja el trámite
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowAbandonModal(false)}
+                    disabled={actionLoading}
+                    aria-label="Cerrar"
+                  />
+                </div>
+                <div className="modal-body p-4">
+                  <div className="d-flex align-items-start gap-3">
+                    <div className="ppp-delete-warning-icon" aria-hidden="true">
+                      <FaTriangleExclamation size={20} />
+                    </div>
+                    <div>
+                      <p className="mb-2 fw-semibold text-dark">
+                        ¿Querés dar de baja este trámite?
+                      </p>
+                      <div className="ppp-delete-proposal-title mb-2">
+                        {resolvedProposalTitle}
+                        <span className="text-secondary fw-normal"> · Trámite #{expediente.id}</span>
+                      </div>
+                      <p id="abandon-ppp-description" className="mb-0 small text-secondary">
+                        El expediente se concluirá definitivamente y no podrás continuar con este trámite.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer border-top px-4 py-3">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={() => setShowAbandonModal(false)}
+                    disabled={actionLoading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ppp-delete-confirm-btn"
+                    onClick={handleAbandon}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? 'Dando de baja...' : 'Sí, dar de baja'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal: Configurar Drive General */}
         {showDriveModal && (
