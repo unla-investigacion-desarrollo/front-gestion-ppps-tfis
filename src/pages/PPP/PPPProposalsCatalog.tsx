@@ -19,6 +19,7 @@ import {
   PPPDriveModal,
   PPPAppliedFeedbackModal,
   PPPCloseProposalModal,
+  PPPDeleteProposalModal,
   PPPEditProposalModal,
   PPPHowItWorks,
 } from './components';
@@ -77,6 +78,8 @@ export const PPPProposalsCatalog: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
   const [proposalToClose, setProposalToClose] = useState<PPPProposal | null>(null);
+  const [proposalToDelete, setProposalToDelete] = useState<PPPProposal | null>(null);
+  const [deletingProposal, setDeletingProposal] = useState<boolean>(false);
   const [editingProposal, setEditingProposal] = useState<PPPProposal | null>(null);
   const [editForm, setEditForm] = useState<CreateProposalFormData>({
     title: '',
@@ -129,19 +132,23 @@ export const PPPProposalsCatalog: React.FC = () => {
     }
   };
 
-  const handleDeleteProposal = async (proposalItem: PPPProposal) => {
-    const confirmed = window.confirm(
-      `¿Estás seguro de eliminar la propuesta "${proposalItem.title}"? Esta acción es definitiva.`
-    );
-    if (!confirmed) return;
+  const handleDeleteProposal = (proposalItem: PPPProposal) => {
+    setProposalToDelete(proposalItem);
+  };
 
+  const handleConfirmDeleteProposal = async () => {
+    if (!proposalToDelete) return;
+    setDeletingProposal(true);
     try {
       const token = localStorage.getItem('token') || '';
-      await pppService.deleteProposal(proposalItem.id, token);
+      await pppService.deleteProposal(proposalToDelete.id, token);
       showToast('Propuesta PPP eliminada correctamente.', 'success');
+      setProposalToDelete(null);
       await dispatch(fetchPPPProposals({ isStudent }));
     } catch (err: any) {
       showToast(err?.message || 'Error al eliminar la propuesta PPP.', 'error');
+    } finally {
+      setDeletingProposal(false);
     }
   };
 
@@ -470,6 +477,14 @@ export const PPPProposalsCatalog: React.FC = () => {
           onClose={() => setProposalToClose(null)}
           onConfirm={handleConfirmCloseProposal}
           actionLoading={actionLoading}
+        />
+
+        {/* Modal para confirmar la eliminación de una propuesta PPP */}
+        <PPPDeleteProposalModal
+          proposal={proposalToDelete}
+          onClose={() => setProposalToDelete(null)}
+          onConfirm={handleConfirmDeleteProposal}
+          actionLoading={deletingProposal}
         />
 
         {/* Modal para Editar Propuesta PPP */}
