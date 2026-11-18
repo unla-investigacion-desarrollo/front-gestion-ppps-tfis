@@ -124,6 +124,67 @@
   border-color: #94a3b8;
 }
 
+.ppp-delete-warning-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--unla-primary);
+  background-color: #fdf2f4;
+}
+
+.ppp-action-confirm-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ppp-action-confirm-icon.success {
+  color: #15803d;
+  background-color: #f0fdf4;
+}
+
+.ppp-action-confirm-icon.danger {
+  color: #b91c1c;
+  background-color: #fef2f2;
+}
+
+.ppp-action-confirm-icon.primary {
+  color: var(--unla-primary);
+  background-color: #fdf2f4;
+}
+
+.ppp-delete-proposal-title {
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ppp-delete-confirm-btn {
+  color: #ffffff;
+  background-color: var(--unla-primary);
+  border-color: var(--unla-primary);
+  font-weight: 600;
+}
+
+.ppp-delete-confirm-btn:hover,
+.ppp-delete-confirm-btn:focus-visible {
+  color: #ffffff;
+  background-color: var(--unla-primary-hover, #80002b);
+  border-color: var(--unla-primary-hover, #80002b);
+}
+
 /* Barra de Filtros */
 .ppp-filter-card {
   background: #ffffff;
