@@ -413,15 +413,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       );
                     }
                     return (
-                      <ul className="inline-member-list">
+                      <ul className="projects-member-list">
                         {assignedStudents.map((member, idx) => {
                           const name = getMemberName(member);
                           const memberId = getRawMemberId(member) || String(idx);
                           return (
-                            <li key={`${memberId}-${idx}`} className="inline-member-item">
-                              <span className="text-truncate" style={{ maxWidth: '160px' }} title={name}>
-                                {name}
-                              </span>
+                            <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
+                              {name}
                             </li>
                           );
                         })}
@@ -443,15 +441,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       );
                     }
                     return (
-                      <ul className="inline-member-list">
+                      <ul className="projects-member-list">
                         {assignedTeachers.map((member, idx) => {
                           const name = getMemberName(member);
                           const memberId = getRawMemberId(member) || String(idx);
                           return (
-                            <li key={`${memberId}-${idx}`} className="inline-member-item">
-                              <span className="text-truncate" style={{ maxWidth: '160px' }} title={name}>
-                                {name}
-                              </span>
+                            <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
+                              {name}
                             </li>
                           );
                         })}
