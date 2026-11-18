@@ -21,7 +21,6 @@ import {
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 
 // Reusable Components
-import Pagination from '../../components/Pagination';
 import ProjectFilters, { ProjectFiltersState } from './components/ProjectFilters';
 import ProjectTable from './components/ProjectTable';
 import {
@@ -456,18 +455,20 @@ const TeacherProjectsList: React.FC = () => {
   return (
     <div className="projects-page-container">
       <div className="projects-card-main">
-        {/* Cabecera principal: Título y Botones primario/secundario */}
-        <div className="d-flex justify-content-between align-items-start mb-4">
-          <div>
-            <h1 className="m-0 projects-title d-flex align-items-center gap-2">
-              <FaGraduationCap size={26} style={{ color: 'var(--unla-primary, #64001d)' }} />
-              <span>Gestión de TFI</span>
-            </h1>
-            <p className="m-0 text-muted projects-subtitle">
-              {isTutor
-                ? 'Convocatoria de proyectos disponibles para solicitar unirse como profesor tutor.'
-                : 'Gestioná y colaborá en los proyectos.'}
-            </p>
+        {/* Cabecera principal estilo Solicitudes */}
+        <div className="projects-header-row">
+          <div className="projects-header">
+            <div className="projects-header-icon-box">
+              <FaGraduationCap size={24} />
+            </div>
+            <div>
+              <h1 className="projects-header-title">Gestión de TFI</h1>
+              <p className="projects-header-subtitle">
+                {isTutor
+                  ? 'Convocatoria de proyectos disponibles para solicitar unirse como profesor tutor.'
+                  : 'Gestioná y colaborá en los proyectos.'}
+              </p>
+            </div>
           </div>
           {!isTutor && (
             <div className="d-flex gap-2">
@@ -506,20 +507,71 @@ const TeacherProjectsList: React.FC = () => {
         {/* Espaciador flexible para empujar la paginación al fondo */}
         <div style={{ flexGrow: 1 }} />
 
-        {/* Paginación de Proyectos */}
-        {filteredProjects.length > 0 && (
-          <Pagination
-            currentPage={page}
-            totalItems={filteredProjects.length}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            pageSizeOptions={[5, 10, 20]}
-            onPageSizeChange={(newSize) => {
-              setPageSize(newSize);
-              setPage(1);
-            }}
-          />
-        )}
+        {/* Paginación de Proyectos estilo Solicitudes */}
+        {filteredProjects.length > 0 && (() => {
+          const totalItems = filteredProjects.length;
+          const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+          const startItem = (page - 1) * pageSize + 1;
+          const endItem = Math.min(page * pageSize, totalItems);
+          return (
+            <div className="projects-pagination-footer">
+              <div className="projects-pagination-info">
+                <span>
+                  Mostrando {startItem} - {endItem} de {totalItems} proyectos
+                </span>
+                <div className="d-flex align-items-center gap-2">
+                  <span>Mostrar:</span>
+                  <select
+                    className="projects-select"
+                    style={{ padding: '4px 28px 4px 10px', fontSize: '0.82rem' }}
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                  >
+                    {[5, 10, 20].map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt} por pág.
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="projects-pagination-controls">
+                <button
+                  type="button"
+                  className="projects-page-btn"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  &lt;
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={`projects-page-btn ${page === pageNum ? 'active' : ''}`}
+                    onClick={() => setPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  className="projects-page-btn"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* --- MODAL PARA ACTIVIDAD DEL PROYECTO --- */}

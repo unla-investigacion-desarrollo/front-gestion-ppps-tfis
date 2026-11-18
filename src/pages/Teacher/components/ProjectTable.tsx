@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCalendarDays, FaPencil, FaTrashCan } from 'react-icons/fa6';
+import { FaCalendarDays, FaEllipsisVertical, FaTrashCan, FaUserGroup, FaChalkboardUser, FaUserMinus } from 'react-icons/fa6';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
 // Propiedades recibidas por el componente ProjectTable
@@ -12,7 +12,7 @@ interface ProjectTableProps {
   canDeleteProject?: boolean;
   onRemoveStudent: (projectId: string, studentId: string) => void;
   onRemoveCoTeacher: (projectId: string, teacherId: string) => void;
-  onActivityClick: (project: Project) => void;
+  onActivityClick?: (project: Project) => void;
   onEditClick: (project: Project) => void;
   onDeleteClick?: (project: Project) => void;
   onViewProjectClick?: (project: Project) => void;
@@ -56,6 +56,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   // Estado local para identificar el dropdown abierto actualmente en las filas de la tabla
   const [activeDropdownProjectId, setActiveDropdownProjectId] = useState<string | null>(null);
+  // Estado local para el modal de desasignar integrantes
+  const [managingMembersProject, setManagingMembersProject] = useState<Project | null>(null);
 
   // Redirige o ejecuta la acción para ver el proyecto / trabajo
   const handleViewProject = (project: Project) => {
@@ -249,34 +251,33 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   // Renderiza el badge estilizado de la categoría o tipo de proyecto
   const renderCategoryBadge = (category?: string) => {
     if (!category) {
-      return <span className="badge-project-type-tfi me-2">TFI</span>;
+      return null;
     }
     const cleanCategory = category.toLowerCase().trim();
 
     if (cleanCategory === 'ppp') {
       return (
-        <span className="badge-project-type-ppp me-2">
-          PPP
-        </span>
+        <div className="projects-table-badges">
+          <span className="badge-tfi-pill">PPP</span>
+        </div>
       );
     }
 
-    let badgeStyleClass = 'badge-generic';
+    let badgeStyleClass = 'badge-project-default';
     if (cleanCategory === 'desarrollo' || cleanCategory === 'development') {
-      badgeStyleClass = 'badge-desarrollo';
+      badgeStyleClass = 'badge-project-development';
     } else if (cleanCategory === 'investigacion' || cleanCategory === 'investigación' || cleanCategory === 'research') {
-      badgeStyleClass = 'badge-investigacion';
+      badgeStyleClass = 'badge-project-research';
     } else if (cleanCategory === 'extension' || cleanCategory === 'extensión') {
-      badgeStyleClass = 'badge-extension';
+      badgeStyleClass = 'badge-project-extension';
     }
 
     return (
-      <span className="d-inline-flex align-items-center gap-1.5 me-2">
-        <span className="badge-project-type-tfi">TFI</span>
-        <span className={`project-category-badge ${badgeStyleClass}`}>
+      <div className="projects-table-badges">
+        <span className={badgeStyleClass}>
           {category}
         </span>
-      </span>
+      </div>
     );
   };
 
@@ -348,17 +349,17 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   };
 
   return (
-    <div className="projects-table-wrapper">
-      <table className="table table-striped table-hover m-0 align-middle">
-        <thead className="table-dark">
+    <div className="projects-table-container">
+      <table className="projects-table">
+        <thead>
           <tr>
-            <th style={{ width: '25%', padding: '12px 16px' }}>Proyecto</th>
-            <th style={{ width: '16%', padding: '12px 16px' }}>Alumnos Asignados</th>
-            <th style={{ width: '15%', padding: '12px 16px' }}>Docentes</th>
-            <th style={{ width: '10%', padding: '12px 16px' }}>Estado</th>
-            <th style={{ width: '13%', padding: '12px 16px' }}>Última revisión Evaluador</th>
-            <th style={{ width: '13%', padding: '12px 16px' }}>Última revisión Tutor</th>
-            <th style={{ width: '8%', padding: '12px 16px', textAlign: 'center' }}>Acciones</th>
+            <th style={{ width: '25%' }}>Proyecto</th>
+            <th style={{ width: '16%' }}>Alumnos Asignados</th>
+            <th style={{ width: '15%' }}>Docentes</th>
+            <th style={{ width: '10%' }}>Estado</th>
+            <th style={{ width: '13%' }}>Última revisión Evaluador</th>
+            <th style={{ width: '13%' }}>Última revisión Tutor</th>
+            <th style={{ width: '8%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -371,9 +372,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           ) : (
             projects.map((project, projectIndex) => (
               <tr key={project.id}>
-                {/* Columna: Proyecto (Fusión de Título, Descripción, Categoría y Fecha) */}
-                <td style={{ padding: '12px 16px' }}>
-                  {renderCategoryBadge(project.categoria)}
+                {/* Columna: Proyecto (Fusión de Título, Categoría, Descripción y Fecha) */}
+                <td>
                   {(() => {
                     const isPPP =
                       project.categoria?.toUpperCase() === 'PPP' ||
@@ -382,17 +382,18 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       ? `/ppp/${encodeURIComponent(project.id)}`
                       : `/proyectos/${encodeURIComponent(project.id)}/trabajo?from=proyectos`;
                     return (
-                      <Link to={targetUrl} state={{ from: 'proyectos' }} className="project-title-link">
+                      <Link to={targetUrl} state={{ from: 'proyectos' }} className="projects-table-title-link">
                         {project.titulo}
                       </Link>
                     );
                   })()}
+                  {renderCategoryBadge(project.categoria)}
                   {project.descripcion && (
-                    <p className="project-description-text">{project.descripcion}</p>
+                    <p className="project-description-text mb-1">{project.descripcion}</p>
                   )}
 
                   {project.createdAt && (
-                    <div className="project-date-text">
+                    <div className="project-date-text mt-1">
                       <FaCalendarDays size={12} className="text-muted" />
                       Creado el {formatCreationDate(project.createdAt)}
                     </div>
@@ -400,11 +401,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
 
                 {/* Columna: Alumnos asignados */}
-                <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
+                <td>
                   {(() => {
                     const assignedStudents = getProjectStudents(project);
                     if (assignedStudents.length === 0) {
-                      return <span className="text-muted small">Sin alumnos asignados</span>;
+                      return (
+                        <span className="empty-cell-muted">
+                          <FaUserGroup size={12} />
+                          <span>Sin alumnos</span>
+                        </span>
+                      );
                     }
                     return (
                       <ul className="inline-member-list">
@@ -413,19 +419,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                           const memberId = getRawMemberId(member) || String(idx);
                           return (
                             <li key={`${memberId}-${idx}`} className="inline-member-item">
-                              <span className="text-truncate" style={{ maxWidth: '140px' }} title={name}>
+                              <span className="text-truncate" style={{ maxWidth: '160px' }} title={name}>
                                 {name}
                               </span>
-                              {canRemoveProjectMembers && (
-                                <button
-                                  type="button"
-                                  className="btn-remove-member"
-                                  title="Quitar alumno"
-                                  onClick={() => onRemoveStudent(project.id, memberId)}
-                                >
-                                  ×
-                                </button>
-                              )}
                             </li>
                           );
                         })}
@@ -435,11 +431,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
 
                 {/* Columna: Docentes */}
-                <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
+                <td>
                   {(() => {
                     const assignedTeachers = getProjectTeachers(project);
                     if (assignedTeachers.length === 0) {
-                      return <span className="text-muted small">Sin docentes</span>;
+                      return (
+                        <span className="empty-cell-muted">
+                          <FaChalkboardUser size={12} />
+                          <span>Sin tutor asignado</span>
+                        </span>
+                      );
                     }
                     return (
                       <ul className="inline-member-list">
@@ -448,19 +449,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                           const memberId = getRawMemberId(member) || String(idx);
                           return (
                             <li key={`${memberId}-${idx}`} className="inline-member-item">
-                              <span className="text-truncate" style={{ maxWidth: '140px' }} title={name}>
+                              <span className="text-truncate" style={{ maxWidth: '160px' }} title={name}>
                                 {name}
                               </span>
-                              {canRemoveProjectMembers && (
-                                <button
-                                  type="button"
-                                  className="btn-remove-member"
-                                  title="Quitar co-docente"
-                                  onClick={() => onRemoveCoTeacher(project.id, memberId)}
-                                >
-                                  ×
-                                </button>
-                              )}
                             </li>
                           );
                         })}
@@ -470,7 +461,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
 
                 {/* Columna: Estado de la entrega (studentWork.status) */}
-                <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                <td>
                   {(() => {
                     const { label, pillClass } = getStudentWorkStatusInfo(project);
                     return (
@@ -483,7 +474,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
 
                 {/* Columna: Última revisión por Evaluador */}
-                <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                <td>
                   {(() => {
                     const reviewerName = getLastReviewerName(project);
                     const reviewedAt =
@@ -493,7 +484,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       null;
 
                     if (!reviewerName) {
-                      return <span className="text-muted small">Sin revisiones</span>;
+                      return <span className="empty-cell-dash">—</span>;
                     }
 
                     return (
@@ -512,7 +503,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
 
                 {/* Columna: Última revisión Tutor */}
-                <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                <td>
                   {(() => {
                     const tutorName = getLastTutoredByName(project);
                     const tutoredAt =
@@ -522,7 +513,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       null;
 
                     if (!tutorName) {
-                      return <span className="text-muted small">Sin revisiones</span>;
+                      return <span className="empty-cell-dash">—</span>;
                     }
 
                     return (
@@ -540,9 +531,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   })()}
                 </td>
 
-                {/* Columna: Acciones (Menú Dropdown ⋮ / Lápiz) */}
-                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div className="d-inline-flex align-items-center justify-content-center">
+                {/* Columna: Acciones (Menú Dropdown ⋮) */}
+                <td style={{ textAlign: 'right', paddingRight: '20px' }}>
+                  <div className="d-inline-flex align-items-center justify-content-end">
                     <div className="actions-dropdown-wrapper">
                       <button
                         type="button"
@@ -550,7 +541,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         onClick={() => setActiveDropdownProjectId(activeDropdownProjectId === project.id ? null : project.id)}
                         title="Acciones"
                       >
-                        <FaPencil size={14} />
+                        <FaEllipsisVertical size={16} />
                       </button>
 
                       {activeDropdownProjectId === project.id && (
@@ -600,18 +591,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               <>
                                 <li className="dropdown-divider" style={{ margin: '4px 0' }} />
 
-                                {/* Acción: Ver Actividad */}
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item"
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onActivityClick(project);
-                                  }}
-                                >
-                                  Ver Actividad
-                                </button>
-
                                 {/* Acción: Editar Proyecto */}
                                 <button
                                   type="button"
@@ -623,6 +602,21 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                 >
                                   Editar Proyecto
                                 </button>
+
+                                {/* Acción: Desasignar integrantes */}
+                                {canRemoveProjectMembers && (
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item"
+                                    onClick={() => {
+                                      setActiveDropdownProjectId(null);
+                                      setManagingMembersProject(project);
+                                    }}
+                                  >
+                                    <FaUserMinus size={13} className="text-muted" />
+                                    <span>Desasignar integrantes</span>
+                                  </button>
+                                )}
                               </>
                             )}
 
@@ -654,6 +648,122 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           )}
         </tbody>
       </table>
+
+      {/* Modal para desasignar alumnos o docentes del proyecto */}
+      {managingMembersProject && (() => {
+        const assignedStudents = getProjectStudents(managingMembersProject);
+        const assignedTeachers = getProjectTeachers(managingMembersProject);
+        return (
+          <>
+            <div
+              className="modal fade show custom-modal-dialog-wrapper"
+              tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="manage-members-title"
+              onClick={() => setManagingMembersProject(null)}
+            >
+              <div className="modal-dialog modal-md modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-content custom-modal-content">
+                  <div className="modal-header custom-modal-header">
+                    <div>
+                      <h5 id="manage-members-title" className="modal-title" style={{ fontWeight: 700, color: '#64001d' }}>
+                        Desasignar integrantes
+                      </h5>
+                      <div className="text-muted small">{managingMembersProject.titulo}</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      onClick={() => setManagingMembersProject(null)}
+                      aria-label="Cerrar"
+                    />
+                  </div>
+                  <div className="modal-body custom-modal-body d-flex flex-column gap-4">
+                    <div>
+                      <div className="text-uppercase fw-bold text-muted mb-2" style={{ fontSize: '0.75rem', letterSpacing: '0.04em' }}>
+                        Alumnos asignados
+                      </div>
+                      {assignedStudents.length === 0 ? (
+                        <div className="empty-cell-muted">
+                          <FaUserGroup size={12} />
+                          <span>Sin alumnos asignados</span>
+                        </div>
+                      ) : (
+                        <ul className="inline-member-list">
+                          {assignedStudents.map((member, idx) => {
+                            const name = getMemberName(member);
+                            const memberId = getRawMemberId(member) || String(idx);
+                            return (
+                              <li key={`modal-student-${memberId}-${idx}`} className="inline-member-item py-2 px-3">
+                                <span className="fw-medium text-dark">{name}</span>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => {
+                                    setManagingMembersProject(null);
+                                    onRemoveStudent(managingMembersProject.id, memberId);
+                                  }}
+                                >
+                                  Desasignar
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="text-uppercase fw-bold text-muted mb-2" style={{ fontSize: '0.75rem', letterSpacing: '0.04em' }}>
+                        Docentes / Tutores
+                      </div>
+                      {assignedTeachers.length === 0 ? (
+                        <div className="empty-cell-muted">
+                          <FaChalkboardUser size={12} />
+                          <span>Sin tutor asignado</span>
+                        </div>
+                      ) : (
+                        <ul className="inline-member-list">
+                          {assignedTeachers.map((member, idx) => {
+                            const name = getMemberName(member);
+                            const memberId = getRawMemberId(member) || String(idx);
+                            return (
+                              <li key={`modal-teacher-${memberId}-${idx}`} className="inline-member-item py-2 px-3">
+                                <span className="fw-medium text-dark">{name}</span>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => {
+                                    setManagingMembersProject(null);
+                                    onRemoveCoTeacher(managingMembersProject.id, memberId);
+                                  }}
+                                >
+                                  Desasignar
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                  <div className="modal-footer custom-modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setManagingMembersProject(null)}
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="custom-modal-backdrop" />
+          </>
+        );
+      })()}
     </div>
   );
 };

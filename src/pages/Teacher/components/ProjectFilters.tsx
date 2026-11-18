@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { FaMagnifyingGlass, FaFilter, FaChevronDown, FaArrowRotateLeft } from 'react-icons/fa6';
+import { FaMagnifyingGlass, FaArrowRotateLeft } from 'react-icons/fa6';
 import { selectProjectTypes, ProjectType } from '../../../../redux/slices/projectsSlice';
 
 // Interfaz que define la estructura del estado de los filtros de proyectos
@@ -19,7 +19,7 @@ interface ProjectFiltersProps {
 }
 
 /**
- * Componente que renderiza la barra de búsqueda y el panel colapsable de filtros avanzados.
+ * Componente que renderiza la barra de búsqueda y filtros en línea.
  * Permite buscar proyectos por texto y filtrar por tipo de proyecto o estado de asignación de alumnos.
  */
 const ProjectFilters: React.FC<ProjectFiltersProps> = ({
@@ -28,9 +28,6 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   onClearFilters,
   projectTypes: propTypes,
 }) => {
-  // Estado local para abrir o cerrar el panel colapsable de filtros avanzados
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-
   // Tipos de proyectos desde Redux o props, con respaldo por defecto
   const reduxTypes = useSelector(selectProjectTypes);
   const baseTypes = (propTypes && propTypes.length > 0) ? propTypes : (reduxTypes && reduxTypes.length > 0) ? reduxTypes : [
@@ -52,95 +49,58 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   };
 
   return (
-    <div className="unla-card filters-card">
-      <div className="row g-3 align-items-center">
-        {/* Input buscador principal con icono de lupa */}
-        <div className="col-md-9 col-sm-8">
-          <div className="search-input-wrapper">
-            <span className="search-icon-wrapper">
-              <FaMagnifyingGlass size={15} color="#9ca3af" />
-            </span>
-            <input
-              type="text"
-              className="form-control search-input-field"
-              placeholder="Buscar proyecto..."
-              value={filters.q}
-              onChange={(e) => handleFilterChange('q', e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Botón de alternancia de filtros avanzados */}
-        <div className="col-md-3 col-sm-4 text-end">
-          <button
-            type="button"
-            className={`btn filter-btn-toggle w-100 ${isPanelOpen ? 'active' : ''}`}
-            onClick={() => setIsPanelOpen(!isPanelOpen)}
-          >
-            <FaFilter size={14} />
-            Filtrar
-            <FaChevronDown
-              size={11}
-              style={{
-                marginLeft: 'auto',
-                transform: isPanelOpen ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.2s',
-              }}
-            />
-          </button>
-        </div>
+    <div className="projects-filters-bar">
+      {/* Input buscador principal con icono de lupa */}
+      <div className="projects-search-box">
+        <span className="projects-search-icon">
+          <FaMagnifyingGlass size={15} />
+        </span>
+        <input
+          type="text"
+          className="projects-search-input"
+          placeholder="Buscar proyecto..."
+          value={filters.q}
+          onChange={(e) => handleFilterChange('q', e.target.value)}
+        />
       </div>
 
-      {/* Panel colapsable de filtros detallados */}
-      {isPanelOpen && (
-        <div className="advanced-filters-panel">
-          <div className="row g-3">
-            {/* Selector por Categoría / Tipo de Proyecto */}
-            <div className="col-md-5">
-              <label className="form-label text-muted small mb-1" style={{ fontWeight: 500 }}>Tipo de Proyecto</label>
-              <select
-                className="form-select filter-select-field"
-                value={filters.categoria}
-                onChange={(e) => handleFilterChange('categoria', e.target.value)}
-              >
-                <option value="ALL">Todos los tipos</option>
-                {availableTypes.map((type) => (
-                  <option key={type.id} value={type.name}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {/* Selector por Categoría / Tipo de Proyecto */}
+      <select
+        className="projects-select"
+        value={filters.categoria}
+        onChange={(e) => handleFilterChange('categoria', e.target.value)}
+        aria-label="Filtrar por tipo de proyecto"
+      >
+        <option value="ALL">Tipo: todos</option>
+        {availableTypes.map((type) => (
+          <option key={type.id} value={type.name}>
+            {type.name}
+          </option>
+        ))}
+      </select>
 
-            {/* Selector por Estado de Alumnos */}
-            <div className="col-md-5">
-              <label className="form-label text-muted small mb-1" style={{ fontWeight: 500 }}>Alumnos Asignados</label>
-              <select
-                className="form-select filter-select-field"
-                value={filters.alumnos}
-                onChange={(e) => handleFilterChange('alumnos', e.target.value)}
-              >
-                <option value="ALL">Cualquier cantidad de alumnos</option>
-                <option value="NONE">Sin alumnos asignados</option>
-                <option value="SOME">Con alumnos asignados (1 - 4)</option>
-                <option value="FULL">Límite alcanzado (5 alumnos)</option>
-              </select>
-            </div>
+      {/* Selector por Estado de Alumnos */}
+      <select
+        className="projects-select"
+        value={filters.alumnos}
+        onChange={(e) => handleFilterChange('alumnos', e.target.value)}
+        aria-label="Filtrar por alumnos asignados"
+      >
+        <option value="ALL">Alumnos: todos</option>
+        <option value="NONE">Sin alumnos asignados</option>
+        <option value="SOME">Con alumnos (1 - 4)</option>
+        <option value="FULL">Límite alcanzado (5)</option>
+      </select>
 
-            {/* Botón para restablecer y limpiar todos los filtros */}
-            <div className="col-md-2 d-flex align-items-end">
-              <button
-                type="button"
-                className="btn btn-outline-secondary btn-clear-filters w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                onClick={onClearFilters}
-              >
-                <FaArrowRotateLeft size={13} />
-                <span>Limpiar filtros</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Botón para restablecer y limpiar todos los filtros */}
+      <button
+        type="button"
+        className="projects-clear-btn"
+        onClick={onClearFilters}
+      >
+        <FaArrowRotateLeft size={13} />
+        Limpiar filtros
+      </button>
     </div>
   );
 };
