@@ -13,6 +13,8 @@ import {
 } from '../components/ProjectExplorer/types';
 import { getProjectTeachers } from '../components/ProjectExplorer/projectExplorerUtils';
 
+const CLOSED_PROJECT_STATUSES = new Set(['finalized', 'cancelled']);
+
 export interface UseProjectExplorerOptions {
   onJoinSuccess?: (projectId: number | string) => void;
 }
@@ -86,7 +88,16 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
         projectService.getMyActiveProjects(authToken),
       ]);
 
-      setProjects(Array.isArray(allProjectsData) ? allProjectsData : []);
+      const openProjects = Array.isArray(allProjectsData)
+        ? allProjectsData.filter((projectItem: ProjectItem) => {
+            const normalizedStatus = String(projectItem.status || projectItem.estado || '')
+              .toLowerCase()
+              .trim();
+            return !CLOSED_PROJECT_STATUSES.has(normalizedStatus);
+          })
+        : [];
+
+      setProjects(openProjects);
       setMyRequests(Array.isArray(requestsData) ? requestsData : []);
       setMyActiveProjects(Array.isArray(activeProjectsData) ? activeProjectsData : []);
     } catch (networkError: any) {

@@ -60,6 +60,7 @@ export interface PPPEpidiente {
   driveFolderUrl?: string;
   generalDriveUrl?: string;
   observations?: string;
+  feedback?: string | null;
   createdAt?: string;
   updatedAt?: string;
   [key: string]: any;
@@ -663,9 +664,7 @@ export function formatPPPDateTime(rawDate?: string | Date): string {
   const datePart = date.toLocaleDateString('es-AR');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  const period = date.getHours() >= 12 ? 'pm' : 'am';
-  return `${datePart}, ${hours}:${minutes}:${seconds} ${period}`;
+  return `${datePart}, ${hours}:${minutes} hs`;
 }
 
 export function normalizeBackendExpediente(item: any): PPPEpidiente {

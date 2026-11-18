@@ -31,8 +31,6 @@ import {
   FaCommentDots,
   FaCircleInfo,
   FaFileLines,
-  FaFileArrowDown,
-  FaFolderOpen,
   FaEye,
   FaPaperPlane,
   FaCircleCheck,
@@ -335,9 +333,11 @@ export const PPPTramiteDetail: React.FC = () => {
               </div>
               <h1 className="ppp-title">{resolvedProposalTitle}</h1>
               <p className="ppp-subtitle">
-                {isStudent
-                  ? 'Seguimiento oficial de tu trámite de práctica profesional en la carrera.'
-                  : `Expediente del estudiante: ${getStudentDisplayName(expediente, allUsers)}${getStudentEmail(expediente, allUsers) ? ` (${getStudentEmail(expediente, allUsers)})` : ''}`}
+                {expediente.proposal?.description
+                  ? expediente.proposal.description
+                  : isStudent
+                    ? 'Seguimiento oficial de tu trámite de práctica profesional en la carrera.'
+                    : `Expediente del estudiante: ${getStudentDisplayName(expediente, allUsers)}${getStudentEmail(expediente, allUsers) ? ` (${getStudentEmail(expediente, allUsers)})` : ''}`}
               </p>
             </div>
           </div>
@@ -401,30 +401,48 @@ export const PPPTramiteDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* BOTÓN PRIORITARIO: Descargar Modelos y Convenios Oficiales (Drive General) */}
-        <div className="ppp-drive-download-banner">
-          <div className="ppp-drive-download-info">
-            <div className="ppp-drive-download-icon">
-              <FaFileArrowDown size={24} />
+        {/* Devolución / Feedback de los profesores */}
+        {(() => {
+          const feedbackText = String(expediente.feedback || expediente.observations || '').trim();
+          if (!feedbackText) return null;
+          const isObserved = expediente.status === 'observed';
+          return (
+            <div
+              className="rounded-3 p-3 mb-4 d-flex align-items-start gap-3"
+              style={{
+                backgroundColor: isObserved ? '#fffbeb' : '#f8fafc',
+                border: `1px solid ${isObserved ? '#fde68a' : '#e2e8f0'}`,
+                borderLeft: `4px solid ${isObserved ? '#f59e0b' : '#64001d'}`,
+              }}
+            >
+              <div
+                className="mt-1 flex-shrink-0"
+                style={{ color: isObserved ? '#d97706' : '#64001d' }}
+              >
+                <FaCircleExclamation size={18} />
+              </div>
+              <div>
+                <h6
+                  className="fw-bold mb-1"
+                  style={{ fontSize: '0.92rem', color: isObserved ? '#92400e' : '#111827' }}
+                >
+                  {isObserved ? 'Observaciones de los profesores (requiere corrección)' : 'Devolución de los profesores'}
+                </h6>
+                <p
+                  className="m-0"
+                  style={{
+                    fontSize: '0.88rem',
+                    color: isObserved ? '#78350f' : '#374151',
+                    whiteSpace: 'pre-line',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {feedbackText}
+                </p>
+              </div>
             </div>
-            <div>
-              <h6 className="fw-bold text-dark m-0">Modelos y Convenios Oficiales de PPP</h6>
-              <p className="text-muted small m-0">
-                Descargá las actas acuerdo, convenios marco, planillas de actividades y seguro para presentar en la cátedra.
-              </p>
-            </div>
-          </div>
-
-          <a
-            href={generalDriveUrl || expediente.generalDriveUrl || 'https://drive.google.com'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-unla-primary text-decoration-none d-inline-flex align-items-center gap-1.5"
-          >
-            <FaFolderOpen size={16} />
-            Abrir carpeta de convenios (Drive) ↗
-          </a>
-        </div>
+          );
+        })()}
 
         {/* Panel de Datos del Expediente (GET /ppp/:id) */}
         <div className="row g-4 mb-4">
@@ -455,15 +473,6 @@ export const PPPTramiteDetail: React.FC = () => {
                     </span>
                   </div>
                   <div className="col-sm-6">
-                    <span className="text-muted small d-block">ID Estudiante:</span>
-                    <span className="fw-semibold text-dark">
-                      {expediente.student?.id_user ??
-                        expediente.student?.user?.id ??
-                        expediente.studentId ??
-                        '-'}
-                    </span>
-                  </div>
-                  <div className="col-sm-6">
                     <span className="text-muted small d-block">Tipo de Práctica:</span>
                     <span className="fw-semibold text-dark">
                       {isInterna
@@ -475,18 +484,6 @@ export const PPPTramiteDetail: React.FC = () => {
                     <span className="text-muted small d-block">Estado del Trámite:</span>
                     <span className="fw-semibold text-dark">
                       {getStatusLabel(expediente.status)}
-                    </span>
-                  </div>
-                  <div className="col-sm-6">
-                    <span className="text-muted small d-block">Fecha de Inicio / Creación:</span>
-                    <span className="fw-semibold text-dark">
-                      {expediente.createdAt ? formatPPPDateTime(expediente.createdAt) : '-'}
-                    </span>
-                  </div>
-                  <div className="col-sm-6">
-                    <span className="text-muted small d-block">Última actualización:</span>
-                    <span className="fw-semibold text-dark">
-                      {expediente.updatedAt ? formatPPPDateTime(expediente.updatedAt) : '-'}
                     </span>
                   </div>
 
@@ -504,43 +501,13 @@ export const PPPTramiteDetail: React.FC = () => {
               </div>
 
               {/* Información de la Propuesta (si corresponde) */}
-              {(expediente.proposal || isInterna) && (
+              {(expediente.proposal || isInterna) &&
+                (resolvedDriveFolderUrl || expediente.proposal?.internalNotes) && (
                 <div>
                   <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">
                     Información de la Propuesta
                   </h6>
                   <div className="row g-3">
-                    {(expediente.proposal?.id ?? expediente.proposalId) && (
-                      <div className="col-sm-4">
-                        <span className="text-muted small d-block">ID de Propuesta:</span>
-                        <span className="fw-semibold text-dark">
-                          #{expediente.proposal?.id ?? expediente.proposalId}
-                        </span>
-                      </div>
-                    )}
-                    <div className="col-sm-8">
-                      <span className="text-muted small d-block">Título de la Propuesta:</span>
-                      <span className="fw-semibold text-dark">{resolvedProposalTitle}</span>
-                    </div>
-
-                    {expediente.proposal?.description && (
-                      <div className="col-12">
-                        <span className="text-muted small d-block">Descripción de la Propuesta:</span>
-                        <div className="p-3 bg-light rounded mt-1 small text-secondary">
-                          {expediente.proposal.description}
-                        </div>
-                      </div>
-                    )}
-
-                    {expediente.proposal?.internalNotes && (
-                      <div className="col-12">
-                        <span className="text-muted small d-block">Notas internas de la cátedra:</span>
-                        <div className="p-3 bg-light rounded mt-1 small text-secondary">
-                          {expediente.proposal.internalNotes}
-                        </div>
-                      </div>
-                    )}
-
                     {resolvedDriveFolderUrl && (
                       <div className="col-12">
                         <span className="text-muted small d-block">
@@ -550,10 +517,19 @@ export const PPPTramiteDetail: React.FC = () => {
                           href={resolvedDriveFolderUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary text-decoration-none fw-semibold small"
+                          className="text-primary text-decoration-none fw-semibold small text-break"
                         >
                           {resolvedDriveFolderUrl} ↗
                         </a>
+                      </div>
+                    )}
+
+                    {expediente.proposal?.internalNotes && (
+                      <div className="col-12">
+                        <span className="text-muted small d-block">Notas internas de la cátedra:</span>
+                        <div className="p-3 bg-light rounded mt-1 small text-secondary">
+                          {expediente.proposal.internalNotes}
+                        </div>
                       </div>
                     )}
                   </div>

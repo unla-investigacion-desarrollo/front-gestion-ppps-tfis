@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { FaIdCard } from 'react-icons/fa6';
+import { FaIdCard, FaFileArrowDown, FaFolderOpen } from 'react-icons/fa6';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
   fetchMyPPPApplications,
+  fetchPPPGeneralDrive,
   selectPPPExpedientes,
+  selectPPPGeneralDrive,
 } from '../../../redux/slices/pppSlice';
 import { PPPEpidiente, PPPStatus, normalizePPPType } from '../../services/pppService';
 import { PPPHowItWorks } from './components';
@@ -15,6 +17,7 @@ export const PPPStudentMyTramite: React.FC = () => {
   const dispatch = useDispatch<any>();
   const currentUser = useSelector(selectCurrentUser) as any;
   const myExpedientes = useSelector(selectPPPExpedientes) as PPPEpidiente[];
+  const generalDriveUrl = useSelector(selectPPPGeneralDrive);
 
   useEffect(() => {
     // Limpiar posibles datos cacheados antiguos en localStorage
@@ -26,6 +29,7 @@ export const PPPStudentMyTramite: React.FC = () => {
     } catch {}
 
     dispatch(fetchMyPPPApplications());
+    dispatch(fetchPPPGeneralDrive());
   }, [dispatch, currentUser?.id]);
 
   const getStatusLabel = (statusKey: PPPStatus | string) => {
@@ -70,6 +74,35 @@ export const PPPStudentMyTramite: React.FC = () => {
         </div>
 
         <PPPHowItWorks highlightStep={3} defaultOpen={myExpedientes.length === 0} />
+
+        {/* BOTÓN PRIORITARIO: Descargar Modelos y Convenios Oficiales (Drive General) */}
+        <div className="ppp-drive-download-banner">
+          <div className="ppp-drive-download-info">
+            <div className="ppp-drive-download-icon">
+              <FaFileArrowDown size={24} />
+            </div>
+            <div>
+              <h6 className="fw-bold text-dark m-0">Modelos y Convenios Oficiales de PPP</h6>
+              <p className="text-muted small m-0">
+                Descargá las actas acuerdo, convenios marco, planillas de actividades y seguro para presentar en la cátedra.
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={
+              generalDriveUrl ||
+              myExpedientes[0]?.generalDriveUrl ||
+              'https://drive.google.com/drive/u/0/folders/1DxFDOFkHbMfaY0d313EMMlS-itEMRztI'
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-unla-primary text-decoration-none d-inline-flex align-items-center gap-1.5"
+          >
+            <FaFolderOpen size={16} />
+            Abrir carpeta de convenios (Drive) ↗
+          </a>
+        </div>
 
         {/* Listado de Trámites y Postulaciones del Alumno */}
         {myExpedientes.length === 0 ? (

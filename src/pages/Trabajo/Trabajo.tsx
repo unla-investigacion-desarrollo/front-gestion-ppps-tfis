@@ -854,12 +854,35 @@ const Trabajo: React.FC = () => {
                       <div className="trabajo-audit-card-content">
                         <span className="trabajo-audit-card-label">Última revisión docente</span>
                         <span className="trabajo-audit-card-val">
-                          {work.lastReviewedBy ? resolveUserName(work.lastReviewedBy) : 'Sin revisiones'}
+                          {(() => {
+                            const reviewer =
+                              work.lastReviewedBy ||
+                              project?.studentWork?.lastReviewedBy ||
+                              project?.raw?.studentWork?.lastReviewedBy ||
+                              project?.lastReviewedBy ||
+                              project?.raw?.lastReviewedBy;
+                            if (reviewer) {
+                              return typeof reviewer === 'string' && !/^\d+$/.test(reviewer)
+                                ? reviewer
+                                : resolveUserName(reviewer);
+                            }
+                            if (project?.lastReviewedByName) {
+                              return project.lastReviewedByName;
+                            }
+                            return 'Sin revisiones';
+                          })()}
                         </span>
                         <span className="trabajo-audit-card-sub">
-                          {work.lastReviewedAt
-                            ? new Date(work.lastReviewedAt).toLocaleDateString()
-                            : 'Pendiente de calificación'}
+                          {(() => {
+                            const reviewedAt =
+                              work.lastReviewedAt ||
+                              project?.lastReviewedAt ||
+                              project?.studentWork?.lastReviewedAt ||
+                              project?.raw?.studentWork?.lastReviewedAt;
+                            return reviewedAt
+                              ? new Date(reviewedAt).toLocaleDateString()
+                              : 'Pendiente de calificación';
+                          })()}
                         </span>
                       </div>
                     </div>

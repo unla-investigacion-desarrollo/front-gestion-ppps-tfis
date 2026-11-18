@@ -37,12 +37,14 @@ export interface PendingProfessorRequest {
   requestId: number;
   project: PendingProjectItem;
   applicant: PendingApplicant;
+  createdAt?: string;
 }
 
 export interface PendingStudentRequest {
   requestId: number;
   project: PendingProjectItem;
   applicant: PendingApplicant;
+  createdAt?: string;
 }
 
 export interface PendingRequestsResponse {
