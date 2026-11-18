@@ -224,6 +224,7 @@ export const selectPendingProjectRequests = createSelector(
             applicantRoleLabel: 'Estudiante',
             yearOfAdmission: req.applicant?.yearOfAdmission,
             active: false,
+            createdAt: req.createdAt,
             rawApplicant: req.applicant,
             rawProject: req.project,
           });
@@ -247,6 +248,7 @@ export const selectPendingProjectRequests = createSelector(
             applicantRoleLabel: 'Docente',
             specialization: req.applicant?.specialization,
             active: false,
+            createdAt: req.createdAt,
             rawApplicant: req.applicant,
             rawProject: req.project,
           });

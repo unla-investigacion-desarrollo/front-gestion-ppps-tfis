@@ -419,23 +419,29 @@
 }
 
 .btn-mockup-approve {
-  background-color: #64001d;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
+  background-color: #ecfdf5;
+  color: #1f2937;
+  border: 1px solid #86efac;
+  border-radius: 8px;
   padding: 6px 14px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  gap: 6px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
 }
 
+.btn-mockup-approve-icon {
+  color: #059669;
+}
+
 .btn-mockup-approve:hover:not(:disabled) {
-  background-color: #4e0016;
+  background-color: #d1fae5;
+  border-color: #4ade80;
+  color: #111827;
 }
 
 .btn-mockup-approve:disabled {
@@ -444,10 +450,10 @@
 }
 
 .btn-mockup-reject {
-  background-color: #ffffff;
-  color: #ef4444;
-  border: 1px solid #fca5a5;
-  border-radius: 6px;
+  background-color: #fef2f2;
+  color: #9f1239;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
   padding: 6px 14px;
   font-size: 0.82rem;
   font-weight: 600;
@@ -460,9 +466,9 @@
 }
 
 .btn-mockup-reject:hover:not(:disabled) {
-  background-color: #fef2f2;
-  border-color: #f87171;
-  color: #dc2626;
+  background-color: #fee2e2;
+  border-color: #fda4af;
+  color: #881337;
 }
 
 .btn-mockup-reject:disabled {

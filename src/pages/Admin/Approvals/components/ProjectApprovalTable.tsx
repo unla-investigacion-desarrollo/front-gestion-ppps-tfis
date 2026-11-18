@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaCheck, FaXmark, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
+import { FaCheck, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
 import { UnifiedPendingRequest } from '../../../../../redux/slices/projectsSlice';
 import { User } from '../../../../../redux/slices/usersSlice';
 
@@ -229,6 +229,15 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                     <div className="approvals-actions-container justify-content-end" style={{ paddingRight: '8px' }}>
                       <button
                         type="button"
+                        className="btn-mockup-reject"
+                        disabled={isBusy}
+                        onClick={() => handleRejectClick(req.projectId, applicantId, req.applicantRole)}
+                      >
+                        Rechazar
+                      </button>
+
+                      <button
+                        type="button"
                         className="btn-mockup-approve"
                         disabled={isBusy}
                         onClick={() => handleApproveClick(req.projectId, applicantId, req.applicantRole)}
@@ -237,20 +246,10 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                         ) : (
                           <>
-                            <FaCheck size={13} />
+                            <FaCheck size={13} className="btn-mockup-approve-icon" />
                             Aprobar
                           </>
                         )}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn-mockup-reject"
-                        disabled={isBusy}
-                        onClick={() => handleRejectClick(req.projectId, applicantId, req.applicantRole)}
-                      >
-                        <FaXmark size={12} />
-                        Rechazar
                       </button>
 
                       {/* Menú de 3 puntos */}
