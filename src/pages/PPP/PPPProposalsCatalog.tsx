@@ -80,7 +80,7 @@ export const PPPProposalsCatalog: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageSize, setPageSize] = useState<number>(10);
   const [proposalToClose, setProposalToClose] = useState<PPPProposal | null>(null);
   const [proposalToDelete, setProposalToDelete] = useState<PPPProposal | null>(null);
   const [deletingProposal, setDeletingProposal] = useState<boolean>(false);
