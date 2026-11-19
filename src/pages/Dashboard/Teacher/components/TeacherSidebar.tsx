@@ -11,7 +11,6 @@ import {
   FaFolder,
   FaBullhorn,
   FaUserClock,
-  FaChalkboardUser,
 } from 'react-icons/fa6';
 
 export type TeacherRoleProfile = 'evaluador' | 'tutor';
@@ -226,21 +225,6 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             >
               <FaBullhorn size={14} />
               <span>Convocatoria proyectos TFI</span>
-            </button>
-
-            {/* Tutorías pendientes */}
-            <button
-              type="button"
-              className="teacher-sidebar-item"
-              onClick={() => {
-                onSelectView('inicio');
-                if (location.pathname !== '/dashboard') {
-                  navigate('/dashboard');
-                }
-              }}
-            >
-              <FaChalkboardUser size={14} />
-              <span>Tutorías pendientes</span>
             </button>
           </>
         )}
