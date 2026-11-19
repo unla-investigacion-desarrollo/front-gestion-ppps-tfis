@@ -8,7 +8,6 @@ import {
   FaFolderOpen,
   FaIdCard,
   FaNoteSticky,
-  FaUsers,
 } from 'react-icons/fa6';
 import {
   fetchPPPProposalById,
@@ -80,17 +79,8 @@ export const PPPProposalDetailPage: React.FC = () => {
     return Array.isArray(raw) ? raw : [];
   }, [proposal]);
 
-  const stats = useMemo(() => {
-    let pending = 0;
-    let accepted = 0;
-    let rejected = 0;
-    applicants.forEach((app) => {
-      const bucket = classifyStatus(app.status);
-      if (bucket === 'accepted') accepted += 1;
-      else if (bucket === 'rejected') rejected += 1;
-      else pending += 1;
-    });
-    return { total: applicants.length, pending, accepted, rejected };
+  const approvedApplicants: PPPApplicant[] = useMemo(() => {
+    return applicants.filter((app) => classifyStatus(app.status) === 'accepted');
   }, [applicants]);
 
   const isLoading = status === 'loading' && !proposal;
@@ -145,22 +135,14 @@ export const PPPProposalDetailPage: React.FC = () => {
           </button>
 
           <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-light text-dark border fw-semibold px-3 py-2">
+            <span className="badge bg-white text-dark border fw-semibold px-3 py-2 rounded-3 shadow-sm">
               Ref #{proposal.id}
             </span>
-            <button
-              type="button"
-              className="btn btn-sm btn-unla-primary d-inline-flex align-items-center gap-2"
-              onClick={() => navigate(`/ppp/convocatorias/${proposal.id}/postulaciones`)}
-            >
-              <FaUsers size={13} />
-              Ver postulantes ({stats.total})
-            </button>
           </div>
         </div>
 
         {/* Cabecera principal */}
-        <div className="bg-white border rounded-4 p-4 mb-4">
+        <div className="bg-white border rounded-4 p-4 mb-4 shadow-sm">
           <div className="d-flex align-items-start justify-content-between flex-wrap gap-3">
             <div className="d-flex align-items-start gap-3">
               <div
@@ -205,7 +187,7 @@ export const PPPProposalDetailPage: React.FC = () => {
           {/* Columna principal */}
           <div className="col-lg-8 d-flex flex-column gap-4">
             {/* Descripción */}
-            <div className="bg-white border rounded-4 p-4">
+            <div className="bg-white border rounded-4 p-4 shadow-sm">
               <h2 className="h6 fw-bold text-uppercase text-muted mb-3" style={{ letterSpacing: '0.04em' }}>
                 Descripción del proyecto
               </h2>
@@ -233,94 +215,72 @@ export const PPPProposalDetailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Postulantes */}
-            <div className="bg-white border rounded-4 p-4">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2
-                  className="h6 fw-bold text-uppercase text-muted m-0"
-                  style={{ letterSpacing: '0.04em' }}
+            {/* Integrantes asignados (solo aprobados) */}
+            <div className="bg-white border rounded-4 p-4 shadow-sm">
+              <div className="d-flex align-items-center gap-2 mb-3">
+                <h2 className="h6 fw-bold text-dark m-0">Integrantes asignados</h2>
+                <span
+                  className="badge rounded-pill px-2.5 py-1"
+                  style={{
+                    backgroundColor: '#dcfce7',
+                    color: '#047857',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                  }}
                 >
-                  Postulantes ({stats.total})
-                </h2>
-                <button
-                  type="button"
-                  className="btn btn-link btn-sm text-decoration-none p-0 fw-semibold"
-                  style={{ color: 'var(--unla-primary, #64001d)' }}
-                  onClick={() => navigate(`/ppp/convocatorias/${proposal.id}/postulaciones`)}
-                >
-                  Gestionar postulaciones →
-                </button>
+                  {approvedApplicants.length}{' '}
+                  {approvedApplicants.length === 1 ? 'estudiante' : 'estudiantes'}
+                </span>
               </div>
 
-              {applicants.length === 0 ? (
+              {approvedApplicants.length === 0 ? (
                 <div className="text-muted small py-3 text-center border rounded-3 bg-light">
-                  Todavía no hay estudiantes postulados a esta práctica.
+                  Todavía no hay estudiantes aprobados asignados a esta práctica.
                 </div>
               ) : (
                 <div className="d-flex flex-column gap-2">
-                  {applicants.slice(0, 6).map((app, index) => {
+                  {approvedApplicants.map((app, index) => {
                     const name =
                       app.student?.fullName ||
                       app.student?.name ||
                       app.studentName ||
                       'Estudiante';
                     const email = app.student?.email || app.studentEmail || '';
-                    const bucket = classifyStatus(app.status);
-                    const badgeStyle =
-                      bucket === 'accepted'
-                        ? { bg: '#ecfdf5', color: '#047857', label: 'Aceptado' }
-                        : bucket === 'rejected'
-                          ? { bg: '#fef2f2', color: '#b91c1c', label: 'Rechazado' }
-                          : { bg: '#fffbeb', color: '#b45309', label: 'Pendiente' };
 
                     return (
                       <div
                         key={app.applicationId || app.id || index}
                         className="d-flex align-items-center justify-content-between gap-3 p-3 border rounded-3"
+                        style={{ backgroundColor: '#f8fafc' }}
                       >
                         <div className="d-flex align-items-center gap-3 min-w-0">
                           <div
                             className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
                             style={{
-                              width: '36px',
-                              height: '36px',
-                              backgroundColor: '#800020',
+                              width: '38px',
+                              height: '38px',
+                              backgroundColor: '#64001d',
                               fontSize: '12px',
                             }}
                           >
                             {getInitials(name)}
                           </div>
                           <div className="min-w-0">
-                            <div className="fw-semibold text-dark text-truncate">{name}</div>
+                            <div className="fw-bold text-dark text-truncate">{name}</div>
                             {email && (
                               <div className="small text-muted text-truncate">{email}</div>
                             )}
                           </div>
                         </div>
                         <span
-                          className="badge rounded-pill px-3 py-2 flex-shrink-0"
-                          style={{
-                            backgroundColor: badgeStyle.bg,
-                            color: badgeStyle.color,
-                            fontWeight: 600,
-                          }}
+                          className="teacher-status-pill curso flex-shrink-0"
                         >
-                          {badgeStyle.label}
+                          <span className="status-dot" />
+                          <span>Aprobado</span>
                         </span>
                       </div>
                     );
                   })}
-                  {applicants.length > 6 && (
-                    <div className="text-center pt-1">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() => navigate(`/ppp/convocatorias/${proposal.id}/postulaciones`)}
-                      >
-                        Ver los {applicants.length} postulantes
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -329,7 +289,7 @@ export const PPPProposalDetailPage: React.FC = () => {
           {/* Columna lateral */}
           <div className="col-lg-4 d-flex flex-column gap-4">
             {/* Resumen rápido */}
-            <div className="bg-white border rounded-4 p-4">
+            <div className="bg-white border rounded-4 p-4 shadow-sm">
               <h2
                 className="h6 fw-bold text-uppercase text-muted mb-3"
                 style={{ letterSpacing: '0.04em' }}
@@ -344,20 +304,11 @@ export const PPPProposalDetailPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">Postulantes totales</span>
-                  <span className="fw-semibold text-dark">{stats.total}</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">Pendientes</span>
-                  <span className="fw-semibold text-warning-emphasis">{stats.pending}</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">Aceptados</span>
-                  <span className="fw-semibold text-success">{stats.accepted}</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">Rechazados</span>
-                  <span className="fw-semibold text-danger">{stats.rejected}</span>
+                  <span className="text-muted">Integrantes activos</span>
+                  <span className="fw-semibold" style={{ color: '#047857' }}>
+                    {approvedApplicants.length}{' '}
+                    {approvedApplicants.length === 1 ? 'estudiante' : 'estudiantes'}
+                  </span>
                 </div>
                 <hr className="my-1" />
                 <div className="d-flex justify-content-between align-items-center">
@@ -378,7 +329,7 @@ export const PPPProposalDetailPage: React.FC = () => {
             </div>
 
             {/* Carpeta Drive */}
-            <div className="bg-white border rounded-4 p-4">
+            <div className="bg-white border rounded-4 p-4 shadow-sm">
               <h2
                 className="h6 fw-bold text-uppercase text-muted mb-3"
                 style={{ letterSpacing: '0.04em' }}
