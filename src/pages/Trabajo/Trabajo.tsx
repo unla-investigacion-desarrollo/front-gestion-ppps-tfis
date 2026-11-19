@@ -172,12 +172,11 @@ const Trabajo: React.FC = () => {
     try {
       // 1. Obtener Proyecto
       let currentProj = reduxProjects.find((projectCandidate) => String(projectCandidate.id) === String(projectId));
-      if (!currentProj) {
-        try {
-          currentProj = await projectService.getProjectById(projectId, token);
-        } catch (fetchError: any) {
-          console.warn('No se pudo cargar proyecto por ID directo:', fetchError);
-        }
+      try {
+        const projectDetail = await projectService.getProjectById(projectId, token);
+        currentProj = projectDetail?.project || projectDetail || currentProj;
+      } catch (fetchError: any) {
+        console.warn('No se pudo cargar proyecto por ID directo:', fetchError);
       }
       setProject(currentProj || null);
 
@@ -464,6 +463,76 @@ const Trabajo: React.FC = () => {
     return { label: 'Fuera de rango (0 a 10)', color: '#e11d48', status: 'invalid' };
   }, [qualificationInput]);
 
+  const rawProject = project?.raw || {};
+  const projectStatus = project?.estado || project?.status || rawProject.status || rawProject.estado;
+  const projectCreator =
+    project?.createdBy ||
+    project?.createdByUser ||
+    project?.created_by ||
+    project?.creator ||
+    project?.creatorId ||
+    project?.createdById ||
+    rawProject.createdBy ||
+    rawProject.createdByUser ||
+    rawProject.created_by ||
+    rawProject.creator ||
+    rawProject.creatorId ||
+    rawProject.createdById ||
+    project?.teacher ||
+    project?.teacherId ||
+    rawProject.teacher ||
+    rawProject.teacherId;
+  const studentSource = [
+    project?.activeStudents,
+    rawProject.activeStudents,
+    rawProject.students,
+    rawProject.alumnos,
+    rawProject.users,
+    project?.students,
+    project?.alumnos,
+    project?.users,
+  ].find((candidate: any) => Array.isArray(candidate) && candidate.length > 0) || [];
+  const assignedStudents = studentSource
+    .filter((studentItem: any) => studentItem && studentItem.active !== false)
+    .filter(
+      (studentItem: any, studentIndex: number, allStudents: any[]) =>
+        allStudents.findIndex(
+          (otherStudent: any) =>
+            resolveUserName(otherStudent).toLowerCase() === resolveUserName(studentItem).toLowerCase()
+        ) === studentIndex
+    );
+  const teacherSources = [
+    project?.activeProfessors,
+    rawProject.activeProfessors,
+    project?.professors,
+    rawProject.professors,
+    project?.teachers,
+    rawProject.teachers,
+    project?.coTeachers,
+    rawProject.coTeachers,
+  ].filter((candidate: any) => Array.isArray(candidate));
+  const mainTeacher =
+    project?.teacher ||
+    project?.tutor ||
+    project?.professor ||
+    project?.teacherId ||
+    rawProject.teacher ||
+    rawProject.tutor ||
+    rawProject.professor ||
+    rawProject.teacherId;
+  const assignedTeachers = [
+    ...teacherSources.flat(),
+    ...(mainTeacher ? [mainTeacher] : []),
+  ]
+    .filter((teacherItem: any) => teacherItem && teacherItem.active !== false)
+    .filter(
+      (teacherItem: any, teacherIndex: number, allTeachers: any[]) =>
+        allTeachers.findIndex(
+          (otherTeacher: any) =>
+            resolveUserName(otherTeacher).toLowerCase() === resolveUserName(teacherItem).toLowerCase()
+        ) === teacherIndex
+    );
+
   return (
     <div className="trabajo-page-container">
       <div className="trabajo-wrapper">
@@ -512,7 +581,7 @@ const Trabajo: React.FC = () => {
                 {project?.categoria || project?.projectType?.name || 'General'}
               </span>
               <span className="badge bg-outline-secondary text-muted">
-                {project?.estado ? `Estado: ${project.estado}` : 'Activo'}
+                {projectStatus ? `Estado: ${String(projectStatus).replace(/_/g, ' ')}` : 'Estado: Activo'}
               </span>
             </div>
             <h1 className="trabajo-project-title">
@@ -527,84 +596,45 @@ const Trabajo: React.FC = () => {
           <div className="trabajo-members-grid">
             <div className="trabajo-member-col">
               <h4>Alumnos Asignados</h4>
-              {(() => {
-                const assignedStudents = (project?.activeStudents && project.activeStudents.length > 0)
-                  ? project.activeStudents.filter((studentItem: any) => studentItem && studentItem.active !== false)
-                  : project?.students || [];
-
-                if (assignedStudents.length === 0) {
-                  return <span className="text-muted small">Sin alumnos asignados</span>;
-                }
-
-                return (
-                  <div className="trabajo-member-tags">
-                    {assignedStudents.map((studentItem: any, studentIndex: number) => (
-                      <span key={studentIndex} className="trabajo-member-pill">
-                        👤 {resolveUserName(studentItem)}
-                      </span>
-                    ))}
-                  </div>
-                );
-              })()}
+              {assignedStudents.length === 0 ? (
+                <span className="text-muted small">Sin alumnos asignados</span>
+              ) : (
+                <div className="trabajo-member-tags">
+                  {assignedStudents.map((studentItem: any, studentIndex: number) => (
+                    <span key={studentIndex} className="trabajo-member-pill">
+                      👤 {resolveUserName(studentItem)}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="trabajo-member-col">
               <h4>Docentes Asignados</h4>
-              {(() => {
-                const teachers: any[] = [];
-                const seenTeacherIds = new Set<string>();
+              {assignedTeachers.length === 0 ? (
+                <span className="text-muted small">Sin docentes asignados</span>
+              ) : (
+                <div className="trabajo-member-tags">
+                  {assignedTeachers.map((teacherItem: any, teacherIndex: number) => (
+                    <span key={teacherIndex} className="trabajo-member-pill">
+                      🎓 {resolveUserName(teacherItem)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                if (Array.isArray(project?.activeProfessors) && project.activeProfessors.length > 0) {
-                  project.activeProfessors.forEach((activeProfItem: any) => {
-                    if (activeProfItem && activeProfItem.active !== false) {
-                      const idString = String(activeProfItem.professor?.user?.id || activeProfItem.professor?.id_user || activeProfItem.id || '');
-                      if (idString && !seenTeacherIds.has(idString)) {
-                        seenTeacherIds.add(idString);
-                        teachers.push(activeProfItem);
-                      } else if (!idString) {
-                        teachers.push(activeProfItem);
-                      }
-                    }
-                  });
-                }
-
-                if (Array.isArray(project?.coTeachers) && project.coTeachers.length > 0) {
-                  project.coTeachers.forEach((teacherItem: any) => {
-                    const idString = typeof teacherItem === 'object' ? String(teacherItem.id || teacherItem.id_user || '') : String(teacherItem);
-                    if (idString && !seenTeacherIds.has(idString)) {
-                      seenTeacherIds.add(idString);
-                      teachers.push(teacherItem);
-                    } else if (!idString) {
-                      teachers.push(teacherItem);
-                    }
-                  });
-                }
-
-                const mainTeacher = (project as any)?.teacher || (project as any)?.tutor || project?.teacherId;
-                if (mainTeacher) {
-                  const idString = typeof mainTeacher === 'object' ? String(mainTeacher.id || mainTeacher.id_user || '') : String(mainTeacher);
-                  if (idString && !seenTeacherIds.has(idString)) {
-                    seenTeacherIds.add(idString);
-                    teachers.push(mainTeacher);
-                  } else if (!idString && teachers.length === 0) {
-                    teachers.push(mainTeacher);
-                  }
-                }
-
-                if (teachers.length === 0) {
-                  return <span className="text-muted small">Sin docentes asignados</span>;
-                }
-
-                return (
-                  <div className="trabajo-member-tags">
-                    {teachers.map((teacherItem: any, teacherIndex: number) => (
-                      <span key={teacherIndex} className="trabajo-member-pill">
-                        🎓 {resolveUserName(teacherItem)}
-                      </span>
-                    ))}
-                  </div>
-                );
-              })()}
+            <div className="trabajo-member-col">
+              <h4>Docente Creador</h4>
+              {projectCreator ? (
+                <div className="trabajo-member-tags">
+                  <span className="trabajo-member-pill">
+                    🎓 {resolveUserName(projectCreator)}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-muted small">Sin dato disponible</span>
+              )}
             </div>
           </div>
         </div>

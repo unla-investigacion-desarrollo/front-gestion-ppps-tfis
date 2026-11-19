@@ -199,9 +199,11 @@ export const PPPProposalsCatalog: React.FC = () => {
   };
 
   const sortedProposals = useMemo(() => {
-    return [...filteredProposals].sort(
-      (a, b) => getPendingApplicantsCount(b) - getPendingApplicantsCount(a)
-    );
+    return [...filteredProposals].sort((a, b) => {
+      const openStatusPriority = Number(b.isOpen) - Number(a.isOpen);
+      if (openStatusPriority !== 0) return openStatusPriority;
+      return getPendingApplicantsCount(b) - getPendingApplicantsCount(a);
+    });
   }, [filteredProposals]);
 
   const totalItems = sortedProposals.length;

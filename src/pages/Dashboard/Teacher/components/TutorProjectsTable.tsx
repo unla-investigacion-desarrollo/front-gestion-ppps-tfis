@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   FaFolderOpen,
   FaCalendarDays,
+  FaEye,
   FaChalkboardUser,
   FaGraduationCap,
   FaUserGroup,
@@ -22,6 +23,8 @@ export interface TutorProjectRecord {
   subtitulo: string;
   estudiantePrincipal: string;
   estudiantesExtras: string;
+  estudiantesAsignados: string[];
+  docentesAsignados: string[];
   estado: 'En curso' | 'Pendiente' | 'Finalizado';
   estadoClass: 'curso' | 'revision' | 'finalizado';
   ultimaTutoria: string;
@@ -132,20 +135,22 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
         // Extraer docentes o tutor asignados al proyecto
         let teacherNames: string[] = [];
-        const rawTeachers =
-          projectData.activeProfessors ||
-          projectData.professors ||
-          projectData.teachers ||
-          (projectData.teacher ? [projectData.teacher] : []) ||
-          (projectData.tutor ? [projectData.tutor] : []) ||
-          (projectItemCandidate.teacher ? [projectItemCandidate.teacher] : []) ||
-          [];
+        const rawTeachers = [
+          ...(Array.isArray(projectData.activeProfessors) ? projectData.activeProfessors : []),
+          ...(Array.isArray(projectData.professors) ? projectData.professors : []),
+          ...(Array.isArray(projectData.teachers) ? projectData.teachers : []),
+          ...(Array.isArray(projectData.coTeachers) ? projectData.coTeachers : []),
+          projectData.teacher,
+          projectData.tutor,
+          projectItemCandidate.teacher,
+          projectData.teacherId ? `Docente #${projectData.teacherId}` : null,
+        ].filter(Boolean);
 
         if (Array.isArray(rawTeachers)) {
           teacherNames = rawTeachers
             .map((rawTeacher: any) => {
-              if (!rawTeacher) return '';
-              if (typeof rawTeacher === 'string') return rawTeacher;
+              if (!rawTeacher || rawTeacher.active === false) return '';
+              if (typeof rawTeacher === 'string' || typeof rawTeacher === 'number') return String(rawTeacher);
               const teacherObject = rawTeacher.professor?.user || rawTeacher.user || rawTeacher.teacher || rawTeacher;
               const firstName = teacherObject.firstName || teacherObject.nombre || '';
               const lastName = teacherObject.lastName || teacherObject.apellido || '';
@@ -154,6 +159,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
             })
             .filter(Boolean);
         }
+        teacherNames = [...new Set(teacherNames)];
 
         const estudiantePrincipal = studentNames.length > 0 ? studentNames[0] : 'Sin alumnos';
         const estudiantesExtras = studentNames.length > 1 ? `+${studentNames.length - 1}` : '';
@@ -199,6 +205,8 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           subtitulo: description,
           estudiantePrincipal: isStudent ? docentePrincipal : estudiantePrincipal,
           estudiantesExtras: isStudent ? docentesExtras : estudiantesExtras,
+          estudiantesAsignados: studentNames,
+          docentesAsignados: teacherNames,
           estado,
           estadoClass,
           ultimaTutoria,
@@ -240,8 +248,11 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
         const normalizedQuery = searchQuery.toLowerCase().trim();
         const matchProyecto = itemCandidate.proyecto.toLowerCase().includes(normalizedQuery);
         const matchSubtitulo = itemCandidate.subtitulo.toLowerCase().includes(normalizedQuery);
-        const matchEstudiante = itemCandidate.estudiantePrincipal.toLowerCase().includes(normalizedQuery);
-        if (!matchProyecto && !matchSubtitulo && !matchEstudiante) return false;
+        const matchMembers = [
+          ...itemCandidate.estudiantesAsignados,
+          ...itemCandidate.docentesAsignados,
+        ].some((memberName) => memberName.toLowerCase().includes(normalizedQuery));
+        if (!matchProyecto && !matchSubtitulo && !matchMembers) return false;
       }
       return true;
     });
@@ -419,7 +430,15 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                     >
                       {projectRow.proyecto}
                     </Link>
-                    <p className="project-description-text mb-0">{projectRow.subtitulo}</p>
+                    <p className="project-description-text mb-1">{projectRow.subtitulo}</p>
+                    {!isStudent && (
+                      <div className="small text-secondary">
+                        <strong>Docente/s asignado/s:</strong>{' '}
+                        {projectRow.docentesAsignados.length > 0
+                          ? projectRow.docentesAsignados.join(', ')
+                          : 'Sin docente asignado'}
+                      </div>
+                    )}
                   </td>
 
                   {/* Columna Estudiantes / Docentes */}
@@ -482,15 +501,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   {/* Columna Acciones */}
                   <td style={{ textAlign: 'right' }}>
                     <div className="d-inline-flex align-items-center justify-content-end gap-2">
-                      {isStudent ? (
-                        <button
-                          type="button"
-                          className="btn btn-sm teacher-btn-view-outline"
-                          onClick={() => navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
-                        >
-                          Ver proyecto
-                        </button>
-                      ) : projectRow.estado !== 'Finalizado' ? (
+                      {!isStudent && projectRow.estado !== 'Finalizado' ? (
                         projectRow.tutoringRequested ? (
                           <button
                             type="button"
