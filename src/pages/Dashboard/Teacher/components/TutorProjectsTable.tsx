@@ -3,13 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   FaFolderOpen,
   FaCalendarDays,
-  FaEllipsisVertical,
   FaChalkboardUser,
   FaGraduationCap,
+  FaUserGroup,
 } from 'react-icons/fa6';
 import { projectService } from '../../../../services/projectService';
 import { studentWorkService } from '../../../../services/studentWorkService';
-import Pagination from '../../../../components/Pagination';
 import TutorProjectFilters from './TutorProjectFilters';
 import TutorProjectStatusPill from './TutorProjectStatusPill';
 import MyTfiCard from '../../../Student/components/MyTfiCard';
@@ -66,7 +65,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
   // Estados de paginación
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Obtener proyectos activos del usuario (profesor o estudiante) desde el backend
   const fetchMyProjects = useCallback(async () => {
@@ -109,13 +108,18 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
         const workId = work?.id ? Number(work.id) : undefined;
         const tutoringRequested = Boolean(work?.tutoringRequested);
 
-        // Extraer alumnos asignados al proyecto
+        // Extraer alumnos asignados al proyecto (matcheado con activeStudents)
         let studentNames: string[] = [];
-        const rawStudents = projectData.activeStudents || projectData.students || projectData.users || [];
+        const rawStudents =
+          (Array.isArray(projectData.activeStudents) ? projectData.activeStudents : null) ||
+          (Array.isArray(projectItemCandidate.activeStudents) ? projectItemCandidate.activeStudents : null) ||
+          projectData.students ||
+          projectData.users ||
+          [];
         if (Array.isArray(rawStudents)) {
           studentNames = rawStudents
+            .filter((rawStudent: any) => rawStudent && rawStudent.active !== false)
             .map((rawStudent: any) => {
-              if (!rawStudent) return '';
               if (typeof rawStudent === 'string') return rawStudent;
               const studentObject = rawStudent.student?.user || rawStudent.user || rawStudent.student || rawStudent;
               const firstName = studentObject.firstName || studentObject.nombre || '';
@@ -151,11 +155,11 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
             .filter(Boolean);
         }
 
-        const estudiantePrincipal = studentNames.length > 0 ? studentNames[0] : (teacherNames.length > 0 ? teacherNames[0] : 'Sin asignar');
-        const estudiantesExtras = studentNames.length > 1 ? `+${studentNames.length - 1}` : (teacherNames.length > 1 ? `+${teacherNames.length - 1}` : '');
+        const estudiantePrincipal = studentNames.length > 0 ? studentNames[0] : 'Sin alumnos';
+        const estudiantesExtras = studentNames.length > 1 ? `+${studentNames.length - 1}` : '';
 
-        const docentePrincipal = teacherNames.length > 0 ? teacherNames[0] : (studentNames.length > 0 ? studentNames[0] : 'Sin tutor asignado');
-        const docentesExtras = teacherNames.length > 1 ? `+${teacherNames.length - 1}` : (studentNames.length > 1 ? `+${studentNames.length - 1}` : '');
+        const docentePrincipal = teacherNames.length > 0 ? teacherNames[0] : 'Sin tutor asignado';
+        const docentesExtras = teacherNames.length > 1 ? `+${teacherNames.length - 1}` : '';
 
         // Determinar estado contextual
         const rawEstado = String(projectData.estado || projectData.status || (projectItemCandidate.active ? 'En curso' : 'Pendiente')).toLowerCase();
@@ -259,6 +263,20 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
     setFilterEstado('todos');
   };
 
+  const summaryStats = useMemo(() => {
+    const total = projectsList.length;
+    const enCurso = projectsList.filter((p) => p.estado === 'En curso').length;
+    const pendientes = projectsList.filter((p) => p.tutoringRequested).length;
+    return { total, enCurso, pendientes };
+  }, [projectsList]);
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'ES';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+  };
+
   // Estudiante: un único TFI → ficha en lugar de tabla con filtros y paginación
   if (isStudent) {
     return (
@@ -273,14 +291,38 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
   return (
     <div className="projects-card-main">
-      {/* Encabezado con estilo institucional unificado */}
-      <div className="mb-4">
-        <h1 className="projects-title m-0">Mis proyectos</h1>
-        <p className="projects-subtitle text-muted m-0">
-          {isStudent
-            ? 'Seguimiento de tus proyectos activos y estado de entregas.'
-            : 'Seguimiento de los proyectos que tenés a cargo.'}
-        </p>
+      {/* Encabezado con resumen de actividad del tutor */}
+      <div className="projects-header-row">
+        <div className="projects-header">
+          <div className="projects-header-icon-box">
+            <FaFolderOpen size={22} />
+          </div>
+          <div>
+            <h1 className="projects-header-title">Mis proyectos</h1>
+            <p className="projects-header-subtitle">
+              {isStudent
+                ? 'Seguimiento de tus proyectos activos y estado de entregas.'
+                : 'Seguimiento y gestión de los proyectos TFI que tenés a cargo.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="tutor-header-metrics">
+          <div className="tutor-metric-item">
+            <span className="tutor-metric-value">{summaryStats.total}</span>
+            <span className="tutor-metric-label">Total proyectos</span>
+          </div>
+          <div className="tutor-metric-item">
+            <span className="tutor-metric-value success">{summaryStats.enCurso}</span>
+            <span className="tutor-metric-label">En curso</span>
+          </div>
+          <div className="tutor-metric-item">
+            <span className={`tutor-metric-value ${summaryStats.pendientes > 0 ? 'warning' : ''}`}>
+              {summaryStats.pendientes}
+            </span>
+            <span className="tutor-metric-label">Solicitudes pendientes</span>
+          </div>
+        </div>
       </div>
 
       {/* Componente Reutilizable y Responsive de Filtros */}
@@ -292,22 +334,23 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
         onClearFilters={handleClearFilters}
       />
 
-      {/* Tabla Principal con Responsive Bootstrap Wrapper */}
-      <div className="projects-table-wrapper table-responsive">
-        <table className="table table-hover align-middle mb-0">
-          <thead className="table-light">
+      {/* Tabla Principal estilo Gestión de TFI */}
+      <div className="projects-table-container">
+        <table className="projects-table">
+          <thead>
             <tr>
-              <th scope="col" style={{ width: '32%' }}>PROYECTO</th>
-              <th scope="col" style={{ width: '22%' }}>{isStudent ? 'DOCENTE / TUTOR' : 'ESTUDIANTES'}</th>
-              <th scope="col" style={{ width: '16%' }}>ESTADO</th>
-              <th scope="col" style={{ width: '16%' }}>ÚLTIMA TUTORÍA</th>
-              <th scope="col" style={{ width: '14%', textAlign: 'right' }}>ACCIONES</th>
+              <th style={{ width: '28%' }}>Proyecto</th>
+              <th style={{ width: '20%' }}>{isStudent ? 'Docente / Tutor' : 'Estudiantes'}</th>
+              <th style={{ width: '13%' }}>Estado</th>
+              <th style={{ width: '17%' }}>Solicitud de tutoría</th>
+              <th style={{ width: '12%' }}>Última tutoría</th>
+              <th style={{ width: '10%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center py-5">
+                <td colSpan={6} className="text-center py-5">
                   <div className="spinner-border text-danger" role="status">
                     <span className="visually-hidden">Cargando...</span>
                   </div>
@@ -316,7 +359,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={5} className="text-center py-4">
+                <td colSpan={6} className="text-center py-4">
                   <div className="alert alert-warning d-inline-block text-start mb-0" style={{ maxWidth: '600px' }}>
                     <div className="fw-bold mb-1">No se pudieron cargar los proyectos</div>
                     <div className="small text-muted mb-2">{error}</div>
@@ -332,7 +375,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
               </tr>
             ) : paginatedList.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-5 text-muted">
+                <td colSpan={6} className="text-center py-5 text-muted">
                   <div className="py-4">
                     <FaFolderOpen size={36} color="#cbd5e1" className="mb-2" />
                     <div className="fw-medium text-secondary">
@@ -371,7 +414,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                     <Link
                       to={`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`}
                       state={{ from: 'mis-proyectos' }}
-                      className="project-title-link"
+                      className="projects-table-title-link"
                       title={projectRow.proyecto}
                     >
                       {projectRow.proyecto}
@@ -379,35 +422,48 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                     <p className="project-description-text mb-0">{projectRow.subtitulo}</p>
                   </td>
 
-                  {/* Columna Estudiantes / Docentes: Alumno/docente principal y badge extra */}
+                  {/* Columna Estudiantes / Docentes */}
                   <td>
-                    <div className="d-flex align-items-center gap-2">
-                      {isStudent && <FaChalkboardUser size={13} className="text-secondary" />}
-                      <span className="fw-medium text-dark">{projectRow.estudiantePrincipal}</span>
-                      {projectRow.estudiantesExtras && (
-                        <span className="badge bg-light text-secondary border">
-                          {projectRow.estudiantesExtras}
+                    {projectRow.estudiantePrincipal === 'Sin alumnos' ? (
+                      <span className="empty-cell-muted">
+                        <FaUserGroup size={12} />
+                        <span>Sin estudiantes asignados</span>
+                      </span>
+                    ) : (
+                      <div className="d-flex align-items-center gap-2">
+                        <span className="tutor-student-avatar">
+                          {getInitials(projectRow.estudiantePrincipal)}
                         </span>
-                      )}
-                    </div>
+                        <span className="projects-member-name">{projectRow.estudiantePrincipal}</span>
+                        {projectRow.estudiantesExtras && (
+                          <span className="badge bg-light text-secondary border">
+                            {projectRow.estudiantesExtras}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </td>
 
-                  {/* Columna Estado: Pill reutilizable y aviso de tutoría solicitada */}
+                  {/* Columna Estado del proyecto */}
                   <td>
                     <TutorProjectStatusPill
                       estado={projectRow.estado}
                       estadoClass={projectRow.estadoClass}
                     />
-                    {projectRow.tutoringRequested && (
-                      <div className="mt-1">
-                        <span
-                          className="badge bg-warning text-dark border border-warning-subtle d-inline-flex align-items-center gap-1"
-                          style={{ fontSize: '11px', fontWeight: 600, padding: '3px 7px' }}
-                          title={isStudent ? 'Solicitaste una sesión de tutoría' : 'El equipo del proyecto solicitó una sesión de tutoría'}
-                        >
-                          <FaChalkboardUser size={11} /> Tutoría solicitada
-                        </span>
-                      </div>
+                  </td>
+
+                  {/* Columna Solicitud de tutoría (separada del estado del proyecto) */}
+                  <td>
+                    {projectRow.tutoringRequested ? (
+                      <span
+                        className="tutor-request-pill pending"
+                        title={isStudent ? 'Solicitaste una sesión de tutoría' : 'El equipo del proyecto solicitó una sesión de tutoría'}
+                      >
+                        <FaChalkboardUser size={11} />
+                        <span>Tutoría solicitada</span>
+                      </span>
+                    ) : (
+                      <span className="tutor-request-pill none">Sin solicitudes</span>
                     )}
                   </td>
 
@@ -419,7 +475,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                         <span>{projectRow.ultimaTutoria}</span>
                       </div>
                     ) : (
-                      <span className="text-muted">-</span>
+                      <span className="empty-cell-dash">—</span>
                     )}
                   </td>
 
@@ -473,17 +529,6 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                           Ver proyecto
                         </button>
                       )}
-
-                      <button
-                        type="button"
-                        className="teacher-btn-more-actions d-inline-flex align-items-center justify-content-center"
-                        title="Opciones"
-                        onClick={() => {
-                          navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } });
-                        }}
-                      >
-                        <FaEllipsisVertical size={13} />
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -496,20 +541,71 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
       {/* Espaciador flexible para empujar la paginación al pie del card */}
       <div style={{ flexGrow: 1 }} />
 
-      {/* Componente Reutilizable de Paginación */}
-      {filteredList.length > 0 && (
-        <Pagination
-          currentPage={page}
-          totalItems={filteredList.length}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          pageSizeOptions={[5, 10, 20]}
-          onPageSizeChange={(newSize) => {
-            setPageSize(newSize);
-            setPage(1);
-          }}
-        />
-      )}
+      {/* Paginación estilo Gestión de TFI */}
+      {filteredList.length > 0 && (() => {
+        const totalItems = filteredList.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const startItem = (page - 1) * pageSize + 1;
+        const endItem = Math.min(page * pageSize, totalItems);
+        return (
+          <div className="projects-pagination-footer">
+            <div className="projects-pagination-info">
+              <span>
+                Mostrando {startItem} - {endItem} de {totalItems} proyectos
+              </span>
+              <div className="d-flex align-items-center gap-2">
+                <span>Mostrar:</span>
+                <select
+                  className="projects-select"
+                  style={{ padding: '4px 28px 4px 10px', fontSize: '0.82rem' }}
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  {[5, 10, 20].map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt} por pág.
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="projects-pagination-controls">
+              <button
+                type="button"
+                className="projects-page-btn"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                &lt;
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={`projects-page-btn ${page === pageNum ? 'active' : ''}`}
+                  onClick={() => setPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                className="projects-page-btn"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

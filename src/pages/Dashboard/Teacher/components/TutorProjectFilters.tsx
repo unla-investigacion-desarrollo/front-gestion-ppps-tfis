@@ -23,52 +23,45 @@ export const TutorProjectFilters: React.FC<TutorProjectFiltersProps> = ({
   placeholder = 'Buscar proyecto o estudiante...',
 }) => {
   return (
-    <div className="unla-card filters-card mb-4">
-      <div className="row g-3 align-items-center">
-        {/* Campo buscador principal con icono */}
-        <div className="col-12 col-md-6 col-lg-7">
-          <div className="search-input-wrapper">
-            <span className="search-icon-wrapper">
-              <FaMagnifyingGlass size={15} color="#9ca3af" />
-            </span>
-            <input
-              type="text"
-              className="form-control search-input-field"
-              placeholder={placeholder}
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Selector de filtro por estado */}
-        <div className="col-12 col-sm-6 col-md-3 col-lg-3">
-          <select
-            className="form-select filter-select-field"
-            value={filterEstado}
-            onChange={(e) => onEstadoChange(e.target.value)}
-          >
-            <option value="todos">Estado: Todos</option>
-            <option value="en curso">Estado: En curso</option>
-            <option value="pendiente">Estado: Pendiente</option>
-            <option value="finalizado">Estado: Finalizado</option>
-            <option value="tutoria">Estado: Tutoría solicitada</option>
-          </select>
-        </div>
-
-        {/* Botón para restablecer y limpiar filtros */}
-        <div className="col-12 col-sm-6 col-md-3 col-lg-2">
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-clear-filters w-100 d-inline-flex align-items-center justify-content-center gap-2"
-            onClick={onClearFilters}
-            title="Limpiar filtros de búsqueda"
-          >
-            <FaArrowRotateLeft size={13} />
-            <span>Limpiar</span>
-          </button>
-        </div>
+    <div className="projects-filters-bar">
+      {/* Campo buscador principal con icono */}
+      <div className="projects-search-box">
+        <span className="projects-search-icon">
+          <FaMagnifyingGlass size={15} />
+        </span>
+        <input
+          type="text"
+          className="projects-search-input"
+          placeholder={placeholder}
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
       </div>
+
+      {/* Selector de filtro por estado */}
+      <select
+        className="projects-select"
+        value={filterEstado}
+        onChange={(e) => onEstadoChange(e.target.value)}
+        aria-label="Filtrar por estado"
+      >
+        <option value="todos">Estado: Todos</option>
+        <option value="en curso">Estado: En curso</option>
+        <option value="pendiente">Estado: Pendiente</option>
+        <option value="finalizado">Estado: Finalizado</option>
+        <option value="tutoria">Estado: Tutoría solicitada</option>
+      </select>
+
+      {/* Botón para restablecer y limpiar filtros */}
+      <button
+        type="button"
+        className="projects-clear-btn"
+        onClick={onClearFilters}
+        title="Limpiar filtros de búsqueda"
+      >
+        <FaArrowRotateLeft size={13} />
+        <span>Limpiar filtros</span>
+      </button>
     </div>
   );
 };

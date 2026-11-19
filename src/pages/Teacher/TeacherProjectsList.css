@@ -71,6 +71,7 @@
 }
 
 .teacher-main-scrollable .projects-card-main {
+  flex: 1;
   min-height: auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
   border: 1px solid var(--unla-border-light, #e2e8f0);
@@ -419,6 +420,105 @@
   background-color: #fee2e2;
   border-color: #f87171;
   color: #991b1b;
+}
+
+/* Métricas de resumen en cabecera de Mis proyectos */
+.tutor-header-metrics {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.tutor-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 90px;
+}
+
+.tutor-metric-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #111827;
+}
+
+.tutor-metric-value.success {
+  color: #16a34a;
+}
+
+.tutor-metric-value.warning {
+  color: #d97706;
+}
+
+.tutor-metric-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Avatar con iniciales para columna Estudiantes */
+.tutor-student-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fdf2f4;
+  color: #64001d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+/* Pills para estado de solicitud de tutoría */
+.tutor-request-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.tutor-request-pill.pending {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.tutor-request-pill.none {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .tutor-metric-value {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .tutor-metric-value.success {
+  color: #4ade80;
+}
+
+[data-theme="dark"] .tutor-metric-value.warning {
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .tutor-metric-label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .tutor-request-pill.none {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #94a3b8;
 }
 .btn-tutor-join {
   height: 36px;
