@@ -409,6 +409,17 @@
   color: #0f172a;
 }
 
+.btn-ppp-delete {
+  background-color: #fef2f2;
+  border: 1.5px solid #fecaca;
+  color: #b91c1c;
+}
+
+.btn-ppp-delete:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
 .btn-tutor-join {
   height: 36px;
   padding: 0 12px;

@@ -78,7 +78,12 @@ export const projectService = {
     }
 
     try {
-      return JSON.parse(text);
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) return parsed;
+      return parsed.filter((item: any) => {
+        const st = String(item?.status || item?.estado || '').toLowerCase().trim();
+        return st !== 'finalized' && st !== 'canceled' && st !== 'cancelled';
+      });
     } catch {
       return [];
     }
