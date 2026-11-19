@@ -430,15 +430,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                     >
                       {projectRow.proyecto}
                     </Link>
-                    <p className="project-description-text mb-1">{projectRow.subtitulo}</p>
-                    {!isStudent && (
-                      <div className="small text-secondary">
-                        <strong>Docente/s asignado/s:</strong>{' '}
-                        {projectRow.docentesAsignados.length > 0
-                          ? projectRow.docentesAsignados.join(', ')
-                          : 'Sin docente asignado'}
-                      </div>
-                    )}
+                    <p className="project-description-text mb-0">{projectRow.subtitulo}</p>
                   </td>
 
                   {/* Columna Estudiantes / Docentes */}
