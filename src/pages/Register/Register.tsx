@@ -302,7 +302,9 @@ const Register: React.FC = () => {
                 <div className="register-input-wrapper">
                   <FaEnvelope className="register-input-icon" />
                   <input
-                    type="email"
+                    type="text"
+                    inputMode="email"
+                    autoComplete="email"
                     id="email"
                     name="email"
                     className={`register-input ${errors.email ? 'is-invalid' : ''}`}

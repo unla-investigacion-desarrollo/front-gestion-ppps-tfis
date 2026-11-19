@@ -150,28 +150,44 @@ const UsersList: React.FC = () => {
     return 0;
   };
 
-  // Preparar estado del usuario para editar
-  const handleStartEdit = (user: any) => {
+  // Preparar estado del usuario para editar (cargando también perfil de estudiante/docente)
+  const handleStartEdit = async (user: any) => {
     if (!canEditUser(user)) {
       showToast('Solo el superadmin puede editar cuentas de superadmin.', 'error');
       return;
     }
 
-    const normalizedRole = normalizeRole(user.role || user.rol);
+    let fullUser = user;
+    try {
+      const token = localStorage.getItem('token') || '';
+      const profileData = await userService.getUserProfile(user.id, token);
+      if (profileData) {
+        fullUser = {
+          ...user,
+          ...profileData,
+          ...(profileData.student || {}),
+          ...(profileData.professor || {}),
+        };
+      }
+    } catch (error) {
+      console.error('Error al obtener perfil completo para edición:', error);
+    }
+
+    const normalizedRole = normalizeRole(fullUser.role || fullUser.rol || user.role || user.rol);
 
     setEditingUser({
-      ...user,
-      nombre: user.nombre || user.firstName || '',
-      apellido: user.apellido || user.lastName || '',
-      dni: user.dni || '',
-      email: user.email || '',
+      ...fullUser,
+      nombre: fullUser.nombre || fullUser.firstName || '',
+      apellido: fullUser.apellido || fullUser.lastName || '',
+      dni: fullUser.dni || '',
+      email: fullUser.email || '',
       rol: normalizedRole,
-      legajo: user.legajo || user.fileNumber || '',
-      yearOfAdmission: user.yearOfAdmission || '',
-      completedCoursesWithFinal: user.completedCoursesWithFinal ?? 0,
-      completedCoursesWithoutFinal: user.completedCoursesWithoutFinal ?? 0,
-      specialization: user.specialization || user.categoria || '',
-      isTutor: !!user.isTutor,
+      legajo: fullUser.legajo || fullUser.fileNumber || '',
+      yearOfAdmission: fullUser.yearOfAdmission ?? '',
+      completedCoursesWithFinal: fullUser.completedCoursesWithFinal ?? 0,
+      completedCoursesWithoutFinal: fullUser.completedCoursesWithoutFinal ?? 0,
+      specialization: fullUser.specialization || fullUser.categoria || '',
+      isTutor: !!fullUser.isTutor,
     });
   };
 
@@ -701,7 +717,9 @@ const UsersList: React.FC = () => {
                     <div>
                       <label className="form-label" style={{ fontWeight: 500 }}>Email</label>
                       <input
-                        type="email"
+                        type="text"
+                        inputMode="email"
+                        autoComplete="email"
                         className="form-control"
                         required
                         value={editingUser.email || ''}

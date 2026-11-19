@@ -124,7 +124,9 @@ function LoginForm() {
               <label className="form-label" htmlFor="email-input">Correo electrónico</label>
               <input
                 id="email-input"
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
                 name="email"
                 placeholder="nombre@ejemplo.com"
                 className="login-input"
@@ -261,7 +263,9 @@ function LoginForm() {
                     </label>
                     <input
                       id="forgot-email-input"
-                      type="email"
+                      type="text"
+                      inputMode="email"
+                      autoComplete="email"
                       name="forgotEmail"
                       placeholder="estudiante@ejemplo.com"
                       className="login-input"
