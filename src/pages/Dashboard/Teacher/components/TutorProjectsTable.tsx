@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   FaFolderOpen,
   FaCalendarDays,
-  FaEllipsisVertical,
+  FaEye,
   FaChalkboardUser,
   FaGraduationCap,
 } from 'react-icons/fa6';
@@ -461,15 +461,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                   {/* Columna Acciones */}
                   <td style={{ textAlign: 'right' }}>
                     <div className="d-inline-flex align-items-center justify-content-end gap-2">
-                      {isStudent ? (
-                        <button
-                          type="button"
-                          className="btn btn-sm teacher-btn-view-outline"
-                          onClick={() => navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
-                        >
-                          Ver proyecto
-                        </button>
-                      ) : projectRow.estado !== 'Finalizado' ? (
+                      {!isStudent && projectRow.estado !== 'Finalizado' ? (
                         projectRow.tutoringRequested ? (
                           <button
                             type="button"
@@ -499,25 +491,15 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                             <span>Confirmar tutoría</span>
                           </button>
                         )
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-sm teacher-btn-view-outline"
-                          onClick={() => navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
-                        >
-                          Ver proyecto
-                        </button>
-                      )}
-
+                      ) : null}
                       <button
                         type="button"
-                        className="teacher-btn-more-actions d-inline-flex align-items-center justify-content-center"
-                        title="Opciones"
-                        onClick={() => {
-                          navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } });
-                        }}
+                        className="btn btn-sm teacher-btn-view-outline"
+                        onClick={() => navigate(`/proyectos/${projectRow.id}/trabajo?from=mis-proyectos`, { state: { from: 'mis-proyectos' } })}
+                        title="Ver proyecto"
+                        aria-label={`Ver proyecto ${projectRow.proyecto}`}
                       >
-                        <FaEllipsisVertical size={13} />
+                        {isStudent ? 'Ver proyecto' : <FaEye size={16} />}
                       </button>
                     </div>
                   </td>
