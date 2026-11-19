@@ -465,6 +465,23 @@ const Trabajo: React.FC = () => {
 
   const rawProject = project?.raw || {};
   const projectStatus = project?.estado || project?.status || rawProject.status || rawProject.estado;
+  const projectCreator =
+    project?.createdBy ||
+    project?.createdByUser ||
+    project?.created_by ||
+    project?.creator ||
+    project?.creatorId ||
+    project?.createdById ||
+    rawProject.createdBy ||
+    rawProject.createdByUser ||
+    rawProject.created_by ||
+    rawProject.creator ||
+    rawProject.creatorId ||
+    rawProject.createdById ||
+    project?.teacher ||
+    project?.teacherId ||
+    rawProject.teacher ||
+    rawProject.teacherId;
   const studentSource = [
     project?.activeStudents,
     rawProject.activeStudents,
@@ -604,6 +621,19 @@ const Trabajo: React.FC = () => {
                     </span>
                   ))}
                 </div>
+              )}
+            </div>
+
+            <div className="trabajo-member-col">
+              <h4>Docente Creador</h4>
+              {projectCreator ? (
+                <div className="trabajo-member-tags">
+                  <span className="trabajo-member-pill">
+                    🎓 {resolveUserName(projectCreator)}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-muted small">Sin dato disponible</span>
               )}
             </div>
           </div>
