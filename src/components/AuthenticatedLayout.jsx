@@ -5,6 +5,8 @@ import { FaChevronDown } from 'react-icons/fa6';
 import { useAuth } from '../hooks/useAuth';
 import { useUserProfile } from '../hooks/useUserProfile';
 import StudentSidebar from '../pages/Dashboard/components/StudentSidebar';
+import { TeacherSidebar } from '../pages/Dashboard/Teacher/components/TeacherSidebar';
+import '../pages/Dashboard/Teacher/TeacherDashboard.css';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
 import '../pages/Dashboard/StudentDashboard.css';
 import logo from '../assets/Campus-Virtual-UNLa.png';
@@ -35,7 +37,12 @@ const AuthenticatedLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const { isAdmin: hookIsAdmin, isProfessor: hookIsTeacher } = useUserProfile();
+  const {
+    isAdmin: hookIsAdmin,
+    isProfessor: hookIsTeacher,
+    isTutor: hookIsTutor,
+    user: profileUser,
+  } = useUserProfile();
   const rawRoles = Array.isArray(user?.roles) ? [...user.roles] : user?.roles ? [user.roles] : [];
   if (user?.role) rawRoles.push(user.role);
   if (user?.rol) rawRoles.push(user.rol);
@@ -43,6 +50,10 @@ const AuthenticatedLayout = ({ children }) => {
   const isSuperAdmin = normalizedRoles.includes('SUPERADMIN');
   const isAdmin = hookIsAdmin || isSuperAdmin || normalizedRoles.some((r) => r === 'ADMIN');
   const isTeacher = hookIsTeacher || (!isAdmin && normalizedRoles.some((r) => ['DOCENTE', 'PROFESSOR'].includes(r)));
+  const isTeacherProjectDetail =
+    /^\/(?:docente\/)?proyectos\/[^/]+\/trabajo$/.test(location.pathname) && isTeacher && !isAdmin;
+  const teacherRoleProfile =
+    (user?.isTutor ?? profileUser?.isTutor ?? hookIsTutor) ? 'tutor' : 'evaluador';
   const roleLabel = isSuperAdmin
     ? 'Superadmin'
     : isAdmin
@@ -160,9 +171,54 @@ const AuthenticatedLayout = ({ children }) => {
     isTeacher &&
     !isAdmin;
 
+  const profileDropdown = user && (
+    <div className="profile-dropdown-container" ref={dropdownRef}>
+      <button
+        className="profile-dropdown-trigger"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        type="button"
+      >
+        <div className="profile-dropdown-avatar">
+          {user.email.charAt(0).toUpperCase()}
+        </div>
+        <div className="d-flex flex-column align-items-start lh-sm text-start">
+          <span>{user.email}</span>
+          <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
+            {roleLabel}
+          </span>
+        </div>
+        <FaChevronDown size={12} />
+      </button>
+      <ul className={`profile-dropdown-menu ${dropdownOpen ? 'open' : ''}`}>
+        <li>
+          <button
+            className="profile-dropdown-item"
+            onClick={() => {
+              setDropdownOpen(false);
+              navigate('/change-password');
+            }}
+            type="button"
+          >
+            Cambiar contraseña
+          </button>
+        </li>
+        <div className="profile-dropdown-divider" />
+        <li>
+          <button
+            className="profile-dropdown-item"
+            onClick={handleLogoutClick}
+            type="button"
+          >
+            Cerrar sesión
+          </button>
+        </li>
+      </ul>
+    </div>
+  );
+
   return (
     <>
-      {!isTeacherDashboard && (
+      {!isTeacherDashboard && !isTeacherProjectDetail && (
         <header className="unla-header">
           <div className="unla-header-brand">
             <img src={logo} alt="UNLa Logo" className="unla-header-logo" />
@@ -179,53 +235,27 @@ const AuthenticatedLayout = ({ children }) => {
               {isAdmin && <NavLink to="/admin/users">Usuarios</NavLink>}
             </nav>
           )}
-          {user && (
-            <div className="profile-dropdown-container" ref={dropdownRef}>
-              <button
-                className="profile-dropdown-trigger"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                type="button"
-              >
-                <div className="profile-dropdown-avatar">
-                  {user.email.charAt(0).toUpperCase()}
-                </div>
-                <div className="d-flex flex-column align-items-start lh-sm text-start">
-                  <span>{user.email}</span>
-                  <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
-                    {roleLabel}
-                  </span>
-                </div>
-                <FaChevronDown size={12} />
-              </button>
-              <ul className={`profile-dropdown-menu ${dropdownOpen ? 'open' : ''}`}>
-                <li>
-                  <button
-                    className="profile-dropdown-item"
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      navigate('/change-password');
-                    }}
-                    type="button"
-                  >
-                    Cambiar contraseña
-                  </button>
-                </li>
-                <div className="profile-dropdown-divider" />
-                <li>
-                  <button
-                    className="profile-dropdown-item"
-                    onClick={handleLogoutClick}
-                    type="button"
-                  >
-                    Cerrar sesión
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
+          {profileDropdown}
         </header>
       )}
-      {!isAdmin && !isTeacher && location.pathname !== '/dashboard' ? (
+      {isTeacherProjectDetail ? (
+        <div className="teacher-layout">
+          <TeacherSidebar
+            roleProfile={teacherRoleProfile}
+            activeView={teacherRoleProfile === 'tutor' ? 'proyectos' : 'convocatoria-tfi'}
+            onSelectView={() => {}}
+          />
+          <div className="teacher-content-wrapper">
+            <header className="unla-header">
+              <div className="spacer" />
+              {profileDropdown}
+            </header>
+            <main className="teacher-main-scrollable" style={{ padding: 0 }}>
+              {children}
+            </main>
+          </div>
+        </div>
+      ) : !isAdmin && !isTeacher && location.pathname !== '/dashboard' ? (
         <div className="student-dashboard-layout">
           <StudentSidebar onShowLogoutConfirm={() => setShowLogoutConfirm(true)} />
           <main className="student-main-content" style={{ padding: 0 }}>
