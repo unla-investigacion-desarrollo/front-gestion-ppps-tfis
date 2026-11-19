@@ -23,6 +23,8 @@ export interface TutorProjectRecord {
   subtitulo: string;
   estudiantePrincipal: string;
   estudiantesExtras: string;
+  estudiantesAsignados: string[];
+  docentesAsignados: string[];
   estado: 'En curso' | 'Pendiente' | 'Finalizado';
   estadoClass: 'curso' | 'revision' | 'finalizado';
   ultimaTutoria: string;
@@ -111,12 +113,17 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
         // Extraer alumnos asignados al proyecto
         let studentNames: string[] = [];
-        const rawStudents = projectData.activeStudents || projectData.students || projectData.users || [];
+        const rawStudents = [
+          projectData.activeStudents,
+          projectData.students,
+          projectData.users,
+          projectData.alumnos,
+        ].find((candidate: any) => Array.isArray(candidate) && candidate.length > 0) || [];
         if (Array.isArray(rawStudents)) {
           studentNames = rawStudents
             .map((rawStudent: any) => {
-              if (!rawStudent) return '';
-              if (typeof rawStudent === 'string') return rawStudent;
+              if (!rawStudent || rawStudent.active === false) return '';
+              if (typeof rawStudent === 'string' || typeof rawStudent === 'number') return String(rawStudent);
               const studentObject = rawStudent.student?.user || rawStudent.user || rawStudent.student || rawStudent;
               const firstName = studentObject.firstName || studentObject.nombre || '';
               const lastName = studentObject.lastName || studentObject.apellido || '';
@@ -128,20 +135,22 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
         // Extraer docentes o tutor asignados al proyecto
         let teacherNames: string[] = [];
-        const rawTeachers =
-          projectData.activeProfessors ||
-          projectData.professors ||
-          projectData.teachers ||
-          (projectData.teacher ? [projectData.teacher] : []) ||
-          (projectData.tutor ? [projectData.tutor] : []) ||
-          (projectItemCandidate.teacher ? [projectItemCandidate.teacher] : []) ||
-          [];
+        const rawTeachers = [
+          ...(Array.isArray(projectData.activeProfessors) ? projectData.activeProfessors : []),
+          ...(Array.isArray(projectData.professors) ? projectData.professors : []),
+          ...(Array.isArray(projectData.teachers) ? projectData.teachers : []),
+          ...(Array.isArray(projectData.coTeachers) ? projectData.coTeachers : []),
+          projectData.teacher,
+          projectData.tutor,
+          projectItemCandidate.teacher,
+          projectData.teacherId ? `Docente #${projectData.teacherId}` : null,
+        ].filter(Boolean);
 
         if (Array.isArray(rawTeachers)) {
           teacherNames = rawTeachers
             .map((rawTeacher: any) => {
-              if (!rawTeacher) return '';
-              if (typeof rawTeacher === 'string') return rawTeacher;
+              if (!rawTeacher || rawTeacher.active === false) return '';
+              if (typeof rawTeacher === 'string' || typeof rawTeacher === 'number') return String(rawTeacher);
               const teacherObject = rawTeacher.professor?.user || rawTeacher.user || rawTeacher.teacher || rawTeacher;
               const firstName = teacherObject.firstName || teacherObject.nombre || '';
               const lastName = teacherObject.lastName || teacherObject.apellido || '';
@@ -150,6 +159,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
             })
             .filter(Boolean);
         }
+        teacherNames = [...new Set(teacherNames)];
 
         const estudiantePrincipal = studentNames.length > 0 ? studentNames[0] : (teacherNames.length > 0 ? teacherNames[0] : 'Sin asignar');
         const estudiantesExtras = studentNames.length > 1 ? `+${studentNames.length - 1}` : (teacherNames.length > 1 ? `+${teacherNames.length - 1}` : '');
@@ -195,6 +205,8 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           subtitulo: description,
           estudiantePrincipal: isStudent ? docentePrincipal : estudiantePrincipal,
           estudiantesExtras: isStudent ? docentesExtras : estudiantesExtras,
+          estudiantesAsignados: studentNames,
+          docentesAsignados: teacherNames,
           estado,
           estadoClass,
           ultimaTutoria,
@@ -236,8 +248,11 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
         const normalizedQuery = searchQuery.toLowerCase().trim();
         const matchProyecto = itemCandidate.proyecto.toLowerCase().includes(normalizedQuery);
         const matchSubtitulo = itemCandidate.subtitulo.toLowerCase().includes(normalizedQuery);
-        const matchEstudiante = itemCandidate.estudiantePrincipal.toLowerCase().includes(normalizedQuery);
-        if (!matchProyecto && !matchSubtitulo && !matchEstudiante) return false;
+        const matchMembers = [
+          ...itemCandidate.estudiantesAsignados,
+          ...itemCandidate.docentesAsignados,
+        ].some((memberName) => memberName.toLowerCase().includes(normalizedQuery));
+        if (!matchProyecto && !matchSubtitulo && !matchMembers) return false;
       }
       return true;
     });
@@ -298,7 +313,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           <thead className="table-light">
             <tr>
               <th scope="col" style={{ width: '32%' }}>PROYECTO</th>
-              <th scope="col" style={{ width: '22%' }}>{isStudent ? 'DOCENTE / TUTOR' : 'ESTUDIANTES'}</th>
+              <th scope="col" style={{ width: '22%' }}>{isStudent ? 'DOCENTE / TUTOR' : 'ALUMNOS ASIGNADOS'}</th>
               <th scope="col" style={{ width: '16%' }}>ESTADO</th>
               <th scope="col" style={{ width: '16%' }}>ÚLTIMA TUTORÍA</th>
               <th scope="col" style={{ width: '14%', textAlign: 'right' }}>ACCIONES</th>
@@ -376,20 +391,40 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
                     >
                       {projectRow.proyecto}
                     </Link>
-                    <p className="project-description-text mb-0">{projectRow.subtitulo}</p>
+                    <p className="project-description-text mb-1">{projectRow.subtitulo}</p>
+                    {!isStudent && (
+                      <div className="small text-secondary">
+                        <strong>Docente/s asignado/s:</strong>{' '}
+                        {projectRow.docentesAsignados.length > 0
+                          ? projectRow.docentesAsignados.join(', ')
+                          : 'Sin docente asignado'}
+                      </div>
+                    )}
                   </td>
 
                   {/* Columna Estudiantes / Docentes: Alumno/docente principal y badge extra */}
                   <td>
-                    <div className="d-flex align-items-center gap-2">
-                      {isStudent && <FaChalkboardUser size={13} className="text-secondary" />}
-                      <span className="fw-medium text-dark">{projectRow.estudiantePrincipal}</span>
-                      {projectRow.estudiantesExtras && (
-                        <span className="badge bg-light text-secondary border">
-                          {projectRow.estudiantesExtras}
-                        </span>
-                      )}
-                    </div>
+                    {isStudent ? (
+                      <div className="d-flex align-items-center gap-2">
+                        <FaChalkboardUser size={13} className="text-secondary" />
+                        <span className="fw-medium text-dark">{projectRow.estudiantePrincipal}</span>
+                        {projectRow.estudiantesExtras && (
+                          <span className="badge bg-light text-secondary border">
+                            {projectRow.estudiantesExtras}
+                          </span>
+                        )}
+                      </div>
+                    ) : projectRow.estudiantesAsignados.length > 0 ? (
+                      <div className="d-flex flex-column gap-1">
+                        {projectRow.estudiantesAsignados.map((studentName, index) => (
+                          <span key={`${studentName}-${index}`} className="fw-medium text-dark">
+                            {studentName}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted">Sin alumnos asignados</span>
+                    )}
                   </td>
 
                   {/* Columna Estado: Pill reutilizable y aviso de tutoría solicitada */}
