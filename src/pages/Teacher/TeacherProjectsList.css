@@ -377,6 +377,69 @@
   line-height: 1.35;
 }
 
+/* Botones de acción directa para rol Tutor */
+.tutor-actions-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-tutor-icon-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.btn-tutor-view {
+  background-color: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+}
+
+.btn-tutor-view:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.btn-tutor-join {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background-color: #ecfdf5;
+  border: 1.5px solid #10b981;
+  color: #047857;
+}
+
+.btn-tutor-join:hover:not(:disabled) {
+  background-color: #d1fae5;
+  border-color: #059669;
+  color: #065f46;
+}
+
+.btn-tutor-join:disabled {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
 /* Paginación estilo Solicitudes */
 .projects-pagination-footer {
   display: flex;

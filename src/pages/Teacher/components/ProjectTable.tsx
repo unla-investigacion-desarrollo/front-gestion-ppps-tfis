@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCalendarDays, FaEllipsisVertical, FaTrashCan, FaUserGroup, FaChalkboardUser, FaUserMinus } from 'react-icons/fa6';
+import { FaCalendarDays, FaEllipsisVertical, FaTrashCan, FaUserGroup, FaChalkboardUser, FaUserMinus, FaEye, FaPaperPlane } from 'react-icons/fa6';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
 // Propiedades recibidas por el componente ProjectTable
@@ -528,116 +528,154 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
 
                 {/* Columna: Acciones (Menú Dropdown ⋮) */}
+                {/* Columna: Acciones */}
                 <td style={{ textAlign: 'right', paddingRight: '20px' }}>
-                  <div className="d-inline-flex align-items-center justify-content-end">
-                    <div className="actions-dropdown-wrapper">
+                  {effectiveIsTutor ? (
+                    <div className="tutor-actions-group">
+                      {onRequestJoinClick && (() => {
+                        const isMember = activeProjectIds?.has(String(project.id));
+                        const isPending = pendingProjectIds?.has(String(project.id));
+                        return (
+                          <button
+                            type="button"
+                            className="btn-tutor-join"
+                            disabled={Boolean(isMember || isPending)}
+                            onClick={() => onRequestJoinClick(project)}
+                            title={
+                              isMember
+                                ? 'Ya sos miembro'
+                                : isPending
+                                  ? 'Solicitud pendiente'
+                                  : 'Solicitar unirse'
+                            }
+                            aria-label="Solicitar unirse"
+                          >
+                            <FaPaperPlane size={13} />
+                            <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Unirse'}</span>
+                          </button>
+                        );
+                      })()}
                       <button
                         type="button"
-                        className={`btn-actions-trigger d-flex align-items-center justify-content-center ${activeDropdownProjectId === project.id ? 'active' : ''}`}
-                        onClick={() => setActiveDropdownProjectId(activeDropdownProjectId === project.id ? null : project.id)}
-                        title="Acciones"
+                        className="btn-tutor-icon-action btn-tutor-view"
+                        onClick={() => handleViewProject(project)}
+                        title="Ver proyecto"
+                        aria-label="Ver proyecto"
                       >
-                        <FaEllipsisVertical size={16} />
+                        <FaEye size={16} />
                       </button>
+                    </div>
+                  ) : (
+                    <div className="d-inline-flex align-items-center justify-content-end">
+                      <div className="actions-dropdown-wrapper">
+                        <button
+                          type="button"
+                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${activeDropdownProjectId === project.id ? 'active' : ''}`}
+                          onClick={() => setActiveDropdownProjectId(activeDropdownProjectId === project.id ? null : project.id)}
+                          title="Acciones"
+                        >
+                          <FaEllipsisVertical size={16} />
+                        </button>
 
-                      {activeDropdownProjectId === project.id && (
-                        <>
-                          {/* Capturador de clics en el fondo para cerrar el menú */}
-                          <div
-                            className="dropdown-click-outside-backdrop"
-                            onClick={() => setActiveDropdownProjectId(null)}
-                          />
-                          <ul
-                            className={`custom-dropdown-menu dropdown-menu-end ${projectIndex === projects.length - 1 ? 'opens-upward' : ''}`}
-                          >
-                            {/* Acción: Ver proyecto (Redirige a pantalla Trabajo) */}
-                            <button
-                              type="button"
-                              className="custom-dropdown-item fw-semibold"
-                              style={{ color: 'var(--unla-primary, #64001d)' }}
-                              onClick={() => handleViewProject(project)}
+                        {activeDropdownProjectId === project.id && (
+                          <>
+                            {/* Capturador de clics en el fondo para cerrar el menú */}
+                            <div
+                              className="dropdown-click-outside-backdrop"
+                              onClick={() => setActiveDropdownProjectId(null)}
+                            />
+                            <ul
+                              className={`custom-dropdown-menu dropdown-menu-end ${projectIndex === projects.length - 1 ? 'opens-upward' : ''}`}
                             >
-                              Ver proyecto
-                            </button>
+                              {/* Acción: Ver proyecto (Redirige a pantalla Trabajo) */}
+                              <button
+                                type="button"
+                                className="custom-dropdown-item fw-semibold"
+                                style={{ color: 'var(--unla-primary, #64001d)' }}
+                                onClick={() => handleViewProject(project)}
+                              >
+                                Ver proyecto
+                              </button>
 
-                            {/* Acción: Solicitar unirse (solo para Tutor) */}
-                            {effectiveIsTutor && onRequestJoinClick && (
-                              <>
-                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item fw-semibold text-primary"
-                                  disabled={pendingProjectIds?.has(String(project.id)) || activeProjectIds?.has(String(project.id))}
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onRequestJoinClick(project);
-                                  }}
-                                >
-                                  {activeProjectIds?.has(String(project.id))
-                                    ? '✓ Ya sos miembro'
-                                    : pendingProjectIds?.has(String(project.id))
-                                      ? '⏳ Solicitud pendiente'
-                                      : '+ Solicitar unirse'}
-                                </button>
-                              </>
-                            )}
+                              {/* Acción: Solicitar unirse (solo para Tutor) */}
+                              {effectiveIsTutor && onRequestJoinClick && (
+                                <>
+                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item fw-semibold text-primary"
+                                    disabled={pendingProjectIds?.has(String(project.id)) || activeProjectIds?.has(String(project.id))}
+                                    onClick={() => {
+                                      setActiveDropdownProjectId(null);
+                                      onRequestJoinClick(project);
+                                    }}
+                                  >
+                                    {activeProjectIds?.has(String(project.id))
+                                      ? '✓ Ya sos miembro'
+                                      : pendingProjectIds?.has(String(project.id))
+                                        ? '⏳ Solicitud pendiente'
+                                        : '+ Solicitar unirse'}
+                                  </button>
+                                </>
+                              )}
 
-                            {/* Opciones exclusivas para Evaluador y Admin (no visibles para Tutor) */}
-                            {!effectiveIsTutor && (
-                              <>
-                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                              {/* Opciones exclusivas para Evaluador y Admin (no visibles para Tutor) */}
+                              {!effectiveIsTutor && (
+                                <>
+                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
 
-                                {/* Acción: Editar Proyecto */}
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item"
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onEditClick(project);
-                                  }}
-                                >
-                                  Editar Proyecto
-                                </button>
-
-                                {/* Acción: Desasignar integrantes */}
-                                {canRemoveProjectMembers && (
+                                  {/* Acción: Editar Proyecto */}
                                   <button
                                     type="button"
                                     className="custom-dropdown-item"
                                     onClick={() => {
                                       setActiveDropdownProjectId(null);
-                                      setManagingMembersProject(project);
+                                      onEditClick(project);
                                     }}
                                   >
-                                    <FaUserMinus size={13} className="text-muted" />
-                                    <span>Desasignar integrantes</span>
+                                    Editar Proyecto
                                   </button>
-                                )}
-                              </>
-                            )}
 
-                            {/* Acción exclusiva para Admin / Superadmin: Eliminar Proyecto */}
-                            {canDeleteProject && onDeleteClick && (
-                              <>
-                                <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item text-danger d-flex align-items-center gap-2"
-                                  onClick={() => {
-                                    setActiveDropdownProjectId(null);
-                                    onDeleteClick(project);
-                                  }}
-                                >
-                                  <FaTrashCan size={13} />
-                                  <span>Eliminar Proyecto</span>
-                                </button>
-                              </>
-                            )}
-                          </ul>
-                        </>
-                      )}
+                                  {/* Acción: Desasignar integrantes */}
+                                  {canRemoveProjectMembers && (
+                                    <button
+                                      type="button"
+                                      className="custom-dropdown-item"
+                                      onClick={() => {
+                                        setActiveDropdownProjectId(null);
+                                        setManagingMembersProject(project);
+                                      }}
+                                    >
+                                      <FaUserMinus size={13} className="text-muted" />
+                                      <span>Desasignar integrantes</span>
+                                    </button>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Acción exclusiva para Admin / Superadmin: Eliminar Proyecto */}
+                              {canDeleteProject && onDeleteClick && (
+                                <>
+                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
+                                  <button
+                                    type="button"
+                                    className="custom-dropdown-item text-danger d-flex align-items-center gap-2"
+                                    onClick={() => {
+                                      setActiveDropdownProjectId(null);
+                                      onDeleteClick(project);
+                                    }}
+                                  >
+                                    <FaTrashCan size={13} />
+                                    <span>Eliminar Proyecto</span>
+                                  </button>
+                                </>
+                              )}
+                            </ul>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </td>
               </tr>
             ))
