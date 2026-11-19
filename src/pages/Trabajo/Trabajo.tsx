@@ -93,7 +93,7 @@ const Trabajo: React.FC = () => {
     title: string;
     message: string;
     confirmText: string;
-    actionType: 'mark_observed' | 'notify_advances' | 'request_tutoring' | 'mark_tutored' | 'finish_tfi' | null;
+    actionType: 'mark_observed' | 'notify_advances' | 'request_tutoring' | 'mark_tutored' | 'finish_tfi' | 'register_delivery' | 'register_delivery_form' | null;
   }>({
     open: false,
     title: '',
@@ -236,6 +236,19 @@ const Trabajo: React.FC = () => {
     setDocUrlInput(work?.documentUrl || '');
     setDriveUrlInput(work?.driveFolderUrl || '');
     setUrlErrors({});
+
+    if (!editing) {
+      setConfirmActionModal({
+        open: true,
+        title: 'Confirmar entrega',
+        message:
+          '¿Estás seguro de que querés registrar esta entrega? Ni vos ni ningún otro integrante del equipo podrán realizar otra entrega hasta que el profesor observe esta entrega.',
+        confirmText: 'Sí, registrar entrega',
+        actionType: 'register_delivery_form',
+      });
+      return;
+    }
+
     setShowLinksModal(true);
   };
 
@@ -247,7 +260,7 @@ const Trabajo: React.FC = () => {
 
     setActionLoading(true);
     try {
-      if (isEditingLinks && work?.id) {
+      if (work?.id) {
         // PATCH /student-work/:id
         const updated = await studentWorkService.updateWork(
           work.id,
@@ -260,7 +273,6 @@ const Trabajo: React.FC = () => {
         await applyWorkUpdate(updated);
         showToast('Enlaces de entrega actualizados correctamente', 'success');
       } else {
-        // POST /student-work/project/:projectId
         const created = await studentWorkService.createWork(
           projectId,
           {
@@ -313,12 +325,33 @@ const Trabajo: React.FC = () => {
 
   // Ejecución de acciones de confirmación
   const handleConfirmAction = async () => {
-    if (!work?.id || !token || !confirmActionModal.actionType) return;
+    if (!token || !confirmActionModal.actionType) return;
+    if (
+      !['register_delivery', 'register_delivery_form'].includes(confirmActionModal.actionType) &&
+      !work?.id
+    ) return;
     setActionLoading(true);
 
     try {
       let updated: StudentWork;
       switch (confirmActionModal.actionType) {
+        case 'register_delivery_form':
+          setShowLinksModal(true);
+          break;
+        case 'register_delivery': {
+          if (!projectId) return;
+          updated = await studentWorkService.createWork(
+            projectId,
+            {
+              documentUrl: docUrlInput.trim(),
+              driveFolderUrl: driveUrlInput.trim() || undefined,
+            },
+            token
+          );
+          await applyWorkUpdate(updated);
+          showToast('Entrega registrada exitosamente', 'success');
+          break;
+        }
         case 'mark_observed':
           updated = await studentWorkService.markObserved(work.id, token);
           await applyWorkUpdate(updated);
@@ -1331,7 +1364,12 @@ const Trabajo: React.FC = () => {
               <button
                 type="button"
                 className="trabajo-modal-close"
-                onClick={() => setConfirmActionModal((previousState) => ({ ...previousState, open: false }))}
+                onClick={() => {
+                  setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
+                  if (confirmActionModal.actionType === 'register_delivery') {
+                    setShowLinksModal(true);
+                  }
+                }}
               >
                 ×
               </button>
@@ -1345,7 +1383,12 @@ const Trabajo: React.FC = () => {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setConfirmActionModal((previousState) => ({ ...previousState, open: false }))}
+                onClick={() => {
+                  setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
+                  if (confirmActionModal.actionType === 'register_delivery') {
+                    setShowLinksModal(true);
+                  }
+                }}
                 disabled={actionLoading}
               >
                 Cancelar

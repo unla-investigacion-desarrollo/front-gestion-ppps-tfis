@@ -43,6 +43,7 @@ const StudentDeliveries: React.FC = () => {
 
   const [backendError, setBackendError] = useState<string | null>(null);
   const [urlErrors, setUrlErrors] = useState<{ doc?: string; drive?: string }>({});
+  const [showDeliveryConfirm, setShowDeliveryConfirm] = useState<boolean>(false);
 
   // 1. Cargar proyectos activos asignados al estudiante desde el backend
   const loadMyActiveProjects = useCallback(async () => {
@@ -167,6 +168,11 @@ const StudentDeliveries: React.FC = () => {
 
     if (!validateUrls(documentUrl, driveFolderUrl)) return;
 
+    if (!work?.id) {
+      setShowDeliveryConfirm(true);
+      return;
+    }
+
     const targetProjectId = selectedProjectId || '0';
     setSubmitting(true);
     try {
@@ -195,6 +201,32 @@ const StudentDeliveries: React.FC = () => {
         setIsEditing(false);
         showToast('Entrega registrada exitosamente', 'success');
       }
+    } catch (err: any) {
+      const message = err?.message || 'Error al registrar la entrega en el servidor';
+      setBackendError(message);
+      showToast(message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!selectedProjectId || !token) return;
+    setSubmitting(true);
+    setBackendError(null);
+    try {
+      const created = await studentWorkService.createWork(
+        selectedProjectId,
+        {
+          documentUrl: documentUrl.trim(),
+          driveFolderUrl: driveFolderUrl.trim() || undefined,
+        },
+        token
+      );
+      setWork(created);
+      setIsEditing(false);
+      setShowDeliveryConfirm(false);
+      showToast('Entrega registrada exitosamente', 'success');
     } catch (err: any) {
       const message = err?.message || 'Error al registrar la entrega en el servidor';
       setBackendError(message);
@@ -629,6 +661,47 @@ const StudentDeliveries: React.FC = () => {
           </div>
         )}
       </div>
+      {showDeliveryConfirm && (
+        <div className="trabajo-modal-backdrop">
+          <div className="trabajo-modal-content">
+            <div className="trabajo-modal-header">
+              <h3>Confirmar entrega</h3>
+              <button
+                type="button"
+                className="trabajo-modal-close"
+                onClick={() => setShowDeliveryConfirm(false)}
+                disabled={submitting}
+              >
+                ×
+              </button>
+            </div>
+            <div className="trabajo-modal-body">
+              <p className="mb-0 text-secondary" style={{ fontSize: '15px', lineHeight: '1.5' }}>
+                ¿Estás seguro de que querés registrar esta entrega? Ni vos ni ningún otro integrante del equipo
+                podrán realizar otra entrega hasta que el profesor observe esta entrega.
+              </p>
+            </div>
+            <div className="trabajo-modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowDeliveryConfirm(false)}
+                disabled={submitting}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-trabajo-primary"
+                onClick={handleConfirmDelivery}
+                disabled={submitting}
+              >
+                {submitting ? 'Registrando...' : 'Sí, registrar entrega'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
