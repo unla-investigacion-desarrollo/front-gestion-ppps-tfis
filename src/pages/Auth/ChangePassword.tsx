@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaCheck, FaXmark } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
 import { changePassword } from '../../../redux/slices/usersSlice';
 import { selectCurrentUser, setMustChangePassword } from '../../../redux/slices/authSlice';
+import { authService } from '../../services/authService';
 import './ChangePassword.css';
 import bgImage from '../../assets/unla-edificio.jpg';
 
 const ChangePassword = () => {
+  const { token } = useParams<{ token?: string }>();
+  const isResetMode = Boolean(token);
   const user = useSelector(selectCurrentUser) as any;
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,14 +22,14 @@ const ChangePassword = () => {
 
   const confirmMatches = !!form.confirmPassword && form.newPassword === form.confirmPassword;
 
-  if (!user) return null;
+  if (!isResetMode && !user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setOk(null);
 
-    if (!form.currentPassword || form.currentPassword.length < 6) {
+    if (!isResetMode && (!form.currentPassword || form.currentPassword.length < 6)) {
       setError('La contraseña actual debe tener al menos 6 caracteres');
       return;
     }
@@ -34,12 +37,30 @@ const ChangePassword = () => {
       setError('La nueva contraseña debe tener al menos 6 caracteres');
       return;
     }
-    if (form.currentPassword === form.newPassword) {
+    if (!isResetMode && form.currentPassword === form.newPassword) {
       setError('La nueva contraseña no puede ser igual a la contraseña actual');
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
       setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (isResetMode && token) {
+      setIsSubmitting(true);
+      try {
+        const response = await authService.resetPassword(token, form.newPassword);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.message || 'Error al restablecer la contraseña');
+        }
+        setOk(data?.message || 'Contraseña restablecida correctamente.');
+        setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setTimeout(() => navigate('/login'), 1500);
+      } catch (err: any) {
+        setError(err?.message || 'Error al restablecer la contraseña');
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -90,9 +111,15 @@ const ChangePassword = () => {
       <div className="change-password-overlay" />
 
       <div className="change-password-card">
-        <h1 className="change-password-title">Cambiar contraseña</h1>
+        <h1 className="change-password-title">
+          {isResetMode ? 'Restablecer contraseña' : 'Cambiar contraseña'}
+        </h1>
 
-        {user?.mustChangePassword ? (
+        {isResetMode ? (
+          <p className="change-password-subtitle">
+            Ingresá tu nueva contraseña para recuperar el acceso a tu cuenta.
+          </p>
+        ) : user?.mustChangePassword ? (
           <div className="change-password-alert info">
             Debés cambiar tu contraseña predeterminada para continuar.
           </div>
@@ -106,34 +133,36 @@ const ChangePassword = () => {
         {ok && <div className="change-password-alert success">{ok}</div>}
 
         <form className="unla-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="current-pw-input">Contraseña actual</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="current-pw-input"
-                className="login-input"
-                type={show.current ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={form.currentPassword}
-                onChange={(e) => setForm((p) => ({ ...p, currentPassword: e.target.value }))}
-                required
-                style={{ paddingRight: '45px' }}
-              />
-              <button
-                type="button"
-                aria-label={show.current ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'}
-                title={show.current ? 'Ocultar' : 'Mostrar'}
-                onClick={() => setShow((s) => ({ ...s, current: !s.current }))}
-                className="password-toggle-btn"
-              >
-                {show.current ? (
-                  <FaEyeSlash size={18} />
-                ) : (
-                  <FaEye size={18} />
-                )}
-              </button>
+          {!isResetMode && (
+            <div className="form-group">
+              <label className="form-label" htmlFor="current-pw-input">Contraseña actual</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="current-pw-input"
+                  className="login-input"
+                  type={show.current ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.currentPassword}
+                  onChange={(e) => setForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                  required
+                  style={{ paddingRight: '45px' }}
+                />
+                <button
+                  type="button"
+                  aria-label={show.current ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'}
+                  title={show.current ? 'Ocultar' : 'Mostrar'}
+                  onClick={() => setShow((s) => ({ ...s, current: !s.current }))}
+                  className="password-toggle-btn"
+                >
+                  {show.current ? (
+                    <FaEyeSlash size={18} />
+                  ) : (
+                    <FaEye size={18} />
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="new-pw-input">Nueva contraseña</label>
@@ -217,7 +246,7 @@ const ChangePassword = () => {
             <button
               type="button"
               className="btn-cancel-pw"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(isResetMode ? '/login' : '/dashboard')}
             >
               Cancelar
             </button>

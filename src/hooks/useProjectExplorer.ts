@@ -13,7 +13,7 @@ import {
 } from '../components/ProjectExplorer/types';
 import { getProjectTeachers } from '../components/ProjectExplorer/projectExplorerUtils';
 
-const CLOSED_PROJECT_STATUSES = new Set(['finalized', 'cancelled']);
+const CLOSED_PROJECT_STATUSES = new Set(['finalized', 'canceled', 'cancelled']);
 
 export interface UseProjectExplorerOptions {
   onJoinSuccess?: (projectId: number | string) => void;
@@ -97,9 +97,26 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
           })
         : [];
 
+      const openActiveProjects = Array.isArray(activeProjectsData)
+        ? activeProjectsData.filter((activeItem: any) => {
+            const proj = activeItem.project || activeItem;
+            const normalizedStatus = String(proj?.status || proj?.estado || '')
+              .toLowerCase()
+              .trim();
+            if (CLOSED_PROJECT_STATUSES.has(normalizedStatus)) return false;
+            const workStatus = String(
+              proj?.studentWork?.status || activeItem?.studentWork?.status || ''
+            )
+              .toLowerCase()
+              .trim();
+            if (workStatus === 'disapproved') return false;
+            return true;
+          })
+        : [];
+
       setProjects(openProjects);
       setMyRequests(Array.isArray(requestsData) ? requestsData : []);
-      setMyActiveProjects(Array.isArray(activeProjectsData) ? activeProjectsData : []);
+      setMyActiveProjects(openActiveProjects);
     } catch (networkError: any) {
       console.error('Error cargando proyectos del usuario:', networkError);
     } finally {

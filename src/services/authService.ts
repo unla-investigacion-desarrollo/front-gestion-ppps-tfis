@@ -57,4 +57,15 @@ export const authService = {
       signal,
     });
   },
+
+  resetPassword: async (token: string, newPassword: string, signal?: AbortSignal) => {
+    return fetch(`${API_URL}/auth/reset-password/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newPassword }),
+      signal,
+    });
+  },
 };

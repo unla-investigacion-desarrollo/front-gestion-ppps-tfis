@@ -183,8 +183,13 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           estadoClass = 'curso';
         }
 
-        // Formatear última fecha registrada (priorizar lastTutoredAt de la entrega)
-        const rawDate = work?.lastTutoredAt || projectData.lastTutoring || projectData.ultimaTutoria || projectData.updatedAt || projectData.createdAt || projectItemCandidate.updatedAt || projectItemCandidate.createdAt;
+        // Formatear última fecha de tutoría registrada (sin usar createdAt/updatedAt como respaldo)
+        const rawDate =
+          work?.lastTutoredAt ||
+          projectData.lastTutoredAt ||
+          projectData.lastTutoring ||
+          projectData.ultimaTutoria ||
+          null;
         let ultimaTutoria = '-';
         if (rawDate) {
           try {
@@ -288,11 +293,16 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
     return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
   };
 
-  // Estudiante: un único TFI → ficha en lugar de tabla con filtros y paginación
+  // Estudiante: mostrar todos los TFIs asignados (activos primero, luego finalizados)
   if (isStudent) {
+    const sortedStudentRecords = [...projectsList].sort((a, b) => {
+      const aFin = a.estado === 'Finalizado' ? 1 : 0;
+      const bFin = b.estado === 'Finalizado' ? 1 : 0;
+      return aFin - bFin;
+    });
     return (
       <MyTfiCard
-        record={projectsList[0] ?? null}
+        records={sortedStudentRecords}
         loading={loading}
         error={error}
         onRetry={fetchMyProjects}
