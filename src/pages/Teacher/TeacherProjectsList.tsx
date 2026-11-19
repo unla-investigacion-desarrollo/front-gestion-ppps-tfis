@@ -73,7 +73,7 @@ const TeacherProjectsList: React.FC = () => {
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
   const [filters, setFilters] = useState<ProjectFiltersState>({ q: '', categoria: 'ALL', alumnos: 'ALL' });
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
 
   // --- ESTADO DE CONTROL DE MODALES ---
   const [activeActivityProject, setActiveActivityProject] = useState<Project | null>(null);
