@@ -290,7 +290,8 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
                 <div>
                   <label className="form-label" style={{ fontWeight: 500 }}>Email</label>
                   <input
-                    type="email"
+                    type="text"
+                    inputMode="email"
                     className={`form-control ${fieldErrors.email ? 'is-invalid' : ''}`}
                     autoComplete="off"
                     value={form.email}
