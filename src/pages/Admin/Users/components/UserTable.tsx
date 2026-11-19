@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  FaEllipsisVertical,
   FaEye,
   FaPencil,
   FaKey,
@@ -43,9 +42,6 @@ const UserTable: React.FC<UserTableProps> = ({
   onEditClick,
   onViewClick,
 }) => {
-  // Estado local para abrir el dropdown del usuario correspondiente
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
   // Obtiene las iniciales de un usuario a partir de su nombre, apellido o email
   const getInitials = (nombre?: string, apellido?: string, email?: string) => {
     if (nombre && apellido) {
@@ -198,111 +194,67 @@ const UserTable: React.FC<UserTableProps> = ({
                 {/* Celda del DNI */}
                 <td style={{ padding: '12px 16px' }}>{userItem.dni ?? '-'}</td>
 
-                {/* Columna de Acciones Unificadas en un Botón Dropdown (⋮) */}
+                {/* Columna de Acciones directas con íconos */}
                 {showActionsColumn && (
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                     {canManage(userItem.rol, userItem) && (
-                      <div className="actions-dropdown-wrapper">
+                      <div className="user-actions-group">
                         <button
                           type="button"
-                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${openDropdownId === userItem.id ? 'active' : ''}`}
-                          onClick={() => setOpenDropdownId(openDropdownId === userItem.id ? null : userItem.id)}
+                          className="btn-user-icon-action btn-user-view"
+                          onClick={() => onViewClick(userItem)}
+                          title="Ver usuario"
+                          aria-label="Ver usuario"
                         >
-                          <FaEllipsisVertical />
+                          <FaEye size={14} />
                         </button>
-                        {openDropdownId === userItem.id && (
-                          <>
-                            {/* Backdrop invisible para capturar el click afuera y cerrar el dropdown */}
-                            <div 
-                              className="dropdown-click-outside-backdrop"
-                              onClick={() => setOpenDropdownId(null)}
-                            />
-                            <ul className="custom-dropdown-menu dropdown-menu-end">
-                              {/* Acción: Ver usuario */}
-                              <li>
-                                <button
-                                  type="button"
-                                  className="custom-dropdown-item"
-                                  onClick={() => {
-                                    setOpenDropdownId(null);
-                                    onViewClick(userItem);
-                                  }}
-                                >
-                                  <FaEye size={14} style={{ minWidth: '14px' }} />
-                                  Ver usuario
-                                </button>
-                              </li>
 
-                              {/* Acción: Editar */}
-                              {canEditUser(userItem) && (
-                                <li>
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item"
-                                    onClick={() => {
-                                      setOpenDropdownId(null);
-                                      onEditClick(userItem);
-                                    }}
-                                  >
-                                    <FaPencil size={14} />
-                                    Editar usuario
-                                  </button>
-                                </li>
-                              )}
+                        {canEditUser(userItem) && (
+                          <button
+                            type="button"
+                            className="btn-user-icon-action btn-user-view"
+                            onClick={() => onEditClick(userItem)}
+                            title="Editar usuario"
+                            aria-label="Editar usuario"
+                          >
+                            <FaPencil size={13} />
+                          </button>
+                        )}
 
-                              {/* Acción: Desactivar o Activar cuenta (toggle estado active/disabled) */}
-                              {userItem.estado === 'active' && canDeactivateUser(userItem) && (
-                                <li>
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item text-warning"
-                                    onClick={() => {
-                                      setOpenDropdownId(null);
-                                      onToggleActivation(userItem, false);
-                                    }}
-                                  >
-                                    <FaBan size={14} />
-                                    Desactivar cuenta
-                                  </button>
-                                </li>
-                              )}
-                              {(userItem.estado === 'disabled' || userItem.estado === 'rejected') && (
-                                <li>
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item text-success"
-                                    onClick={() => {
-                                      setOpenDropdownId(null);
-                                      onToggleActivation(userItem, true);
-                                    }}
-                                  >
-                                    <FaCircleCheck size={14} />
-                                    Activar cuenta
-                                  </button>
-                                </li>
-                              )}
+                        {userItem.estado === 'active' && canDeactivateUser(userItem) && (
+                          <button
+                            type="button"
+                            className="btn-user-icon-action btn-user-warn"
+                            onClick={() => onToggleActivation(userItem, false)}
+                            title="Desactivar cuenta"
+                            aria-label="Desactivar cuenta"
+                          >
+                            <FaBan size={13} />
+                          </button>
+                        )}
 
-                              {/* Division y Acciones de eliminación */}
-                              {canDeleteUser(userItem) && (
-                                <>
-                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                                  <li>
-                                    <button
-                                      type="button"
-                                      className="custom-dropdown-item text-danger"
-                                      onClick={() => {
-                                        setOpenDropdownId(null);
-                                        onDeleteUser(userItem);
-                                      }}
-                                    >
-                                      <FaTrashCan size={14} />
-                                      Eliminar
-                                    </button>
-                                  </li>
-                                </>
-                              )}
-                            </ul>
-                          </>
+                        {(userItem.estado === 'disabled' || userItem.estado === 'rejected') && (
+                          <button
+                            type="button"
+                            className="btn-user-icon-action btn-user-activate"
+                            onClick={() => onToggleActivation(userItem, true)}
+                            title="Activar cuenta"
+                            aria-label="Activar cuenta"
+                          >
+                            <FaCircleCheck size={13} />
+                          </button>
+                        )}
+
+                        {canDeleteUser(userItem) && (
+                          <button
+                            type="button"
+                            className="btn-user-icon-action btn-user-delete"
+                            onClick={() => onDeleteUser(userItem)}
+                            title="Eliminar"
+                            aria-label="Eliminar"
+                          >
+                            <FaTrashCan size={13} />
+                          </button>
                         )}
                       </div>
                     )}

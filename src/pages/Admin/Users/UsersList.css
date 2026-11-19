@@ -280,3 +280,71 @@
   display: block;
   z-index: 1050;
 }
+
+/* Botones de acción directa en tabla de usuarios */
+.user-actions-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-user-icon-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.btn-user-view {
+  background-color: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+}
+
+.btn-user-view:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.btn-user-warn {
+  background-color: #fffbeb;
+  border: 1.5px solid #fde68a;
+  color: #b45309;
+}
+
+.btn-user-warn:hover {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.btn-user-activate {
+  background-color: #ecfdf5;
+  border: 1.5px solid #a7f3d0;
+  color: #047857;
+}
+
+.btn-user-activate:hover {
+  background-color: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.btn-user-delete {
+  background-color: #fef2f2;
+  border: 1.5px solid #fecaca;
+  color: #b91c1c;
+}
+
+.btn-user-delete:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
