@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCalendarDays, FaEllipsisVertical, FaTrashCan, FaUserGroup, FaChalkboardUser, FaUserMinus, FaEye, FaPaperPlane } from 'react-icons/fa6';
+import { FaCalendarDays, FaPencil, FaTrashCan, FaUserGroup, FaChalkboardUser, FaEye, FaPaperPlane } from 'react-icons/fa6';
+import { LuUserX } from 'react-icons/lu';
 import { Project } from '../../../../redux/slices/projectsSlice';
 
 // Propiedades recibidas por el componente ProjectTable
@@ -54,14 +55,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     return false;
   }, [isTutor]);
 
-  // Estado local para identificar el dropdown abierto actualmente en las filas de la tabla
-  const [activeDropdownProjectId, setActiveDropdownProjectId] = useState<string | null>(null);
   // Estado local para el modal de desasignar integrantes
   const [managingMembersProject, setManagingMembersProject] = useState<Project | null>(null);
 
   // Redirige o ejecuta la acción para ver el proyecto / trabajo
   const handleViewProject = (project: Project) => {
-    setActiveDropdownProjectId(null);
     if (onViewProjectClick) {
       onViewProjectClick(project);
     } else {
@@ -566,114 +564,50 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="d-inline-flex align-items-center justify-content-end">
-                      <div className="actions-dropdown-wrapper">
+                    <div className="tutor-actions-group">
+                      <button
+                        type="button"
+                        className="btn-tutor-icon-action btn-tutor-view"
+                        onClick={() => handleViewProject(project)}
+                        title="Ver proyecto"
+                        aria-label="Ver proyecto"
+                      >
+                        <FaEye size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn-tutor-icon-action btn-tutor-view"
+                        onClick={() => onEditClick(project)}
+                        title="Editar Proyecto"
+                        aria-label="Editar Proyecto"
+                      >
+                        <FaPencil size={14} />
+                      </button>
+
+                      {canRemoveProjectMembers && (
                         <button
                           type="button"
-                          className={`btn-actions-trigger d-flex align-items-center justify-content-center ${activeDropdownProjectId === project.id ? 'active' : ''}`}
-                          onClick={() => setActiveDropdownProjectId(activeDropdownProjectId === project.id ? null : project.id)}
-                          title="Acciones"
+                          className="btn-tutor-icon-action btn-ppp-delete"
+                          onClick={() => setManagingMembersProject(project)}
+                          title="Desvincular integrantes"
+                          aria-label="Desvincular integrantes"
                         >
-                          <FaEllipsisVertical size={16} />
+                          <LuUserX size={15} />
                         </button>
+                      )}
 
-                        {activeDropdownProjectId === project.id && (
-                          <>
-                            {/* Capturador de clics en el fondo para cerrar el menú */}
-                            <div
-                              className="dropdown-click-outside-backdrop"
-                              onClick={() => setActiveDropdownProjectId(null)}
-                            />
-                            <ul
-                              className={`custom-dropdown-menu dropdown-menu-end ${projectIndex === projects.length - 1 ? 'opens-upward' : ''}`}
-                            >
-                              {/* Acción: Ver proyecto (Redirige a pantalla Trabajo) */}
-                              <button
-                                type="button"
-                                className="custom-dropdown-item fw-semibold"
-                                style={{ color: 'var(--unla-primary, #64001d)' }}
-                                onClick={() => handleViewProject(project)}
-                              >
-                                Ver proyecto
-                              </button>
-
-                              {/* Acción: Solicitar unirse (solo para Tutor) */}
-                              {effectiveIsTutor && onRequestJoinClick && (
-                                <>
-                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item fw-semibold text-primary"
-                                    disabled={pendingProjectIds?.has(String(project.id)) || activeProjectIds?.has(String(project.id))}
-                                    onClick={() => {
-                                      setActiveDropdownProjectId(null);
-                                      onRequestJoinClick(project);
-                                    }}
-                                  >
-                                    {activeProjectIds?.has(String(project.id))
-                                      ? '✓ Ya sos miembro'
-                                      : pendingProjectIds?.has(String(project.id))
-                                        ? '⏳ Solicitud pendiente'
-                                        : '+ Solicitar unirse'}
-                                  </button>
-                                </>
-                              )}
-
-                              {/* Opciones exclusivas para Evaluador y Admin (no visibles para Tutor) */}
-                              {!effectiveIsTutor && (
-                                <>
-                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-
-                                  {/* Acción: Editar Proyecto */}
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item"
-                                    onClick={() => {
-                                      setActiveDropdownProjectId(null);
-                                      onEditClick(project);
-                                    }}
-                                  >
-                                    Editar Proyecto
-                                  </button>
-
-                                  {/* Acción: Desasignar integrantes */}
-                                  {canRemoveProjectMembers && (
-                                    <button
-                                      type="button"
-                                      className="custom-dropdown-item"
-                                      onClick={() => {
-                                        setActiveDropdownProjectId(null);
-                                        setManagingMembersProject(project);
-                                      }}
-                                    >
-                                      <FaUserMinus size={13} className="text-muted" />
-                                      <span>Desasignar integrantes</span>
-                                    </button>
-                                  )}
-                                </>
-                              )}
-
-                              {/* Acción exclusiva para Admin / Superadmin: Eliminar Proyecto */}
-                              {canDeleteProject && onDeleteClick && (
-                                <>
-                                  <li className="dropdown-divider" style={{ margin: '4px 0' }} />
-                                  <button
-                                    type="button"
-                                    className="custom-dropdown-item text-danger d-flex align-items-center gap-2"
-                                    onClick={() => {
-                                      setActiveDropdownProjectId(null);
-                                      onDeleteClick(project);
-                                    }}
-                                  >
-                                    <FaTrashCan size={13} />
-                                    <span>Eliminar Proyecto</span>
-                                  </button>
-                                </>
-                              )}
-                            </ul>
-                          </>
-                        )}
-                      </div>
+                      {canDeleteProject && onDeleteClick && (
+                        <button
+                          type="button"
+                          className="btn-tutor-icon-action btn-ppp-delete"
+                          onClick={() => onDeleteClick(project)}
+                          title="Eliminar Proyecto"
+                          aria-label="Eliminar Proyecto"
+                        >
+                          <FaTrashCan size={14} />
+                        </button>
+                      )}
                     </div>
                   )}
                 </td>
@@ -702,7 +636,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   <div className="modal-header custom-modal-header">
                     <div>
                       <h5 id="manage-members-title" className="modal-title" style={{ fontWeight: 700, color: '#64001d' }}>
-                        Desasignar integrantes
+                        Desvincular integrantes
                       </h5>
                       <div className="text-muted small">{managingMembersProject.titulo}</div>
                     </div>
@@ -739,7 +673,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                     onRemoveStudent(managingMembersProject.id, memberId);
                                   }}
                                 >
-                                  Desasignar
+                                  Desvincular
                                 </button>
                               </li>
                             );
@@ -773,7 +707,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                     onRemoveCoTeacher(managingMembersProject.id, memberId);
                                   }}
                                 >
-                                  Desasignar
+                                  Desvincular
                                 </button>
                               </li>
                             );
