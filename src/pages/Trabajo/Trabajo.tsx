@@ -330,6 +330,10 @@ const Trabajo: React.FC = () => {
           showToast('Se notificaron los avances. Estado: Pendiente de revisión', 'success');
           break;
         case 'request_tutoring':
+          if (String(project?.estado || project?.status || '').toLowerCase() === 'finalized') {
+            showToast('No se pueden solicitar tutorías en un proyecto finalizado', 'error');
+            return;
+          }
           updated = await studentWorkService.requestTutoring(work.id, token);
           await applyWorkUpdate({ ...updated, tutoringRequested: updated?.tutoringRequested ?? true });
           showToast('Tutoría solicitada exitosamente al equipo docente', 'success');
@@ -1102,8 +1106,10 @@ const Trabajo: React.FC = () => {
                         </button>
                       )}
 
-                      {/* Solicitar Tutoría (Estudiante / Admin si no hay tutoría pendiente) */}
-                      {(isStudent || isAdmin) && !work.tutoringRequested && (
+                      {/* Solicitar Tutoría (Estudiante / Admin si no hay tutoría pendiente y el proyecto no está finalizado) */}
+                      {(isStudent || isAdmin) &&
+                        !work.tutoringRequested &&
+                        String(project?.estado || project?.status || '').toLowerCase() !== 'finalized' && (
                         <button
                           type="button"
                           className="trabajo-action-card"
