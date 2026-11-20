@@ -13,6 +13,11 @@ import {
 } from '../../services/studentWorkService';
 import { showToast } from '../../utils/toast';
 import {
+  TrabajoQualifyModal,
+  TrabajoLinksModal,
+  TrabajoConfirmModal,
+} from './components/TrabajoModals';
+import {
   FaClock,
   FaCircleExclamation,
   FaCheck,
@@ -1227,220 +1232,49 @@ const Trabajo: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal único para registrar o modificar la calificación */}
-      {showQualifyModal && (
-        <div className="trabajo-modal-backdrop">
-          <div className="trabajo-modal-content">
-            <div className="trabajo-modal-header">
-              <h3>Calificación</h3>
-              <button
-                type="button"
-                className="trabajo-modal-close"
-                onClick={() => setShowQualifyModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleSaveQualification}>
-              <div className="trabajo-modal-body">
-                <div className="mb-3">
-                  <label htmlFor="qualificationInput" className="form-label fw-semibold">
-                    Nota Final (0 a 10)
-                  </label>
-                  <input
-                    id="qualificationInput"
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="1"
-                    className="form-control form-control-lg"
-                    placeholder="Ej. 8"
-                    value={qualificationInput}
-                    onChange={(changeEvent) => setQualificationInput(changeEvent.target.value)}
-                    required
-                    autoFocus
-                  />
-                  <div className="form-text mt-2">
-                    Escala académica:
-                    <ul className="mb-0 ps-3 mt-1 small">
-                      <li><strong>0:</strong> Ausente</li>
-                      <li><strong>1 a 3:</strong> Desaprobada</li>
-                      <li><strong>4 a 10:</strong> Aprobada</li>
-                    </ul>
-                  </div>
-                </div>
+      <TrabajoQualifyModal
+        open={showQualifyModal}
+        qualificationInput={qualificationInput}
+        onQualificationChange={setQualificationInput}
+        qualificationHelper={qualificationHelper}
+        actionLoading={actionLoading}
+        onClose={() => setShowQualifyModal(false)}
+        onSubmit={handleSaveQualification}
+      />
 
-                {/* Previsualización del estado según la nota */}
-                {qualificationHelper && (
-                  <div
-                    className="p-3 rounded border text-center fw-bold"
-                    style={{
-                      backgroundColor: `${qualificationHelper.color}15`,
-                      color: qualificationHelper.color,
-                      borderColor: `${qualificationHelper.color}40`,
-                    }}
-                  >
-                    Resultado: {qualificationHelper.label}
-                  </div>
-                )}
-              </div>
-              <div className="trabajo-modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowQualifyModal(false)}
-                  disabled={actionLoading}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn-trabajo-primary"
-                  disabled={actionLoading || !qualificationHelper || qualificationHelper.status === 'invalid'}
-                >
-                  {actionLoading ? 'Guardando...' : 'Guardar calificación'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <TrabajoLinksModal
+        open={showLinksModal}
+        isEditingLinks={isEditingLinks}
+        docUrlInput={docUrlInput}
+        driveUrlInput={driveUrlInput}
+        urlErrors={urlErrors}
+        actionLoading={actionLoading}
+        onDocUrlChange={(val) => {
+          setDocUrlInput(val);
+          if (urlErrors.doc) setUrlErrors((prev) => ({ ...prev, doc: undefined }));
+        }}
+        onDriveUrlChange={(val) => {
+          setDriveUrlInput(val);
+          if (urlErrors.drive) setUrlErrors((prev) => ({ ...prev, drive: undefined }));
+        }}
+        onClose={() => setShowLinksModal(false)}
+        onSubmit={handleSaveLinks}
+      />
 
-      {/* MODAL 2: Registrar / Modificar Enlaces */}
-      {showLinksModal && (
-        <div className="trabajo-modal-backdrop">
-          <div className="trabajo-modal-content">
-            <div className="trabajo-modal-header">
-              <h3>{isEditingLinks ? 'Modificar Enlaces de Entrega' : 'Registrar Entrega de Proyecto'}</h3>
-              <button
-                type="button"
-                className="trabajo-modal-close"
-                onClick={() => setShowLinksModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleSaveLinks}>
-              <div className="trabajo-modal-body">
-                {/* Enlace Google Docs */}
-                <div className="mb-3">
-                  <label htmlFor="docUrlInput" className="form-label fw-semibold">
-                    Enlace a Google Docs <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    id="docUrlInput"
-                    type="url"
-                    className={`form-control ${urlErrors.doc ? 'is-invalid' : ''}`}
-                    placeholder="https://docs.google.com/document/d/..."
-                    value={docUrlInput}
-                    onChange={(changeEvent) => {
-                      setDocUrlInput(changeEvent.target.value);
-                      if (urlErrors.doc) setUrlErrors((previousErrors) => ({ ...previousErrors, doc: undefined }));
-                    }}
-                    required
-                  />
-                  {urlErrors.doc ? (
-                    <div className="invalid-feedback">{urlErrors.doc}</div>
-                  ) : (
-                    <div className="form-text">
-                      El documento debe ser accesible para lectura por parte del equipo docente.
-                    </div>
-                  )}
-                </div>
-
-                {/* Enlace Google Drive */}
-                <div className="mb-3">
-                  <label htmlFor="driveUrlInput" className="form-label fw-semibold">
-                    Carpeta de Google Drive (Opcional)
-                  </label>
-                  <input
-                    id="driveUrlInput"
-                    type="url"
-                    className={`form-control ${urlErrors.drive ? 'is-invalid' : ''}`}
-                    placeholder="https://drive.google.com/drive/folders/..."
-                    value={driveUrlInput}
-                    onChange={(changeEvent) => {
-                      setDriveUrlInput(changeEvent.target.value);
-                      if (urlErrors.drive) setUrlErrors((previousErrors) => ({ ...previousErrors, drive: undefined }));
-                    }}
-                  />
-                  {urlErrors.drive ? (
-                    <div className="invalid-feedback">{urlErrors.drive}</div>
-                  ) : (
-                    <div className="form-text">
-                      Opcional: podés incluir una carpeta con anexos, presentaciones o código fuente.
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="trabajo-modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowLinksModal(false)}
-                  disabled={actionLoading}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-trabajo-primary" disabled={actionLoading}>
-                  {actionLoading ? 'Guardando...' : isEditingLinks ? 'Actualizar Enlaces' : 'Registrar Entrega'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 3: Confirmaciones Generales */}
-      {confirmActionModal.open && (
-        <div className="trabajo-modal-backdrop">
-          <div className="trabajo-modal-content">
-            <div className="trabajo-modal-header">
-              <h3>{confirmActionModal.title}</h3>
-              <button
-                type="button"
-                className="trabajo-modal-close"
-                onClick={() => {
-                  setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
-                  if (confirmActionModal.actionType === 'register_delivery') {
-                    setShowLinksModal(true);
-                  }
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className="trabajo-modal-body">
-              <p className="mb-0 text-secondary" style={{ fontSize: '15px', lineHeight: '1.5' }}>
-                {confirmActionModal.message}
-              </p>
-            </div>
-            <div className="trabajo-modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  setConfirmActionModal((previousState) => ({ ...previousState, open: false }));
-                  if (confirmActionModal.actionType === 'register_delivery') {
-                    setShowLinksModal(true);
-                  }
-                }}
-                disabled={actionLoading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn-trabajo-primary"
-                onClick={handleConfirmAction}
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'Procesando...' : confirmActionModal.confirmText}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TrabajoConfirmModal
+        open={confirmActionModal.open}
+        title={confirmActionModal.title}
+        message={confirmActionModal.message}
+        confirmText={confirmActionModal.confirmText}
+        actionLoading={actionLoading}
+        onCancel={() => {
+          setConfirmActionModal((prev) => ({ ...prev, open: false }));
+          if (confirmActionModal.actionType === 'register_delivery') {
+            setShowLinksModal(true);
+          }
+        }}
+        onConfirm={handleConfirmAction}
+      />
     </div>
   );
 };
