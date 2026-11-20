@@ -17,18 +17,10 @@ import {
 } from '../../../redux/slices/pppSlice';
 import { PPPApplicant, PPPProposal } from '../../services/pppService';
 import { getInitialsFromName } from '../../utils/userUtils';
+import { formatTwoDigitShortDate } from '../../utils/formatters';
 import './PPP.css';
 
-const formatDate = (value?: string): string => {
-  if (!value) return 'No registrada';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return 'No registrada';
-  return parsed.toLocaleDateString('es-AR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
+const formatDate = (value?: string): string => formatTwoDigitShortDate(value, 'No registrada');
 
 const classifyStatus = (status?: string): 'pending' | 'accepted' | 'rejected' => {
   const normalized = String(status || '').toLowerCase().trim();

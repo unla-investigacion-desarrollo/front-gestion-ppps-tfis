@@ -3,6 +3,7 @@ import { FaCheck, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
 import { UnifiedPendingRequest } from '../../../../../redux/slices/projectsSlice';
 import { User } from '../../../../../redux/slices/usersSlice';
 import { getUserInitials } from '../../../../utils/userUtils';
+import { formatTwoDigitShortDate } from '../../../../utils/formatters';
 
 interface ProjectApprovalTableProps {
   requests: UnifiedPendingRequest[];
@@ -170,11 +171,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
               const categoryBadge = getCategoryBadgeClass(req.projectType);
 
               const requestDate = req.createdAt
-                ? new Date(req.createdAt).toLocaleDateString('es-AR', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                  })
+                ? formatTwoDigitShortDate(req.createdAt, 'Pendiente')
                 : (req as any).date || 'Pendiente';
 
               return (

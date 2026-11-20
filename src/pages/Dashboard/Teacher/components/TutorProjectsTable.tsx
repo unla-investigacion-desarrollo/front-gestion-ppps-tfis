@@ -15,6 +15,7 @@ import TutorProjectFilters from './TutorProjectFilters';
 import TutorProjectStatusPill from './TutorProjectStatusPill';
 import MyTfiCard from '../../../Student/components/MyTfiCard';
 import { getInitialsFromName } from '../../../../utils/userUtils';
+import { formatShortDate } from '../../../../utils/formatters';
 
 // Importar estilos compartidos del módulo de gestión de proyectos
 import '../../../Teacher/TeacherProjectsList.css';
@@ -192,19 +193,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
           projectData.lastTutoring ||
           projectData.ultimaTutoria ||
           null;
-        let ultimaTutoria = '-';
-        if (rawDate) {
-          try {
-            const parsedDate = new Date(rawDate);
-            if (!isNaN(parsedDate.getTime())) {
-              ultimaTutoria = parsedDate.toLocaleDateString('es-AR', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              });
-            }
-          } catch {}
-        }
+        const ultimaTutoria = rawDate ? formatShortDate(rawDate, '-') : '-';
 
         return {
           id: projectId,

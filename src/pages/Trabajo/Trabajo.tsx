@@ -12,6 +12,7 @@ import {
   StudentWorkStatus,
 } from '../../services/studentWorkService';
 import { showToast } from '../../utils/toast';
+import { resolveMemberDisplayName } from '../../utils/userUtils';
 import {
   TrabajoQualifyModal,
   TrabajoLinksModal,
@@ -144,29 +145,7 @@ const Trabajo: React.FC = () => {
 
   // Función para obtener nombres de usuario (admite ID o descriptor de objeto)
   const resolveUserName = useCallback(
-    (userIdOrObj: any) => {
-      if (!userIdOrObj) return 'Desconocido';
-      if (typeof userIdOrObj === 'object') {
-        const targetUserObj =
-          userIdOrObj.student?.user ||
-          userIdOrObj.professor?.user ||
-          userIdOrObj.user ||
-          userIdOrObj.student ||
-          userIdOrObj.professor ||
-          userIdOrObj;
-        const fullName = [targetUserObj.firstName || targetUserObj.nombre, targetUserObj.lastName || targetUserObj.apellido].filter(Boolean).join(' ').trim();
-        if (fullName) return fullName;
-        if (targetUserObj.name) return targetUserObj.name;
-        if (targetUserObj.email) return targetUserObj.email;
-        userIdOrObj = targetUserObj.id || targetUserObj.id_user || userIdOrObj.id || userIdOrObj.id_user;
-      }
-      const idString = String(userIdOrObj);
-      const userFound = users.find((userCandidate: any) => String(userCandidate.id) === idString || String(userCandidate.id_user) === idString);
-      if (userFound) {
-        return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${idString}`;
-      }
-      return `Usuario #${idString}`;
-    },
+    (userIdOrObj: any) => resolveMemberDisplayName(userIdOrObj, users, 'Desconocido'),
     [users]
   );
 
