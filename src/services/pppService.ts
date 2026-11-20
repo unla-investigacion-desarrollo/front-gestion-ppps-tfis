@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+import { API_URL, parseApiResponse as handleResponse } from './apiClient';
 
 export type PPPStatus =
   | 'pending_application'
@@ -84,29 +84,6 @@ export interface ApplyProposalDTO {
 export interface GeneralDriveDTO {
   generalDriveUrl: string;
 }
-
-// Helper para parsear respuestas o errores del backend
-const handleResponse = async (res: Response, defaultErrorMessage: string) => {
-  const text = await res.text();
-  if (!res.ok) {
-    let parsedError: any;
-    try {
-      parsedError = JSON.parse(text);
-    } catch {}
-    const message =
-      parsedError?.message ||
-      (Array.isArray(parsedError?.errors) ? parsedError.errors.join(', ') : null) ||
-      text ||
-      `${defaultErrorMessage} (Status ${res.status})`;
-    throw new Error(message);
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text ? { message: text } : null;
-  }
-};
 
 export const pppService = {
   /**
