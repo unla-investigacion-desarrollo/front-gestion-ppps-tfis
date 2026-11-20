@@ -16,6 +16,7 @@ import {
   normalizePPPType,
 } from '../../services/pppService';
 import './PPP.css';
+import Pagination from '../../components/Pagination';
 
 export const PPPExpedientesList: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -306,60 +307,20 @@ export const PPPExpedientesList: React.FC = () => {
                 </tbody>
               </table>
 
-              {/* Footer de Paginación */}
-              <div className="ppp-pagination-footer">
-                <div className="d-flex align-items-center gap-3 flex-wrap">
-                  <span>
-                    Mostrando {totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
-                    {Math.min(currentPage * pageSize, totalItems)} de {totalItems} registros
-                  </span>
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="text-muted small">Filas por página:</span>
-                    <select
-                      className="form-select form-select-sm"
-                      style={{ width: '72px' }}
-                      value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="ppp-pagination-nav">
-                  <button
-                    type="button"
-                    className="ppp-page-btn"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  >
-                    ‹
-                  </button>
-                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNumber) => (
-                    <button
-                      key={pageNumber}
-                      type="button"
-                      className={`ppp-page-btn ${currentPage === pageNumber ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(pageNumber)}
-                    >
-                      {pageNumber}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="ppp-page-btn"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  >
-                    ›
-                  </button>
-                </div>
-              </div>
+              {/* Paginación consolidada */}
+              <Pagination
+                variant="ppp"
+                itemLabel="registros"
+                currentPage={currentPage}
+                totalItems={totalItems}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                pageSizeOptions={[5, 10, 20]}
+                onPageSizeChange={(newSize) => {
+                  setPageSize(newSize);
+                  setCurrentPage(1);
+                }}
+              />
             </>
           )}
         </div>

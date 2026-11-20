@@ -26,6 +26,7 @@ import {
   selectUsers,
 } from '../../../../redux/slices/usersSlice';
 import ProjectApprovalTable from './components/ProjectApprovalTable';
+import Pagination from '../../../components/Pagination';
 import './ApprovalQueue.css';
 import { showToast } from '../../../utils/toast';
 import {
@@ -361,43 +362,15 @@ const ApprovalQueue: React.FC = () => {
             }
           />
 
-          {/* Paginación idéntica al Mockup */}
-          <div className="approvals-pagination-footer">
-            <div className="approvals-pagination-info">
-              Mostrando {startIndex} - {endIndex} de {activeItemsCount} solicitudes
-            </div>
-
-            <div className="approvals-pagination-controls">
-              <button
-                type="button"
-                className="approvals-page-btn"
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              >
-                &lt;
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  type="button"
-                  className={`approvals-page-btn ${currentPage === pageNum ? 'active' : ''}`}
-                  onClick={() => setCurrentPage(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                className="approvals-page-btn"
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              >
-                &gt;
-              </button>
-            </div>
-          </div>
+          {/* Paginación consolidada */}
+          <Pagination
+            variant="approvals"
+            itemLabel="solicitudes"
+            currentPage={currentPage}
+            totalItems={activeItemsCount}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>
