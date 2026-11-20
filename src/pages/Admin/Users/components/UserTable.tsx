@@ -7,6 +7,7 @@ import {
   FaTrashCan,
   FaCircleCheck,
 } from 'react-icons/fa6';
+import { getUserInitials } from '../../../../utils/userUtils';
 
 // Interfaz que define las propiedades del componente de la tabla de usuarios
 interface UserTableProps {
@@ -43,14 +44,8 @@ const UserTable: React.FC<UserTableProps> = ({
   onViewClick,
 }) => {
   // Obtiene las iniciales de un usuario a partir de su nombre, apellido o email
-  const getInitials = (nombre?: string, apellido?: string, email?: string) => {
-    if (nombre && apellido) {
-      return (nombre.charAt(0) + apellido.charAt(0)).toUpperCase();
-    }
-    if (nombre) return nombre.substring(0, 2).toUpperCase();
-    if (email) return email.substring(0, 2).toUpperCase();
-    return 'US';
-  };
+  const getInitials = (nombre?: string, apellido?: string, email?: string) =>
+    getUserInitials(nombre, apellido, email, 'US');
 
   // Helper para renderizar los badges de Rol con sus respectivos colores
   const renderRoleBadge = (rol: string) => {

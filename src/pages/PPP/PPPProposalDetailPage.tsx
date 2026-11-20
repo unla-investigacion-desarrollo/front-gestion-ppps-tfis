@@ -16,6 +16,7 @@ import {
   selectPPPStatus,
 } from '../../../redux/slices/pppSlice';
 import { PPPApplicant, PPPProposal } from '../../services/pppService';
+import { getInitialsFromName } from '../../utils/userUtils';
 import './PPP.css';
 
 const formatDate = (value?: string): string => {
@@ -44,12 +45,7 @@ const classifyStatus = (status?: string): 'pending' | 'accepted' | 'rejected' =>
   return 'pending';
 };
 
-const getInitials = (name: string): string => {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'EP';
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
-};
+const getInitials = (name: string): string => getInitialsFromName(name, 'EP');
 
 export const PPPProposalDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

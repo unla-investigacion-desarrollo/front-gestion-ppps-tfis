@@ -10,9 +10,11 @@ import {
 } from 'react-icons/fa6';
 import { projectService } from '../../../../services/projectService';
 import { studentWorkService } from '../../../../services/studentWorkService';
+import Pagination from '../../../../components/Pagination';
 import TutorProjectFilters from './TutorProjectFilters';
 import TutorProjectStatusPill from './TutorProjectStatusPill';
 import MyTfiCard from '../../../Student/components/MyTfiCard';
+import { getInitialsFromName } from '../../../../utils/userUtils';
 
 // Importar estilos compartidos del módulo de gestión de proyectos
 import '../../../Teacher/TeacherProjectsList.css';
@@ -286,12 +288,7 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
     return { total, enCurso, pendientes };
   }, [projectsList]);
 
-  const getInitials = (name: string) => {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return 'ES';
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
-  };
+  const getInitials = (name: string) => getInitialsFromName(name, 'ES');
 
   // Estudiante: mostrar todos los TFIs asignados (activos primero, luego finalizados)
   if (isStudent) {
@@ -555,70 +552,21 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
       <div style={{ flexGrow: 1 }} />
 
       {/* Paginación estilo Gestión de TFI */}
-      {filteredList.length > 0 && (() => {
-        const totalItems = filteredList.length;
-        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-        const startItem = (page - 1) * pageSize + 1;
-        const endItem = Math.min(page * pageSize, totalItems);
-        return (
-          <div className="projects-pagination-footer">
-            <div className="projects-pagination-info">
-              <span>
-                Mostrando {startItem} - {endItem} de {totalItems} proyectos
-              </span>
-              <div className="d-flex align-items-center gap-2">
-                <span>Mostrar:</span>
-                <select
-                  className="projects-select"
-                  style={{ padding: '4px 28px 4px 10px', fontSize: '0.82rem' }}
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                >
-                  {[5, 10, 20].map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt} por pág.
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="projects-pagination-controls">
-              <button
-                type="button"
-                className="projects-page-btn"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                &lt;
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  type="button"
-                  className={`projects-page-btn ${page === pageNum ? 'active' : ''}`}
-                  onClick={() => setPage(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                className="projects-page-btn"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              >
-                &gt;
-              </button>
-            </div>
-          </div>
-        );
-      })()}
+      {filteredList.length > 0 && (
+        <Pagination
+          variant="projects"
+          itemLabel="proyectos"
+          currentPage={page}
+          totalItems={filteredList.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          pageSizeOptions={[5, 10, 20]}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setPage(1);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -8,6 +8,8 @@ export interface PaginationProps {
   onPageChange: (page: number) => void; // Función callback para notificar el cambio de página.
   pageSizeOptions?: number[]; // Opciones de cantidad de elementos por página.
   onPageSizeChange?: (pageSize: number) => void; // Callback al cambiar el tamaño de página.
+  variant?: 'default' | 'projects'; // Estilo visual de la barra de paginación.
+  itemLabel?: string; // Etiqueta opcional para el total (ej. "proyectos").
 }
 
 /**
@@ -22,6 +24,8 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   pageSizeOptions,
   onPageSizeChange,
+  variant = 'default',
+  itemLabel,
 }) => {
   // Cálculo de páginas totales
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -51,6 +55,73 @@ const Pagination: React.FC<PaginationProps> = ({
 
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
+
+  if (variant === 'projects') {
+    return (
+      <div className="projects-pagination-footer">
+        <div className="projects-pagination-info">
+          <span>
+            Mostrando {startItem} - {endItem} de {totalItems}
+            {itemLabel ? ` ${itemLabel}` : ''}
+          </span>
+          {pageSizeOptions && pageSizeOptions.length > 0 && onPageSizeChange && (
+            <div className="d-flex align-items-center gap-2">
+              <span>Mostrar:</span>
+              <select
+                className="projects-select"
+                style={{ padding: '4px 28px 4px 10px', fontSize: '0.82rem' }}
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              >
+                {pageSizeOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt} por pág.
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <div className="projects-pagination-controls">
+          <button
+            type="button"
+            className="projects-page-btn"
+            disabled={!canPrev}
+            onClick={() => canPrev && onPageChange(currentPage - 1)}
+          >
+            &lt;
+          </button>
+
+          {getPageNumbers().map((item, idx) =>
+            typeof item === 'string' ? (
+              <span key={`ellipsis-${idx}`} style={{ padding: '0 4px', color: '#9ca3af' }}>
+                ...
+              </span>
+            ) : (
+              <button
+                key={item}
+                type="button"
+                className={`projects-page-btn ${currentPage === item ? 'active' : ''}`}
+                onClick={() => onPageChange(item)}
+              >
+                {item}
+              </button>
+            )
+          )}
+
+          <button
+            type="button"
+            className="projects-page-btn"
+            disabled={!canNext}
+            onClick={() => canNext && onPageChange(currentPage + 1)}
+          >
+            &gt;
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
