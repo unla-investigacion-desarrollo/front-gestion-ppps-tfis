@@ -27,6 +27,13 @@ import {
 } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
 import {
+  PPPActionConfirmModal,
+  PPPAbandonModal,
+  PPPDriveModal,
+  PPPNotifyModal,
+  PPPObserveModal,
+} from './components/PPPTramiteModals';
+import {
   FaChevronDown,
   FaCommentDots,
   FaCircleInfo,
@@ -773,308 +780,60 @@ export const PPPTramiteDetail: React.FC = () => {
           )}
         </div>
 
-        {/* Modal de confirmación para acciones académicas y carga institucional */}
-        {confirmationDetails && (
-          <div
-            className="modal fade show d-block"
-            style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ppp-action-confirm-title"
-            aria-describedby="ppp-action-confirm-description"
-          >
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow-lg rounded-4">
-                <div className="modal-header border-bottom px-4 py-3">
-                  <h5 id="ppp-action-confirm-title" className="modal-title fw-bold text-dark">
-                    {confirmationDetails.title}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setPendingConfirmation(null)}
-                    disabled={actionLoading}
-                    aria-label="Cerrar"
-                  />
-                </div>
-                <div className="modal-body p-4">
-                  <div className="d-flex align-items-start gap-3">
-                    <div className={`ppp-action-confirm-icon ${confirmationDetails.iconClass}`} aria-hidden="true">
-                      {confirmationDetails.icon}
-                    </div>
-                    <div>
-                      <p className="mb-2 fw-semibold text-dark">{confirmationDetails.question}</p>
-                      <div className="ppp-delete-proposal-title mb-2">
-                        {resolvedProposalTitle}
-                        <span className="text-secondary fw-normal"> · Trámite #{expediente.id}</span>
-                      </div>
-                      <p id="ppp-action-confirm-description" className="mb-0 small text-secondary">
-                        {confirmationDetails.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-footer border-top px-4 py-3">
-                  <button
-                    type="button"
-                    className="btn btn-light"
-                    onClick={() => setPendingConfirmation(null)}
-                    disabled={actionLoading}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    className={confirmationDetails.confirmClass}
-                    onClick={() => {
-                      if (pendingConfirmation === 'approve') void handleApprove();
-                      if (pendingConfirmation === 'disapprove') void handleDisapprove();
-                      if (pendingConfirmation === 'siu') void handleSiuLoad();
-                    }}
-                    disabled={actionLoading}
-                  >
-                    {actionLoading
-                      ? confirmationDetails.loadingLabel
-                      : confirmationDetails.confirmLabel}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <PPPActionConfirmModal
+          details={confirmationDetails}
+          proposalTitle={resolvedProposalTitle}
+          expedienteId={expediente.id}
+          actionLoading={actionLoading}
+          onClose={() => setPendingConfirmation(null)}
+          onConfirm={() => {
+            if (pendingConfirmation === 'approve') void handleApprove();
+            if (pendingConfirmation === 'disapprove') void handleDisapprove();
+            if (pendingConfirmation === 'siu') void handleSiuLoad();
+          }}
+        />
 
-        {/* Modal para confirmar la baja definitiva del trámite */}
-        {showAbandonModal && (
-          <div
-            className="modal fade show d-block"
-            style={{ backgroundColor: 'rgba(15, 23, 42, 0.55)' }}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="abandon-ppp-title"
-            aria-describedby="abandon-ppp-description"
-          >
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow-lg rounded-4">
-                <div className="modal-header border-bottom px-4 py-3">
-                  <h5 id="abandon-ppp-title" className="modal-title fw-bold text-dark">
-                    Dar de baja el trámite
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowAbandonModal(false)}
-                    disabled={actionLoading}
-                    aria-label="Cerrar"
-                  />
-                </div>
-                <div className="modal-body p-4">
-                  <div className="d-flex align-items-start gap-3">
-                    <div className="ppp-delete-warning-icon" aria-hidden="true">
-                      <FaTriangleExclamation size={20} />
-                    </div>
-                    <div>
-                      <p className="mb-2 fw-semibold text-dark">
-                        ¿Querés dar de baja este trámite?
-                      </p>
-                      <div className="ppp-delete-proposal-title mb-2">
-                        {resolvedProposalTitle}
-                        <span className="text-secondary fw-normal"> · Trámite #{expediente.id}</span>
-                      </div>
-                      <p id="abandon-ppp-description" className="mb-0 small text-secondary">
-                        El expediente se concluirá definitivamente y no podrás continuar con este trámite.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-footer border-top px-4 py-3">
-                  <button
-                    type="button"
-                    className="btn btn-light"
-                    onClick={() => setShowAbandonModal(false)}
-                    disabled={actionLoading}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    className="btn ppp-delete-confirm-btn"
-                    onClick={handleAbandon}
-                    disabled={actionLoading}
-                  >
-                    {actionLoading ? 'Dando de baja...' : 'Sí, dar de baja'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <PPPAbandonModal
+          open={showAbandonModal}
+          proposalTitle={resolvedProposalTitle}
+          expedienteId={expediente.id}
+          actionLoading={actionLoading}
+          onClose={() => setShowAbandonModal(false)}
+          onConfirm={handleAbandon}
+        />
 
-        {/* Modal: Configurar Drive General */}
-        {showDriveModal && (
-          <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '14px' }}>
-                <div className="modal-header border-bottom px-4 py-3">
-                  <h5 className="modal-title fw-bold text-dark">Drive Institucional de Convenios</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowDriveModal(false)} />
-                </div>
-                <form onSubmit={handleUpdateDriveSubmit}>
-                  <div className="modal-body px-4 py-3 d-flex flex-column gap-3">
-                    <p className="small text-muted m-0">
-                      Actualizá el enlace del Google Drive oficial que los alumnos utilizan para descargar modelos de convenios.
-                    </p>
-                    <div>
-                      <label className="form-label fw-semibold small text-secondary">
-                        URL de Google Drive <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        required
-                        value={driveInput}
-                        onChange={(e) => setDriveInput(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-footer border-top px-4 py-3">
-                    <button type="button" className="btn btn-light" onClick={() => setShowDriveModal(false)}>
-                      Cancelar
-                    </button>
-                    <button type="submit" className="btn-unla-primary" disabled={actionLoading}>
-                      Guardar URL
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <PPPDriveModal
+          open={showDriveModal}
+          driveInput={driveInput}
+          actionLoading={actionLoading}
+          onDriveInputChange={setDriveInput}
+          onClose={() => setShowDriveModal(false)}
+          onSubmit={handleUpdateDriveSubmit}
+        />
 
-        {/* Modal Notificar Entrega de Documentación (Estudiante) */}
-        {showNotifyModal && (
-          <div className="modal show d-block" style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '16px' }}>
-                <div className="modal-header border-bottom px-4 py-3">
-                  <h5 className="modal-title fw-bold">Notificar entrega de documentación</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => {
-                      setShowNotifyModal(false);
-                      setNotifyFile(null);
-                    }}
-                  />
-                </div>
-                <form onSubmit={handleNotifySent}>
-                  <div className="modal-body p-4">
-                    <p className="text-muted small mb-3">
-                      Adjuntá el archivo PDF con la documentación.
-                    </p>
-                    <div>
-                      <label className="form-label fw-semibold small">
-                        Archivo PDF <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="file"
-                        className="form-control"
-                        accept=".pdf,application/pdf"
-                        required
-                        onChange={(e) => {
-                          const selectedFile = e.target.files?.[0] || null;
-                          setNotifyFile(selectedFile);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-footer border-top px-4 py-3">
-                    <button
-                      type="button"
-                      className="btn btn-light"
-                      disabled={actionLoading}
-                      onClick={() => {
-                        setShowNotifyModal(false);
-                        setNotifyFile(null);
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn-unla-primary"
-                      disabled={actionLoading || !notifyFile}
-                    >
-                      {actionLoading ? 'Enviando...' : 'Notificar envío'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <PPPNotifyModal
+          open={showNotifyModal}
+          notifyFile={notifyFile}
+          actionLoading={actionLoading}
+          onFileChange={setNotifyFile}
+          onClose={() => {
+            setShowNotifyModal(false);
+            setNotifyFile(null);
+          }}
+          onSubmit={handleNotifySent}
+        />
 
-        {/* Modal Marcar con Observaciones (Docente / Admin) */}
-        {showObserveModal && (
-          <div className="modal show d-block" style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '16px' }}>
-                <div className="modal-header border-bottom px-4 py-3">
-                  <h5 className="modal-title fw-bold">Marcar con observaciones</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => {
-                      setShowObserveModal(false);
-                      setObserveFeedback('');
-                    }}
-                  />
-                </div>
-                <form onSubmit={handleObserve}>
-                  <div className="modal-body p-4">
-                    <p className="text-muted small mb-3">
-                      Indicá las observaciones o correcciones que debe realizar el estudiante antes de reenviar la documentación.
-                    </p>
-                    <div>
-                      <label className="form-label fw-semibold small">
-                        Observación / Feedback <span className="text-danger">*</span>
-                      </label>
-                      <textarea
-                        className="form-control"
-                        rows={4}
-                        required
-                        placeholder="Ej: Por favor, corregir y reenviar."
-                        value={observeFeedback}
-                        onChange={(e) => setObserveFeedback(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-footer border-top px-4 py-3">
-                    <button
-                      type="button"
-                      className="btn btn-light"
-                      disabled={actionLoading}
-                      onClick={() => {
-                        setShowObserveModal(false);
-                        setObserveFeedback('');
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn-unla-primary"
-                      disabled={actionLoading || !observeFeedback.trim()}
-                    >
-                      {actionLoading ? 'Enviando...' : 'Enviar observaciones'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <PPPObserveModal
+          open={showObserveModal}
+          observeFeedback={observeFeedback}
+          actionLoading={actionLoading}
+          onFeedbackChange={setObserveFeedback}
+          onClose={() => {
+            setShowObserveModal(false);
+            setObserveFeedback('');
+          }}
+          onSubmit={handleObserve}
+        />
       </div>
     </div>
   );

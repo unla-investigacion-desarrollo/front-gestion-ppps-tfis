@@ -21,6 +21,7 @@ import {
 import { fetchUsers, selectUsers } from '../../../redux/slices/usersSlice';
 
 // Reusable Components
+import Pagination from '../../components/Pagination';
 import ProjectFilters, { ProjectFiltersState } from './components/ProjectFilters';
 import ProjectTable from './components/ProjectTable';
 import {
@@ -508,70 +509,21 @@ const TeacherProjectsList: React.FC = () => {
         <div style={{ flexGrow: 1 }} />
 
         {/* Paginación de Proyectos estilo Solicitudes */}
-        {filteredProjects.length > 0 && (() => {
-          const totalItems = filteredProjects.length;
-          const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-          const startItem = (page - 1) * pageSize + 1;
-          const endItem = Math.min(page * pageSize, totalItems);
-          return (
-            <div className="projects-pagination-footer">
-              <div className="projects-pagination-info">
-                <span>
-                  Mostrando {startItem} - {endItem} de {totalItems} proyectos
-                </span>
-                <div className="d-flex align-items-center gap-2">
-                  <span>Mostrar:</span>
-                  <select
-                    className="projects-select"
-                    style={{ padding: '4px 28px 4px 10px', fontSize: '0.82rem' }}
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setPage(1);
-                    }}
-                  >
-                    {[5, 10, 20].map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt} por pág.
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="projects-pagination-controls">
-                <button
-                  type="button"
-                  className="projects-page-btn"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  &lt;
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    type="button"
-                    className={`projects-page-btn ${page === pageNum ? 'active' : ''}`}
-                    onClick={() => setPage(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
-
-                <button
-                  type="button"
-                  className="projects-page-btn"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  &gt;
-                </button>
-              </div>
-            </div>
-          );
-        })()}
+        {filteredProjects.length > 0 && (
+          <Pagination
+            variant="projects"
+            itemLabel="proyectos"
+            currentPage={page}
+            totalItems={filteredProjects.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            pageSizeOptions={[5, 10, 20]}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPage(1);
+            }}
+          />
+        )}
       </div>
 
       {/* --- MODAL PARA ACTIVIDAD DEL PROYECTO --- */}

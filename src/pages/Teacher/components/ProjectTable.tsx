@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaCalendarDays, FaPencil, FaTrashCan, FaUserGroup, FaChalkboardUser, FaEye, FaPaperPlane } from 'react-icons/fa6';
 import { LuUserX } from 'react-icons/lu';
 import { Project } from '../../../../redux/slices/projectsSlice';
+import { formatShortDate } from '../../../utils/formatters';
+import { resolveMemberDisplayName } from '../../../utils/userUtils';
 
 // Propiedades recibidas por el componente ProjectTable
 interface ProjectTableProps {
@@ -75,38 +77,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   };
 
   // Resuelve el nombre completo o email de un miembro por su ID de usuario o descriptor de objeto
-  const getMemberName = (member: any) => {
-    if (!member) return '';
-    if (typeof member === 'object') {
-      const userObj =
-        member.student?.user ||
-        member.professor?.user ||
-        member.user ||
-        member.student ||
-        member.professor ||
-        member;
-      const firstName = userObj.firstName || userObj.nombre || '';
-      const lastName = userObj.lastName || userObj.apellido || '';
-      const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
-      if (fullName) return fullName;
-      if (userObj.name) return userObj.name;
-      if (userObj.email) return userObj.email;
-
-      const rawId = String(userObj.id || userObj.id_user || member.id || member.id_user || '');
-      if (rawId) {
-        const userFound = users.find((u) => String(u.id) === rawId || String(u.id_user) === rawId);
-        if (userFound) {
-          return [userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email || `Usuario #${rawId}`;
-        }
-        return `Usuario #${rawId}`;
-      }
-    }
-    const idStr = String(member);
-    const userFound = users.find((u) => String(u.id) === idStr || String(u.id_user) === idStr);
-    return userFound
-      ? ([userFound.nombre, userFound.apellido].filter(Boolean).join(' ') || userFound.email)
-      : `Usuario #${idStr}`;
-  };
+  const getMemberName = (member: any) => resolveMemberDisplayName(member, users, '');
 
   // Obtiene el identificador primitivo de un miembro para acciones de eliminación
   const getRawMemberId = (member: any): string => {
@@ -280,19 +251,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   };
 
   // Formatea la fecha de creación o revisión del proyecto
-  const formatCreationDate = (dateString?: string) => {
-    if (!dateString) return '';
-    try {
-      const parsedDate = new Date(dateString);
-      return parsedDate.toLocaleDateString('es-AR', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return dateString;
-    }
-  };
+  const formatCreationDate = (dateString?: string) => formatShortDate(dateString, '');
 
   // Obtiene la etiqueta y clase visual para el estado de la entrega (studentWork.status)
   const getStudentWorkStatusInfo = (project: Project): { label: string; pillClass: string } => {

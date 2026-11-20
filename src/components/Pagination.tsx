@@ -8,7 +8,50 @@ export interface PaginationProps {
   onPageChange: (page: number) => void; // Función callback para notificar el cambio de página.
   pageSizeOptions?: number[]; // Opciones de cantidad de elementos por página.
   onPageSizeChange?: (pageSize: number) => void; // Callback al cambiar el tamaño de página.
+  variant?: 'default' | 'projects' | 'approvals' | 'ppp'; // Estilo visual de la barra de paginación.
+  itemLabel?: string; // Etiqueta opcional para el total (ej. "proyectos").
 }
+
+const COMPACT_VARIANT_CLASSES: Record<
+  'projects' | 'approvals' | 'ppp',
+  {
+    footer: string;
+    info: string;
+    controls: string;
+    pageBtn: string;
+    selectLabel: string;
+    prevSymbol: string;
+    nextSymbol: string;
+  }
+> = {
+  projects: {
+    footer: 'projects-pagination-footer',
+    info: 'projects-pagination-info',
+    controls: 'projects-pagination-controls',
+    pageBtn: 'projects-page-btn',
+    selectLabel: 'Mostrar:',
+    prevSymbol: '<',
+    nextSymbol: '>',
+  },
+  approvals: {
+    footer: 'approvals-pagination-footer',
+    info: 'approvals-pagination-info',
+    controls: 'approvals-pagination-controls',
+    pageBtn: 'approvals-page-btn',
+    selectLabel: 'Mostrar:',
+    prevSymbol: '<',
+    nextSymbol: '>',
+  },
+  ppp: {
+    footer: 'ppp-pagination-footer',
+    info: 'd-flex align-items-center gap-3 flex-wrap',
+    controls: 'ppp-pagination-nav',
+    pageBtn: 'ppp-page-btn',
+    selectLabel: 'Filas por página:',
+    prevSymbol: '‹',
+    nextSymbol: '›',
+  },
+};
 
 /**
  * Componente genérico y reutilizable de paginación compatible con Bootstrap y diseño UNLa.
@@ -22,6 +65,8 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   pageSizeOptions,
   onPageSizeChange,
+  variant = 'default',
+  itemLabel,
 }) => {
   // Cálculo de páginas totales
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -51,6 +96,80 @@ const Pagination: React.FC<PaginationProps> = ({
 
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
+
+  if (variant !== 'default') {
+    const cls = COMPACT_VARIANT_CLASSES[variant];
+    return (
+      <div className={cls.footer}>
+        <div className={cls.info}>
+          <span>
+            Mostrando {startItem} - {endItem} de {totalItems}
+            {itemLabel ? ` ${itemLabel}` : ''}
+          </span>
+          {pageSizeOptions && pageSizeOptions.length > 0 && onPageSizeChange && (
+            <div className="d-flex align-items-center gap-2">
+              <span className={variant === 'ppp' ? 'text-muted small' : undefined}>
+                {cls.selectLabel}
+              </span>
+              <select
+                className={variant === 'ppp' ? 'form-select form-select-sm' : 'projects-select'}
+                style={
+                  variant === 'ppp'
+                    ? { width: '72px' }
+                    : { padding: '4px 28px 4px 10px', fontSize: '0.82rem' }
+                }
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              >
+                {pageSizeOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {variant === 'ppp' ? opt : `${opt} por pág.`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <div className={cls.controls}>
+          <button
+            type="button"
+            className={cls.pageBtn}
+            disabled={!canPrev}
+            onClick={() => canPrev && onPageChange(currentPage - 1)}
+          >
+            {cls.prevSymbol}
+          </button>
+
+          {getPageNumbers().map((item, idx) =>
+            typeof item === 'string' ? (
+              <span key={`ellipsis-${idx}`} style={{ padding: '0 4px', color: '#9ca3af' }}>
+                ...
+              </span>
+            ) : (
+              <button
+                key={item}
+                type="button"
+                className={`${cls.pageBtn} ${currentPage === item ? 'active' : ''}`}
+                onClick={() => onPageChange(item)}
+              >
+                {item}
+              </button>
+            )
+          )}
+
+          <button
+            type="button"
+            className={cls.pageBtn}
+            disabled={!canNext}
+            onClick={() => canNext && onPageChange(currentPage + 1)}
+          >
+            {cls.nextSymbol}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

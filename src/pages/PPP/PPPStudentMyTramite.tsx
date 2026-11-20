@@ -11,6 +11,7 @@ import {
 } from '../../../redux/slices/pppSlice';
 import { PPPEpidiente, PPPStatus, normalizePPPType } from '../../services/pppService';
 import { PPPHowItWorks } from './components';
+import { formatNumericDate } from '../../utils/formatters';
 import './PPP.css';
 
 export const PPPStudentMyTramite: React.FC = () => {
@@ -151,10 +152,7 @@ export const PPPStudentMyTramite: React.FC = () => {
                     </Link>
                   </h5>
                   <div className="text-muted small mt-1">
-                    Iniciado el:{' '}
-                    {expedienteItem.createdAt
-                      ? new Date(expedienteItem.createdAt).toLocaleDateString('es-AR')
-                      : '-'}
+                    Iniciado el: {formatNumericDate(expedienteItem.createdAt, '-')}
                   </div>
                 </div>
 

@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL || '/api/sg-ppp-tfi/v1').replace(/\/$/, '');
+import { API_URL } from './apiClient';
 
 export interface ProjectTypeDTO {
   id: number;

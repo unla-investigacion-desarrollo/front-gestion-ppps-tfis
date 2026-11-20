@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaCheck, FaEllipsisVertical, FaEye } from 'react-icons/fa6';
 import { UnifiedPendingRequest } from '../../../../../redux/slices/projectsSlice';
 import { User } from '../../../../../redux/slices/usersSlice';
+import { getUserInitials } from '../../../../utils/userUtils';
+import { formatTwoDigitShortDate } from '../../../../utils/formatters';
 
 interface ProjectApprovalTableProps {
   requests: UnifiedPendingRequest[];
@@ -37,12 +39,8 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
   }, []);
 
   // Extraer iniciales para el avatar
-  const getInitials = (name: string, lastName?: string) => {
-    if (!name && !lastName) return 'U';
-    const first = name ? name.trim().charAt(0).toUpperCase() : '';
-    const second = lastName ? lastName.trim().charAt(0).toUpperCase() : '';
-    return `${first}${second}` || first || 'U';
-  };
+  const getInitials = (name: string, lastName?: string) =>
+    getUserInitials(name, lastName, undefined, 'U');
 
   // Obtener datos detallados del postulante
   const getApplicantDetails = (req: UnifiedPendingRequest) => {
@@ -173,11 +171,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
               const categoryBadge = getCategoryBadgeClass(req.projectType);
 
               const requestDate = req.createdAt
-                ? new Date(req.createdAt).toLocaleDateString('es-AR', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                  })
+                ? formatTwoDigitShortDate(req.createdAt, 'Pendiente')
                 : (req as any).date || 'Pendiente';
 
               return (
