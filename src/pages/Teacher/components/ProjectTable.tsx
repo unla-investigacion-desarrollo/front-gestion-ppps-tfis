@@ -314,15 +314,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             <th style={{ width: '16%' }}>Alumnos Asignados</th>
             <th style={{ width: '15%' }}>Docentes</th>
             <th style={{ width: '10%' }}>Estado</th>
-            <th style={{ width: '13%' }}>Última revisión Evaluador</th>
-            <th style={{ width: '13%' }}>Última revisión Tutor</th>
+            {!effectiveIsTutor && (
+              <>
+                <th style={{ width: '13%' }}>Última revisión Evaluador</th>
+                <th style={{ width: '13%' }}>Última revisión Tutor</th>
+              </>
+            )}
             <th style={{ width: '8%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {projects.length === 0 ? (
             <tr>
-              <td colSpan={7} className="text-center py-5 text-muted">
+              <td colSpan={effectiveIsTutor ? 5 : 7} className="text-center py-5 text-muted">
                 No se encontraron proyectos activos con los filtros indicados.
               </td>
             </tr>
@@ -426,63 +430,67 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   })()}
                 </td>
 
-                {/* Columna: Última revisión por Evaluador */}
-                <td>
-                  {(() => {
-                    const reviewerName = getLastReviewerName(project);
-                    const reviewedAt =
-                      project.lastReviewedAt ||
-                      project.studentWork?.lastReviewedAt ||
-                      (project as any).raw?.studentWork?.lastReviewedAt ||
-                      null;
+                {!effectiveIsTutor && (
+                  <>
+                    {/* Columna: Última revisión por Evaluador */}
+                    <td>
+                      {(() => {
+                        const reviewerName = getLastReviewerName(project);
+                        const reviewedAt =
+                          project.lastReviewedAt ||
+                          project.studentWork?.lastReviewedAt ||
+                          (project as any).raw?.studentWork?.lastReviewedAt ||
+                          null;
 
-                    if (!reviewerName) {
-                      return <span className="empty-cell-dash">—</span>;
-                    }
+                        if (!reviewerName) {
+                          return <span className="empty-cell-dash">—</span>;
+                        }
 
-                    return (
-                      <div>
-                        <div className="fw-medium text-dark" style={{ fontSize: '13.5px' }}>
-                          {reviewerName}
-                        </div>
-                        {reviewedAt && (
-                          <div className="text-muted" style={{ fontSize: '11.5px' }}>
-                            {formatCreationDate(reviewedAt)}
+                        return (
+                          <div>
+                            <div className="fw-medium text-dark" style={{ fontSize: '13.5px' }}>
+                              {reviewerName}
+                            </div>
+                            {reviewedAt && (
+                              <div className="text-muted" style={{ fontSize: '11.5px' }}>
+                                {formatCreationDate(reviewedAt)}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </td>
+                        );
+                      })()}
+                    </td>
 
-                {/* Columna: Última revisión Tutor */}
-                <td>
-                  {(() => {
-                    const tutorName = getLastTutoredByName(project);
-                    const tutoredAt =
-                      project.lastTutoredAt ||
-                      project.studentWork?.lastTutoredAt ||
-                      (project as any).raw?.studentWork?.lastTutoredAt ||
-                      null;
+                    {/* Columna: Última revisión Tutor */}
+                    <td>
+                      {(() => {
+                        const tutorName = getLastTutoredByName(project);
+                        const tutoredAt =
+                          project.lastTutoredAt ||
+                          project.studentWork?.lastTutoredAt ||
+                          (project as any).raw?.studentWork?.lastTutoredAt ||
+                          null;
 
-                    if (!tutorName) {
-                      return <span className="empty-cell-dash">—</span>;
-                    }
+                        if (!tutorName) {
+                          return <span className="empty-cell-dash">—</span>;
+                        }
 
-                    return (
-                      <div>
-                        <div className="fw-medium text-dark" style={{ fontSize: '13.5px' }}>
-                          {tutorName}
-                        </div>
-                        {tutoredAt && (
-                          <div className="text-muted" style={{ fontSize: '11.5px' }}>
-                            {formatCreationDate(tutoredAt)}
+                        return (
+                          <div>
+                            <div className="fw-medium text-dark" style={{ fontSize: '13.5px' }}>
+                              {tutorName}
+                            </div>
+                            {tutoredAt && (
+                              <div className="text-muted" style={{ fontSize: '11.5px' }}>
+                                {formatCreationDate(tutoredAt)}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </td>
+                        );
+                      })()}
+                    </td>
+                  </>
+                )}
 
                 {/* Columna: Acciones (Menú Dropdown ⋮) */}
                 {/* Columna: Acciones */}
