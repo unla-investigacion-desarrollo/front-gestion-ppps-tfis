@@ -425,7 +425,7 @@ const StudentDeliveries: React.FC = () => {
             </div>
             <p className="text-muted mt-2 mb-0">Consultando datos del proyecto y entrega...</p>
           </div>
-        ) : (
+        ) : myProjects.length > 0 && selectedProjectId ? (
           <div className="trabajo-card">
             {/* Si ya existe una entrega registrada y no está en modo edición */}
             {work && !isEditing ? (
@@ -659,7 +659,7 @@ const StudentDeliveries: React.FC = () => {
               </form>
             )}
           </div>
-        )}
+        ) : null}
       </div>
       {showDeliveryConfirm && (
         <div className="trabajo-modal-backdrop">
