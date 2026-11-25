@@ -107,6 +107,7 @@ const UsersList: React.FC = () => {
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [isCreateTeacherModalOpen, setIsCreateTeacherModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [activationTarget, setActivationTarget] = useState<{ user: any; enable: boolean } | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
@@ -391,15 +392,23 @@ const UsersList: React.FC = () => {
       showToast('No podés desactivar tu propia cuenta.', 'error');
       return;
     }
+    setActivationTarget({ user, enable });
+  };
+
+  const handleConfirmActivation = async () => {
+    if (!activationTarget) return;
+
+    const { user, enable } = activationTarget;
+    const id = user.id;
     const actionLabel = enable ? 'Activar' : 'Desactivar';
-    const ok = confirm(`¿${actionLabel} esta cuenta?`);
-    if (!ok) return;
     const result = await dispatch<any>(toggleUserActivation({ id, enable, user }));
     if (result?.error) {
       showToast(result.payload || result.error.message || `No se pudo ${actionLabel.toLowerCase()} la cuenta.`, 'error');
+      setActivationTarget(null);
       return;
     }
     showToast(`Cuenta ${enable ? 'activada' : 'desactivada'} correctamente.`, 'success');
+    setActivationTarget(null);
   };
 
   // Iniciar proceso de eliminación (abrir modal de confirmación)
@@ -860,6 +869,62 @@ const UsersList: React.FC = () => {
         onClose={() => setIsCreateTeacherModalOpen(false)}
         onSubmit={handleCreateTeacherSubmit}
       />
+
+      {/* --- MODAL DE CONFIRMACIÓN DE ACTIVACIÓN / DESACTIVACIÓN --- */}
+      {activationTarget && (
+        <>
+          <div className="modal fade show custom-modal-dialog-wrapper" tabIndex={-1} style={{ display: 'block' }}>
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content custom-modal-content activation-confirm-modal">
+                <div className="modal-header custom-modal-header">
+                  <h5 className="modal-title" style={{ fontWeight: 700, color: 'var(--unla-primary)' }}>
+                    {activationTarget.enable ? 'Activar cuenta' : 'Desactivar cuenta'}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setActivationTarget(null)}
+                    aria-label="Cerrar"
+                  />
+                </div>
+                <div className="modal-body custom-modal-body text-center py-4">
+                  <div className={`activation-confirm-icon ${activationTarget.enable ? 'activate' : 'deactivate'}`}>
+                    {activationTarget.enable
+                      ? <FaCircleCheck size={34} />
+                      : <FaUserXmark size={34} />}
+                  </div>
+                  <p className="mb-1" style={{ fontSize: '18px', fontWeight: 600 }}>
+                    ¿Deseás {activationTarget.enable ? 'activar' : 'desactivar'} esta cuenta?
+                  </p>
+                  <p className="text-muted mb-0">
+                    <strong>{activationTarget.user.email}</strong>
+                  </p>
+                </div>
+                <div className="modal-footer custom-modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setActivationTarget(null)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${activationTarget.enable ? 'btn-success' : 'btn-unla-warning'}`}
+                    onClick={handleConfirmActivation}
+                  >
+                    {activationTarget.enable ? 'Activar' : 'Desactivar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            className="custom-modal-backdrop"
+            onClick={() => setActivationTarget(null)}
+          />
+        </>
+      )}
 
       {/* --- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --- */}
       {userToDelete && (

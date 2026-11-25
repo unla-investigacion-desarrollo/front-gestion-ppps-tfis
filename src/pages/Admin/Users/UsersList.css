@@ -210,6 +210,69 @@
   z-index: 1050;
 }
 
+.custom-modal-content {
+  border: 1px solid var(--unla-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.22);
+}
+
+.custom-modal-header {
+  background: #fff;
+  border-bottom: 1px solid #e9edf3;
+  padding: 18px 22px;
+}
+
+.custom-modal-body {
+  padding: 22px;
+}
+
+.custom-modal-footer {
+  background: #f8fafc;
+  border-top: 1px solid #e9edf3;
+  padding: 14px 22px;
+  gap: 10px;
+}
+
+.activation-confirm-modal {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.activation-confirm-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.activation-confirm-icon.activate {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.activation-confirm-icon.deactivate {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.btn-unla-warning {
+  background: #b45309;
+  border-color: #b45309;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-unla-warning:hover,
+.btn-unla-warning:focus {
+  background: #92400e;
+  border-color: #92400e;
+  color: #fff;
+}
+
 /* Botones de acción directa en tabla de usuarios */
 .user-actions-group {
   display: inline-flex;
