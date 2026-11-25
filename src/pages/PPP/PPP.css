@@ -99,10 +99,19 @@
   box-shadow: 0 2px 4px rgba(128, 0, 32, 0.15);
 }
 
-.btn-unla-primary:hover {
+.btn-unla-primary:hover:not(:disabled) {
   background-color: var(--unla-primary-hover, #64001d);
   color: #ffffff;
   transform: translateY(-1px);
+}
+
+.btn-unla-primary:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-unla-outline {
@@ -118,10 +127,17 @@
   transition: all 0.2s ease;
 }
 
-.btn-unla-outline:hover {
+.btn-unla-outline:hover:not(:disabled) {
   background-color: #f8fafc;
   color: #1e293b;
   border-color: #94a3b8;
+}
+
+.btn-unla-outline:disabled {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
 }
 
 .ppp-delete-warning-icon {

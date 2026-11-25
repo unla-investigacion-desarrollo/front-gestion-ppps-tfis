@@ -630,6 +630,11 @@ export const PPPTramiteDetail: React.FC = () => {
                   type="button"
                   className="btn-unla-primary d-inline-flex align-items-center gap-1.5"
                   disabled={!canNotifyDocumentation || actionLoading}
+                  title={
+                    !canNotifyDocumentation
+                      ? 'Disponible únicamente cuando el trámite requiere entrega de documentación o correcciones'
+                      : undefined
+                  }
                   onClick={() => {
                     setNotifyFile(null);
                     setShowNotifyModal(true);
@@ -648,11 +653,14 @@ export const PPPTramiteDetail: React.FC = () => {
                   Dar de baja trámite
                 </button>
 
-                {!canNotifyDocumentation && (
-                  <span className="small text-muted ms-2">
-                    (El botón de notificar entrega se habilitará cuando la cátedra requiera documentación o correcciones)
-                  </span>
-                )}
+                {!canNotifyDocumentation &&
+                  (expediente.status === 'pending_application' || expediente.status === 'in_review') && (
+                    <span className="small text-muted ms-2">
+                      {expediente.status === 'pending_application'
+                        ? '(Se habilitará cuando tu postulación sea aceptada y la cátedra solicite la documentación)'
+                        : '(Tu entrega está en revisión; volverá a habilitarse si la cátedra solicita correcciones)'}
+                    </span>
+                  )}
               </div>
             </>
           ) : (
