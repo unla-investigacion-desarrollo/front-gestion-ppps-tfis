@@ -6,14 +6,13 @@ Aplicación web para la gestión integral de **Trabajos Finales Integradores (TF
 
 ## 🛠️ Tecnologías Principales
 
-- ⚛️ **React 19** (`19.1.0`) + **TypeScript**
-- ⚡ **Vite 6** (`6.3.5`)
-- 🛣️ **React Router DOM 7** (`7.6.2`)
-- 🗃️ **Redux Toolkit** (`2.9.0`) & **React Redux** (`9.2.0`)
-- 🎨 **Bootstrap 5** (`5.3.8`) + CSS personalizado (incluye **Modo Claro / Oscuro**)
-- 🔤 **React Icons** (`5.7.0`)
-- 🧪 **Vitest** + **Testing Library**
-- 🔍 **ESLint**
+-  **React 19** (`19.1.0`) + **TypeScript**
+-  **Vite 6** (`6.3.5`)
+-  **React Router DOM 7** (`7.6.2`)
+-  **Redux Toolkit** (`2.9.0`) & **React Redux** (`9.2.0`)
+-  **React Icons** (`5.7.0`)
+-  **Vitest** + **Testing Library**
+-  **ESLint**
 
 ---
 
