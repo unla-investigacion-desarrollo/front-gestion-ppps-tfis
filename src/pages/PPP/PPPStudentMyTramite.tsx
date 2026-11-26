@@ -9,9 +9,9 @@ import {
   selectPPPExpedientes,
   selectPPPGeneralDrive,
 } from '../../../redux/slices/pppSlice';
-import { PPPEpidiente, PPPStatus, normalizePPPType } from '../../services/pppService';
+import { PPPEpidiente, normalizePPPType } from '../../services/pppService';
 import { PPPHowItWorks } from './components';
-import { formatNumericDate } from '../../utils/formatters';
+import { formatNumericDate, formatPPPStatus } from '../../utils/formatters';
 import './PPP.css';
 
 export const PPPStudentMyTramite: React.FC = () => {
@@ -32,29 +32,6 @@ export const PPPStudentMyTramite: React.FC = () => {
     dispatch(fetchMyPPPApplications());
     dispatch(fetchPPPGeneralDrive());
   }, [dispatch, currentUser?.id]);
-
-  const getStatusLabel = (statusKey: PPPStatus | string) => {
-    switch (statusKey) {
-      case 'pending_application':
-        return 'Postulación en Evaluación';
-      case 'application_rejected':
-        return 'Postulación Desestimada';
-      case 'pending_documentation':
-        return 'Documentación Pendiente';
-      case 'in_review':
-        return 'En Revisión Académica';
-      case 'observed':
-        return 'Con Observaciones';
-      case 'approved':
-        return 'Práctica Aprobada';
-      case 'disapproved':
-        return 'Práctica No Aprobada';
-      case 'dropped_out':
-        return 'Trámite Dado de Baja';
-      default:
-        return statusKey;
-    }
-  };
 
   return (
     <div className="ppp-page-wrapper">
@@ -138,7 +115,7 @@ export const PPPStudentMyTramite: React.FC = () => {
                     </span>
                     <span className={`ppp-status-badge ppp-status-${expedienteItem.status}`}>
                       <span className="ppp-status-dot" />
-                      {getStatusLabel(expedienteItem.status)}
+                      {formatPPPStatus(expedienteItem.status)}
                     </span>
                   </div>
                   <h5 className="fw-bold m-0">

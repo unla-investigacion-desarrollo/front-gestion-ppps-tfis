@@ -17,6 +17,7 @@ import {
 } from '../../services/pppService';
 import './PPP.css';
 import Pagination from '../../components/Pagination';
+import { formatPPPStatus } from '../../utils/formatters';
 
 export const PPPExpedientesList: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -82,30 +83,6 @@ export const PPPExpedientesList: React.FC = () => {
     return filteredExpedientes.slice(startIndex, startIndex + pageSize);
   }, [filteredExpedientes, currentPage, pageSize]);
 
-  // Helper para renderizar nombres de estado legibles
-  const getStatusLabel = (statusKey: PPPStatus) => {
-    switch (statusKey) {
-      case 'pending_application':
-        return 'Postulación en Evaluación';
-      case 'application_rejected':
-        return 'Postulación Desestimada';
-      case 'pending_documentation':
-        return 'Documentación Pendiente';
-      case 'in_review':
-        return 'En Revisión Académica';
-      case 'observed':
-        return 'Con Observaciones';
-      case 'approved':
-        return 'Aprobado';
-      case 'disapproved':
-        return 'Desaprobado';
-      case 'dropped_out':
-        return 'Trámite Dado de Baja';
-      default:
-        return statusKey;
-    }
-  };
-
   return (
     <div className="ppp-page-wrapper">
       <div className="ppp-container">
@@ -170,14 +147,14 @@ export const PPPExpedientesList: React.FC = () => {
               }}
             >
               <option value="ALL">Todos los estados</option>
-              <option value="pending_application">Postulación en Evaluación</option>
-              <option value="pending_documentation">Documentación Pendiente</option>
-              <option value="in_review">En Revisión Académica</option>
-              <option value="observed">Con Observaciones</option>
-              <option value="approved">Aprobado</option>
-              <option value="disapproved">Desaprobado</option>
-              <option value="application_rejected">Postulación Desestimada</option>
-              <option value="dropped_out">Dado de Baja</option>
+              <option value="pending_application">Pendiente de postulación</option>
+              <option value="pending_documentation">Documentación pendiente</option>
+              <option value="in_review">En revisión</option>
+              <option value="observed">Observada</option>
+              <option value="approved">Aprobada</option>
+              <option value="disapproved">Desaprobada</option>
+              <option value="application_rejected">Postulación rechazada</option>
+              <option value="dropped_out">Abandonada</option>
             </select>
           </div>
 
@@ -279,7 +256,7 @@ export const PPPExpedientesList: React.FC = () => {
                       <td>
                         <span className={`ppp-status-badge ppp-status-${exp.status}`}>
                           <span className="ppp-status-dot" />
-                          {getStatusLabel(exp.status)}
+                          {formatPPPStatus(exp.status)}
                         </span>
                       </td>
                       <td>

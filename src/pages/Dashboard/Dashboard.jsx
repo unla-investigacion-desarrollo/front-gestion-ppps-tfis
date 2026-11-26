@@ -19,6 +19,7 @@ import TeacherDashboard from './Teacher/TeacherDashboard';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { fetchUsers, selectUsers, selectUsersStatus } from '../../../redux/slices/usersSlice';
 import { fetchProjects, selectProjects, selectProjectsStatus } from '../../../redux/slices/projectsSlice';
+import { formatPPPStatus } from '../../utils/formatters';
 import {
   fetchPPPExpedientes,
   fetchPPPProposals,
@@ -217,17 +218,7 @@ const Dashboard = () => {
         expedienteItem.proposal?.title ||
         (isExternalPpp ? 'Práctica externa' : 'Práctica interna');
       const status = String(expedienteItem.status || '').toLowerCase();
-      const statusLabels = {
-        pending_application: 'En evaluación',
-        application_rejected: 'Desestimada',
-        pending_documentation: 'Documentación',
-        in_review: 'En revisión',
-        observed: 'Observada',
-        approved: 'Aprobada',
-        disapproved: 'No aprobada',
-        dropped_out: 'Baja',
-      };
-      const statusLabel = statusLabels[status] || 'En seguimiento';
+      const statusLabel = formatPPPStatus(status, 'En seguimiento');
       const badgeType = status === 'approved'
         ? 'activo'
         : ['application_rejected', 'disapproved', 'dropped_out'].includes(status)
