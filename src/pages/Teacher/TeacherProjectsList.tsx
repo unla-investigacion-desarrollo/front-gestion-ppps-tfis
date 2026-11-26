@@ -72,7 +72,12 @@ const TeacherProjectsList: React.FC = () => {
   }, [currentUser]);
 
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
-  const [filters, setFilters] = useState<ProjectFiltersState>({ q: '', categoria: 'ALL', alumnos: 'ALL' });
+  const [filters, setFilters] = useState<ProjectFiltersState>({
+    q: '',
+    categoria: 'ALL',
+    estado: 'ALL',
+    alumnos: 'ALL',
+  });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -267,7 +272,20 @@ const TeacherProjectsList: React.FC = () => {
         (project.projectType?.name && project.projectType.name.toLowerCase() === filters.categoria.toLowerCase()) ||
         (project.projectTypeId && String(project.projectTypeId) === String(filters.categoria));
 
-      // 3. Filtro por Cantidad/Estado de Alumnos Asignados
+      // 3. Filtro por Estado del Proyecto
+      const rawStatus = String(
+        project.estado ||
+        (project as any).status ||
+        project.raw?.estado ||
+        project.raw?.status ||
+        ''
+      ).toLowerCase().trim();
+      const normalizedStatus = rawStatus === 'canceled' ? 'cancelled' : rawStatus;
+      const matchesStatus =
+        filters.estado === 'ALL' ||
+        normalizedStatus === filters.estado;
+
+      // 4. Filtro por Cantidad/Estado de Alumnos Asignados
       const assignedCount = project.students.length;
       let matchesStudents = true;
       if (filters.alumnos === 'NONE') {
@@ -278,7 +296,7 @@ const TeacherProjectsList: React.FC = () => {
         matchesStudents = assignedCount === 5;
       }
 
-      return matchesSearch && matchesCategory && matchesStudents;
+      return matchesSearch && matchesCategory && matchesStatus && matchesStudents;
     });
 
     // Ordenar de forma descendente: proyectos más recientes primero
@@ -450,7 +468,7 @@ const TeacherProjectsList: React.FC = () => {
 
   // Restablecer filtros a su estado inicial
   const handleClearAllFilters = () => {
-    setFilters({ q: '', categoria: 'ALL', alumnos: 'ALL' });
+    setFilters({ q: '', categoria: 'ALL', estado: 'ALL', alumnos: 'ALL' });
   };
 
   return (

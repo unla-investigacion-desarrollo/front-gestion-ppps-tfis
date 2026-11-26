@@ -46,6 +46,7 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
 
   // Estados de datos principales
   const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const [myRequests, setMyRequests] = useState<RequestItem[]>([]);
   const [myActiveProjects, setMyActiveProjects] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -82,10 +83,11 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
         dispatch(fetchUsers());
       }
 
-      const [allProjectsData, requestsData, activeProjectsData] = await Promise.all([
+      const [allProjectsData, requestsData, activeProjectsData, projectTypesData] = await Promise.all([
         projectService.getProjects(authToken),
         projectService.getMyRequests(authToken),
         projectService.getMyActiveProjects(authToken),
+        projectService.getProjectTypes(authToken),
       ]);
 
       const openProjects = Array.isArray(allProjectsData)
@@ -115,6 +117,13 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
         : [];
 
       setProjects(openProjects);
+      setProjectTypes(
+        Array.isArray(projectTypesData)
+          ? projectTypesData
+              .map((projectType) => projectType.name)
+              .filter((categoryName) => categoryName?.trim().toUpperCase() !== 'PPP')
+          : []
+      );
       setMyRequests(Array.isArray(requestsData) ? requestsData : []);
       setMyActiveProjects(openActiveProjects);
     } catch (networkError: any) {
@@ -149,14 +158,21 @@ export const useProjectExplorer = (options?: UseProjectExplorerOptions) => {
   // Lista de categorías únicas encontradas en la lista de proyectos
   const availableCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    projects.forEach((projectItem) => {
-      const categoryName = projectItem.projectType?.name || projectItem.categoria;
-      if (categoryName && typeof categoryName === 'string' && categoryName.trim()) {
+    projectTypes.forEach((categoryName) => {
+      if (categoryName.trim()) {
         categorySet.add(categoryName.trim());
       }
     });
+    projects.forEach((projectItem) => {
+      const categoryName = projectItem.projectType?.name || projectItem.categoria;
+      if (categoryName && typeof categoryName === 'string' && categoryName.trim()) {
+        if (categoryName.trim().toUpperCase() !== 'PPP') {
+          categorySet.add(categoryName.trim());
+        }
+      }
+    });
     return Array.from(categorySet);
-  }, [projects]);
+  }, [projectTypes, projects]);
 
   // Manejar solicitud para unirse al proyecto
   const handleJoinProject = async (
