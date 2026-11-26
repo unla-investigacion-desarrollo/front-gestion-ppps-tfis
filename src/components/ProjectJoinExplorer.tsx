@@ -162,7 +162,6 @@ export const ProjectJoinExplorer: React.FC<ProjectJoinExplorerProps> = ({ onJoin
       {!loading && filteredProjects.length > 0 && viewMode === 'table' && (
         <ProjectExplorerTable
           projects={paginatedProjects}
-          allUsers={allUsers}
           pendingProjectIds={pendingProjectIds}
           activeProjectIds={activeProjectIds}
           requestingId={requestingId}
