@@ -392,10 +392,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     const targetUrl = isPPP
                       ? `/ppp/${encodeURIComponent(project.id)}`
                       : `/proyectos/${encodeURIComponent(project.id)}/trabajo?from=proyectos`;
-                    return (
+                    const canViewProject =
+                      !effectiveIsTutor || Boolean(activeProjectIds?.has(String(project.id)));
+                    return canViewProject ? (
                       <Link to={targetUrl} state={{ from: 'proyectos' }} className="projects-table-title-link">
                         {project.titulo}
                       </Link>
+                    ) : (
+                      <span className="projects-table-title-text">{project.titulo}</span>
                     );
                   })()}
                   {renderCategoryBadge(project.categoria)}
@@ -551,38 +555,44 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 <td style={{ textAlign: 'right', paddingRight: '20px' }}>
                   {effectiveIsTutor ? (
                     <div className="tutor-actions-group">
-                      {onRequestJoinClick && (() => {
-                        const isMember = activeProjectIds?.has(String(project.id));
-                        const isPending = pendingProjectIds?.has(String(project.id));
+                      {(() => {
+                        const isMember = Boolean(activeProjectIds?.has(String(project.id)));
+                        const isPending = Boolean(pendingProjectIds?.has(String(project.id)));
                         return (
-                          <button
-                            type="button"
-                            className="btn-tutor-join"
-                            disabled={Boolean(isMember || isPending)}
-                            onClick={() => onRequestJoinClick(project)}
-                            title={
-                              isMember
-                                ? 'Ya sos miembro'
-                                : isPending
-                                  ? 'Solicitud pendiente'
-                                  : 'Postularse al proyecto'
-                            }
-                            aria-label="Postularse al proyecto"
-                          >
-                            <FaPaperPlane size={13} />
-                            <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Postularse'}</span>
-                          </button>
+                          <>
+                            {onRequestJoinClick && (
+                              <button
+                                type="button"
+                                className="btn-tutor-join"
+                                disabled={isMember || isPending}
+                                onClick={() => onRequestJoinClick(project)}
+                                title={
+                                  isMember
+                                    ? 'Ya sos miembro'
+                                    : isPending
+                                      ? 'Solicitud pendiente'
+                                      : 'Postularse al proyecto'
+                                }
+                                aria-label="Postularse al proyecto"
+                              >
+                                <FaPaperPlane size={13} />
+                                <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Postularse'}</span>
+                              </button>
+                            )}
+                            {isMember && (
+                              <button
+                                type="button"
+                                className="btn-tutor-icon-action btn-tutor-view"
+                                onClick={() => handleViewProject(project)}
+                                title="Ver proyecto"
+                                aria-label="Ver proyecto"
+                              >
+                                <FaEye size={16} />
+                              </button>
+                            )}
+                          </>
                         );
                       })()}
-                      <button
-                        type="button"
-                        className="btn-tutor-icon-action btn-tutor-view"
-                        onClick={() => handleViewProject(project)}
-                        title="Ver proyecto"
-                        aria-label="Ver proyecto"
-                      >
-                        <FaEye size={16} />
-                      </button>
                     </div>
                   ) : (
                     <div className="tutor-actions-group">

@@ -276,7 +276,8 @@
   border-bottom: none;
 }
 
-.projects-table-title-link {
+.projects-table-title-link,
+.projects-table-title-text {
   font-weight: 700;
   font-size: 0.92rem;
   color: #111827;
