@@ -145,8 +145,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user: propUs
 
                 {/* Tarjeta 5: Mi perfil */}
                 <StudentCard
-                  title="Mi perfil"
-                  description="Actualizá tus datos y configuraciones de cuenta."
+                  title="Cambiar contraseña"
+                  description="Actualizá la contraseña de acceso a tu cuenta."
                   colorTheme="amber"
                   onClick={() => navigate('/change-password')}
                   icon={<FaUser size={22} />}
