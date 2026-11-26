@@ -26,6 +26,7 @@ import {
   formatPPPDateTime,
 } from '../../services/pppService';
 import { showToast } from '../../utils/toast';
+import { formatPPPStatus } from '../../utils/formatters';
 import {
   PPPActionConfirmModal,
   PPPAbandonModal,
@@ -163,30 +164,6 @@ export const PPPTramiteDetail: React.FC = () => {
       </div>
     );
   }
-
-  // Helper para renderizar nombres de estado
-  const getStatusLabel = (statusKey: PPPStatus) => {
-    switch (statusKey) {
-      case 'pending_application':
-        return 'Postulación en Evaluación';
-      case 'application_rejected':
-        return 'Postulación Desestimada';
-      case 'pending_documentation':
-        return 'Documentación Pendiente';
-      case 'in_review':
-        return 'En Revisión Académica';
-      case 'observed':
-        return 'Con Observaciones';
-      case 'approved':
-        return 'Práctica Aprobada';
-      case 'disapproved':
-        return 'Práctica No Aprobada';
-      case 'dropped_out':
-        return 'Trámite Dado de Baja';
-      default:
-        return statusKey;
-    }
-  };
 
   // Cálculo de pasos del Stepper
   const getStepProgress = (st: PPPStatus, isSiu: boolean) => {
@@ -403,7 +380,7 @@ export const PPPTramiteDetail: React.FC = () => {
             <h6 className="fw-bold text-dark m-0">Ciclo de Vida del Expediente</h6>
             <span className={`ppp-status-badge ppp-status-${expediente.status}`}>
               <span className="ppp-status-dot" />
-              Estado: {getStatusLabel(expediente.status)}
+              Estado: {formatPPPStatus(expediente.status)}
             </span>
           </div>
 
@@ -529,7 +506,7 @@ export const PPPTramiteDetail: React.FC = () => {
                   <div className="col-sm-6">
                     <span className="text-muted small d-block">Estado del Trámite:</span>
                     <span className="fw-semibold text-dark">
-                      {getStatusLabel(expediente.status)}
+                      {formatPPPStatus(expediente.status)}
                     </span>
                   </div>
 

@@ -51,3 +51,47 @@ export function formatNumericDate(
     return fallback;
   }
 }
+
+export function formatPPPStatus(
+  status?: string | null,
+  fallback = 'Estado no disponible'
+): string {
+  const labels: Record<string, string> = {
+    pending_application: 'Pendiente de postulación',
+    application_rejected: 'Postulación rechazada',
+    pending_documentation: 'Documentación pendiente',
+    in_review: 'En revisión',
+    observed: 'Observada',
+    approved: 'Aprobada',
+    disapproved: 'Desaprobada',
+    dropped_out: 'Abandonada',
+  };
+
+  const normalized = String(status || '').trim().toLowerCase();
+  return labels[normalized] || fallback;
+}
+
+export function formatTFIStatus(
+  status?: string | null,
+  fallback = 'Estado no disponible'
+): string {
+  const labels: Record<string, string> = {
+    pending: 'Pendiente',
+    pendiente: 'Pendiente',
+    in_progress: 'En curso',
+    en_curso: 'En curso',
+    active: 'En curso',
+    curso: 'En curso',
+    finalized: 'Finalizado',
+    finalizado: 'Finalizado',
+    cancelled: 'Cancelado',
+    canceled: 'Cancelado',
+    cancelado: 'Cancelado',
+  };
+
+  const normalized = String(status || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  return labels[normalized] || fallback;
+}

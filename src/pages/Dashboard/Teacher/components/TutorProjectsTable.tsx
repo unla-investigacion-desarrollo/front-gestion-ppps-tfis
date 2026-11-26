@@ -15,7 +15,7 @@ import TutorProjectFilters from './TutorProjectFilters';
 import TutorProjectStatusPill from './TutorProjectStatusPill';
 import MyTfiCard from '../../../Student/components/MyTfiCard';
 import { getInitialsFromName } from '../../../../utils/userUtils';
-import { formatShortDate } from '../../../../utils/formatters';
+import { formatShortDate, formatTFIStatus } from '../../../../utils/formatters';
 
 // Importar estilos compartidos del módulo de gestión de proyectos
 import '../../../Teacher/TeacherProjectsList.css';
@@ -28,7 +28,7 @@ export interface TutorProjectRecord {
   estudiantesExtras: string;
   estudiantesAsignados: string[];
   docentesAsignados: string[];
-  estado: 'En curso' | 'Pendiente' | 'Finalizado';
+  estado: 'En curso' | 'Pendiente' | 'Finalizado' | 'Cancelado';
   estadoClass: 'curso' | 'revision' | 'finalizado';
   ultimaTutoria: string;
   tutoringRequested: boolean;
@@ -172,19 +172,14 @@ export const TutorProjectsTable: React.FC<TutorProjectsTableProps> = ({
 
         // Determinar estado contextual
         const rawEstado = String(projectData.estado || projectData.status || (projectItemCandidate.active ? 'En curso' : 'Pendiente')).toLowerCase();
-        let estado: 'En curso' | 'Pendiente' | 'Finalizado' = 'En curso';
+        let estado: 'En curso' | 'Pendiente' | 'Finalizado' | 'Cancelado' = 'En curso';
         let estadoClass: 'curso' | 'revision' | 'finalizado' = 'curso';
 
-        if (rawEstado.includes('final') || rawEstado.includes('termin') || rawEstado.includes('aprob')) {
-          estado = 'Finalizado';
-          estadoClass = 'finalizado';
-        } else if (rawEstado.includes('pend') || rawEstado.includes('revis')) {
-          estado = 'Pendiente';
-          estadoClass = 'revision';
-        } else {
-          estado = 'En curso';
-          estadoClass = 'curso';
-        }
+        estado = formatTFIStatus(rawEstado, rawEstado.includes('pend') || rawEstado.includes('revis') ? 'Pendiente' : 'En curso') as 'En curso' | 'Pendiente' | 'Finalizado' | 'Cancelado';
+        if (estado === 'Finalizado') estadoClass = 'finalizado';
+        else if (estado === 'Pendiente') estadoClass = 'revision';
+        else if (estado === 'Cancelado') estadoClass = 'revision';
+        else estadoClass = 'curso';
 
         // Formatear última fecha de tutoría registrada (sin usar createdAt/updatedAt como respaldo)
         const rawDate =
