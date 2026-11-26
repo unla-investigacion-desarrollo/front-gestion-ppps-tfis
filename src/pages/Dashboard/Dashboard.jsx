@@ -108,7 +108,12 @@ const Dashboard = () => {
   const activeUsersCount = users.filter((userItem) => userItem.estado === 'active').length;
   const inProgressProjectsCount = projects.filter(isProjectInProgress).length;
   const tfiProjectCount = projects.filter((projectItem) => !isPPPProject(projectItem)).length;
-  const pppCount = pppProposals.length;
+  const pppInternalCount = pppProposals.length;
+  const pppExternalCount = pppExpedientes.filter((expedienteItem) => {
+    const type = String(expedienteItem.type || expedienteItem.tipo || '').toLowerCase().trim();
+    return type === 'externa' || type === 'external';
+  }).length;
+  const pppCount = pppInternalCount + pppExternalCount;
   const projectCount = tfiProjectCount + pppCount;
 
   const getMetricValue = (status, count) => status === 'succeeded' ? count : '—';
@@ -299,7 +304,9 @@ const Dashboard = () => {
   recentActivities.sort((activityA, activityB) => activityB.timestamp - activityA.timestamp);
   const latestActivities = recentActivities.slice(0, 5);
   const summaryTotalsLoaded =
-    projectsStatus === 'succeeded' && pppProposalsStatus === 'succeeded';
+    projectsStatus === 'succeeded' &&
+    pppProposalsStatus === 'succeeded' &&
+    pppExpedientesStatus === 'succeeded';
   const allDataLoaded =
     usersStatus === 'succeeded' &&
     projectsStatus === 'succeeded' &&
@@ -385,10 +392,19 @@ const Dashboard = () => {
                 <div className="admin-summary-row">
                   <span className="admin-summary-label">
                     <span className="admin-summary-dot dot-ppp" />
-                    PPP
+                    PPP Interna
                   </span>
                   <span className="admin-summary-value">
-                    {getMetricValue(pppProposalsStatus, pppCount)}
+                    {getMetricValue(pppProposalsStatus, pppInternalCount)}
+                  </span>
+                </div>
+                <div className="admin-summary-row">
+                  <span className="admin-summary-label">
+                    <span className="admin-summary-dot dot-ppp-external" />
+                    PPP Externa
+                  </span>
+                  <span className="admin-summary-value">
+                    {getMetricValue(pppExpedientesStatus, pppExternalCount)}
                   </span>
                 </div>
               </div>
