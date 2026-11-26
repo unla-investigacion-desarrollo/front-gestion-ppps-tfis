@@ -192,6 +192,10 @@
   background-color: #e11d48;
 }
 
+.admin-summary-dot.dot-ppp-external {
+  background-color: #0891b2;
+}
+
 .admin-summary-value {
   font-weight: 600;
   color: #0f172a;
