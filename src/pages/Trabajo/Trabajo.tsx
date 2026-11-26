@@ -153,6 +153,25 @@ const Trabajo: React.FC = () => {
     (userIdOrObj: any) => resolveMemberEmail(userIdOrObj, users),
     [users]
   );
+  const selectAndCopyEmail = async (email: string, element: HTMLSpanElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    if (!navigator.clipboard?.writeText) {
+      showToast('Email seleccionado. Copialo con Ctrl+C.', 'warning');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(email);
+      showToast('Email copiado', 'success');
+    } catch {
+      showToast('No se pudo copiar el email. Copialo con Ctrl+C.', 'error');
+    }
+  };
 
   // Cargar datos del proyecto y su StudentWork
   const loadProjectAndWork = useCallback(async () => {
@@ -572,12 +591,37 @@ const Trabajo: React.FC = () => {
                 <span className="text-muted small">Sin alumnos asignados</span>
               ) : (
                 <div className="trabajo-member-tags">
-                  {assignedStudents.map((studentItem: any, studentIndex: number) => (
-                    <span key={studentIndex} className="trabajo-member-pill">
-                      👤 {resolveUserName(studentItem)}
-                      {resolveUserEmail(studentItem) ? ` — ${resolveUserEmail(studentItem)}` : ''}
-                    </span>
-                  ))}
+                  {assignedStudents.map((studentItem: any, studentIndex: number) => {
+                    const email = resolveUserEmail(studentItem);
+                    return (
+                      <span key={studentIndex} className="trabajo-member-pill">
+                        👤 {resolveUserName(studentItem)}
+                        {email && (
+                          <>
+                            {' Email: '}
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              title="Seleccionar y copiar email"
+                              aria-label={`Seleccionar y copiar email ${email}`}
+                              style={{ cursor: 'pointer' }}
+                              onClick={(event) => {
+                                void selectAndCopyEmail(email, event.currentTarget);
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  void selectAndCopyEmail(email, event.currentTarget);
+                                }
+                              }}
+                            >
+                              {email}
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -588,12 +632,37 @@ const Trabajo: React.FC = () => {
                 <span className="text-muted small">Sin docentes asignados</span>
               ) : (
                 <div className="trabajo-member-tags">
-                  {assignedTeachers.map((teacherItem: any, teacherIndex: number) => (
-                    <span key={teacherIndex} className="trabajo-member-pill">
-                      🎓 {resolveUserName(teacherItem)}
-                      {resolveUserEmail(teacherItem) ? ` — ${resolveUserEmail(teacherItem)}` : ''}
-                    </span>
-                  ))}
+                  {assignedTeachers.map((teacherItem: any, teacherIndex: number) => {
+                    const email = resolveUserEmail(teacherItem);
+                    return (
+                      <span key={teacherIndex} className="trabajo-member-pill">
+                        🎓 {resolveUserName(teacherItem)}
+                        {email && (
+                          <>
+                            {' Email: '}
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              title="Seleccionar y copiar email"
+                              aria-label={`Seleccionar y copiar email ${email}`}
+                              style={{ cursor: 'pointer' }}
+                              onClick={(event) => {
+                                void selectAndCopyEmail(email, event.currentTarget);
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  void selectAndCopyEmail(email, event.currentTarget);
+                                }
+                              }}
+                            >
+                              {email}
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>
