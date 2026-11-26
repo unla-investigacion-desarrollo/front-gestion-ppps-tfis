@@ -19,7 +19,7 @@ import TeacherDashboard from './Teacher/TeacherDashboard';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { fetchUsers, selectUsers, selectUsersStatus } from '../../../redux/slices/usersSlice';
 import { fetchProjects, selectProjects, selectProjectsStatus } from '../../../redux/slices/projectsSlice';
-import { formatPPPStatus } from '../../utils/formatters';
+import { formatPPPStatus, formatTFIStatus } from '../../utils/formatters';
 import {
   fetchPPPExpedientes,
   fetchPPPProposals,
@@ -176,7 +176,13 @@ const Dashboard = () => {
       const isInProgress = isProjectInProgress(projectItem);
       const projectBadge = isInProgress
         ? { text: 'En curso', type: 'curso' }
-        : { text: 'Pendiente', type: 'pendiente' };
+        : {
+            text: formatTFIStatus(projectItem.estado || projectItem.status, 'Pendiente'),
+            type: isProjectInProgress(projectItem) ? 'curso'
+              : ['finalized', 'cancelled', 'canceled'].includes(normalizeProjectStatus(projectItem))
+                ? 'inactivo'
+                : 'pendiente',
+          };
 
       if (createdAt) {
         recentActivities.push({

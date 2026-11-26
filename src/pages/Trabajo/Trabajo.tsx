@@ -13,6 +13,7 @@ import {
 } from '../../services/studentWorkService';
 import { showToast } from '../../utils/toast';
 import { resolveMemberDisplayName } from '../../utils/userUtils';
+import { formatTFIStatus } from '../../utils/formatters';
 import {
   TrabajoQualifyModal,
   TrabajoLinksModal,
@@ -548,7 +549,7 @@ const Trabajo: React.FC = () => {
                 {project?.categoria || project?.projectType?.name || 'General'}
               </span>
               <span className="badge bg-outline-secondary text-muted">
-                {projectStatus ? `Estado: ${String(projectStatus).replace(/_/g, ' ')}` : 'Estado: Activo'}
+                {projectStatus ? `Estado: ${formatTFIStatus(String(projectStatus), 'Activo')}` : 'Estado: Activo'}
               </span>
             </div>
             <h1 className="trabajo-project-title">
