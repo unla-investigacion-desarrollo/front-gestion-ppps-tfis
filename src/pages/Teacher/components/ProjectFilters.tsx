@@ -36,9 +36,9 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     { id: 3, name: 'Extensión' },
     { id: 4, name: 'Otro' },
   ];
-  const availableTypes = baseTypes.some((t) => t.name.toUpperCase() === 'PPP')
-    ? baseTypes
-    : [...baseTypes, { id: 99, name: 'PPP' }];
+  const availableTypes = baseTypes.filter(
+    (type) => type.name.trim().toUpperCase() !== 'PPP'
+  );
 
   // Manejador genérico de cambios en los inputs y selectores de filtros
   const handleFilterChange = (key: keyof ProjectFiltersState, value: string) => {
