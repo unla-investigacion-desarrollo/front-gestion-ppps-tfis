@@ -7,6 +7,7 @@ import { selectProjectTypes, ProjectType } from '../../../../redux/slices/projec
 export interface ProjectFiltersState {
   q: string;
   categoria: string;
+  estado: string;
   alumnos: string;
 }
 
@@ -77,6 +78,20 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
             {type.name}
           </option>
         ))}
+      </select>
+
+      {/* Selector por Estado del TFI */}
+      <select
+        className="projects-select"
+        value={filters.estado}
+        onChange={(e) => handleFilterChange('estado', e.target.value)}
+        aria-label="Filtrar por estado"
+      >
+        <option value="ALL">Estado: todos</option>
+        <option value="pending">Pendiente</option>
+        <option value="in_progress">En curso</option>
+        <option value="finalized">Finalizado</option>
+        <option value="cancelled">Cancelado</option>
       </select>
 
       {/* Selector por Estado de Alumnos */}
