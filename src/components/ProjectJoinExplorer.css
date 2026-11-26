@@ -290,11 +290,33 @@
   margin: 0 0 6px 0;
   line-height: 1.45;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.project-table-desc.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.project-table-desc-toggle {
+  display: block;
+  margin: -2px auto 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--unla-primary, #64001d);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.project-table-desc-toggle:hover {
+  text-decoration: underline;
 }
 
 .project-table-date {
