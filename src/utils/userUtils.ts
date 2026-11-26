@@ -81,3 +81,50 @@ export function resolveMemberDisplayName(
   }
   return `Usuario #${idStr}`;
 }
+
+export function resolveMemberEmail(
+  member: any,
+  users: any[] = []
+): string {
+  if (!member) return '';
+
+  if (typeof member === 'object') {
+    const userObj =
+      member.student?.user ||
+      member.professor?.user ||
+      member.user ||
+      member.student ||
+      member.professor ||
+      member;
+    const directEmail =
+      userObj.email ||
+      userObj.emailAddress ||
+      member.email ||
+      member.emailAddress ||
+      '';
+    if (directEmail) return String(directEmail).trim();
+
+    const rawId = String(
+      userObj.id ||
+      userObj.id_user ||
+      member.id ||
+      member.id_user ||
+      ''
+    );
+    if (!rawId) return '';
+    const userFound = users.find(
+      (userItem) =>
+        String(userItem.id) === rawId ||
+        String(userItem.id_user) === rawId
+    );
+    return String(userFound?.email || userFound?.emailAddress || '').trim();
+  }
+
+  const idStr = String(member);
+  const userFound = users.find(
+    (userItem) =>
+      String(userItem.id) === idStr ||
+      String(userItem.id_user) === idStr
+  );
+  return String(userFound?.email || userFound?.emailAddress || '').trim();
+}
