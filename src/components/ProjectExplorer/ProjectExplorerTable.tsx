@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaCalendarDays,
@@ -15,6 +15,52 @@ import {
   getProjectStudents,
   formatCreationDate,
 } from './projectExplorerUtils';
+
+const ProjectDescription: React.FC<{ description: string }> = ({ description }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = descriptionRef.current;
+    if (!element || expanded) return;
+
+    const measureOverflow = () => {
+      setHasMore(element.scrollHeight > element.clientHeight + 1);
+    };
+
+    measureOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measureOverflow);
+      return () => window.removeEventListener('resize', measureOverflow);
+    }
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [description, expanded]);
+
+  return (
+    <>
+      <p
+        ref={descriptionRef}
+        className={`project-table-desc${expanded ? ' expanded' : ''}`}
+      >
+        {description}
+      </p>
+      {(hasMore || expanded) && (
+        <button
+          type="button"
+          className="project-table-desc-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((isExpanded) => !isExpanded)}
+        >
+          Mostrar {expanded ? 'menos' : 'más'}
+        </button>
+      )}
+    </>
+  );
+};
 
 export interface ProjectExplorerTableProps {
   projects: ProjectItem[];
@@ -70,9 +116,9 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
                     <ProjectCategoryBadge categoryName={categoryName} />
                   </div>
                   <span className="project-table-title">{projectTitle}</span>
-                  <p className="project-table-desc">
-                    {projectItem.description || projectItem.descripcion || 'Sin descripción detallada.'}
-                  </p>
+                  <ProjectDescription
+                    description={projectItem.description || projectItem.descripcion || 'Sin descripción detallada.'}
+                  />
                   {projectItem.createdAt && (
                     <div className="project-table-date">
                       <FaCalendarDays size={12} />
