@@ -2,19 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaCalendarDays,
-  FaChalkboardUser,
-  FaGraduationCap,
   FaCircleCheck,
   FaClock,
   FaArrowRight,
 } from 'react-icons/fa6';
 import { ProjectItem } from './types';
 import ProjectCategoryBadge from './ProjectCategoryBadge';
-import {
-  getProjectTeachers,
-  getProjectStudents,
-  formatCreationDate,
-} from './projectExplorerUtils';
+import { formatCreationDate } from './projectExplorerUtils';
 
 const ProjectDescription: React.FC<{ description: string }> = ({ description }) => {
   const [expanded, setExpanded] = useState(false);
@@ -64,7 +58,6 @@ const ProjectDescription: React.FC<{ description: string }> = ({ description }) 
 
 export interface ProjectExplorerTableProps {
   projects: ProjectItem[];
-  allUsers: any[];
   pendingProjectIds: Set<string>;
   activeProjectIds: Set<string>;
   requestingId: number | string | null;
@@ -78,7 +71,6 @@ export interface ProjectExplorerTableProps {
  */
 export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
   projects,
-  allUsers,
   pendingProjectIds,
   activeProjectIds,
   requestingId,
@@ -90,11 +82,9 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
       <table className="table table-hover m-0 align-middle">
         <thead>
           <tr className="table-header-unla">
-            <th style={{ width: '42%', padding: '14px 18px' }}>Proyecto</th>
-            <th style={{ width: '20%', padding: '14px 18px' }}>Docentes / Tutor</th>
-            <th style={{ width: '16%', padding: '14px 18px' }}>Estudiantes</th>
-            <th style={{ width: '10%', padding: '14px 18px', textAlign: 'center' }}>Estado</th>
-            <th style={{ width: '12%', padding: '14px 18px', textAlign: 'center' }}>Acción</th>
+            <th style={{ width: '70%', padding: '14px 18px' }}>Proyecto</th>
+            <th style={{ width: '15%', padding: '14px 18px', textAlign: 'center' }}>Estado</th>
+            <th style={{ width: '15%', padding: '14px 18px', textAlign: 'center' }}>Acción</th>
           </tr>
         </thead>
         <tbody>
@@ -105,8 +95,6 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
             const isRequesting = requestingId === projectItem.id;
             const projectTitle = projectItem.title || projectItem.titulo || 'Proyecto';
             const categoryName = projectItem.projectType?.name || projectItem.categoria || 'General';
-            const teachersList = getProjectTeachers(projectItem, allUsers);
-            const studentsList = getProjectStudents(projectItem, allUsers);
 
             return (
               <tr key={projectItem.id}>
@@ -124,50 +112,6 @@ export const ProjectExplorerTable: React.FC<ProjectExplorerTableProps> = ({
                       <FaCalendarDays size={12} />
                       <span>Creado el {formatCreationDate(projectItem.createdAt)}</span>
                     </div>
-                  )}
-                </td>
-
-                {/* Columna: Docentes / Tutor */}
-                <td style={{ padding: '14px 18px', verticalAlign: 'top' }}>
-                  {teachersList.length === 0 ? (
-                    <span className="text-muted small">Sin tutor asignado</span>
-                  ) : (
-                    <ul className="project-table-member-list">
-                      {teachersList.map((teacherName, teacherIndex) => (
-                        <li key={teacherIndex} className="project-table-member-item">
-                          <FaChalkboardUser size={13} className="text-primary me-1" />
-                          <span
-                            className="text-truncate"
-                            style={{ maxWidth: '160px' }}
-                            title={teacherName}
-                          >
-                            {teacherName}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </td>
-
-                {/* Columna: Estudiantes Asignados */}
-                <td style={{ padding: '14px 18px', verticalAlign: 'top' }}>
-                  {studentsList.length === 0 ? (
-                    <span className="text-muted small">Sin estudiantes</span>
-                  ) : (
-                    <ul className="project-table-member-list">
-                      {studentsList.map((studentName, studentIndex) => (
-                        <li key={studentIndex} className="project-table-member-item">
-                          <FaGraduationCap size={13} className="text-muted me-1" />
-                          <span
-                            className="text-truncate"
-                            style={{ maxWidth: '140px' }}
-                            title={studentName}
-                          >
-                            {studentName}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
                   )}
                 </td>
 
