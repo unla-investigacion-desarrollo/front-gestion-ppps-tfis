@@ -310,17 +310,17 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <table className="projects-table">
         <thead>
           <tr>
-            <th style={{ width: effectiveIsTutor ? '36%' : '25%' }}>Proyecto</th>
-            <th style={{ width: effectiveIsTutor ? '20%' : '16%' }}>Alumnos Asignados</th>
-            <th style={{ width: effectiveIsTutor ? '18%' : '15%' }}>Docentes</th>
-            <th style={{ width: effectiveIsTutor ? '14%' : '10%' }}>Estado</th>
+            <th style={{ width: '25%' }}>Proyecto</th>
+            <th style={{ width: '16%' }}>Alumnos Asignados</th>
+            <th style={{ width: '15%' }}>Docentes</th>
+            <th style={{ width: '10%' }}>Estado</th>
             {!effectiveIsTutor && (
               <>
                 <th style={{ width: '13%' }}>Última revisión Evaluador</th>
                 <th style={{ width: '13%' }}>Última revisión Tutor</th>
               </>
             )}
-            <th style={{ width: effectiveIsTutor ? '12%' : '8%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
+            <th style={{ width: '8%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
