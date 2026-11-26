@@ -466,7 +466,7 @@ const TeacherProjectsList: React.FC = () => {
               <h1 className="projects-header-title">Gestión de TFI</h1>
               <p className="projects-header-subtitle">
                 {isTutor
-                  ? 'Convocatoria de proyectos disponibles para solicitar unirse como profesor tutor.'
+                  ? 'Convocatoria de proyectos disponibles para postularse como profesor tutor.'
                   : 'Gestioná y colaborá en los proyectos.'}
               </p>
             </div>

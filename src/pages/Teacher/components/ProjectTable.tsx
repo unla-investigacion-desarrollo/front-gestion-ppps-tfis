@@ -557,12 +557,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                 ? 'Ya sos miembro'
                                 : isPending
                                   ? 'Solicitud pendiente'
-                                  : 'Solicitar unirse'
+                                  : 'Postularse al proyecto'
                             }
-                            aria-label="Solicitar unirse"
+                            aria-label="Postularse al proyecto"
                           >
                             <FaPaperPlane size={13} />
-                            <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Unirse'}</span>
+                            <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Postularse'}</span>
                           </button>
                         );
                       })()}
