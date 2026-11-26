@@ -12,7 +12,7 @@ import {
   StudentWorkStatus,
 } from '../../services/studentWorkService';
 import { showToast } from '../../utils/toast';
-import { resolveMemberDisplayName } from '../../utils/userUtils';
+import { resolveMemberDisplayName, resolveMemberEmail } from '../../utils/userUtils';
 import { formatTFIStatus } from '../../utils/formatters';
 import {
   TrabajoQualifyModal,
@@ -147,6 +147,10 @@ const Trabajo: React.FC = () => {
   // Función para obtener nombres de usuario (admite ID o descriptor de objeto)
   const resolveUserName = useCallback(
     (userIdOrObj: any) => resolveMemberDisplayName(userIdOrObj, users, 'Desconocido'),
+    [users]
+  );
+  const resolveUserEmail = useCallback(
+    (userIdOrObj: any) => resolveMemberEmail(userIdOrObj, users),
     [users]
   );
 
@@ -571,6 +575,7 @@ const Trabajo: React.FC = () => {
                   {assignedStudents.map((studentItem: any, studentIndex: number) => (
                     <span key={studentIndex} className="trabajo-member-pill">
                       👤 {resolveUserName(studentItem)}
+                      {resolveUserEmail(studentItem) ? ` — ${resolveUserEmail(studentItem)}` : ''}
                     </span>
                   ))}
                 </div>
@@ -586,6 +591,7 @@ const Trabajo: React.FC = () => {
                   {assignedTeachers.map((teacherItem: any, teacherIndex: number) => (
                     <span key={teacherIndex} className="trabajo-member-pill">
                       🎓 {resolveUserName(teacherItem)}
+                      {resolveUserEmail(teacherItem) ? ` — ${resolveUserEmail(teacherItem)}` : ''}
                     </span>
                   ))}
                 </div>

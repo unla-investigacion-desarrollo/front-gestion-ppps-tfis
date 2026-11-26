@@ -4,7 +4,7 @@ import { FaCalendarDays, FaPencil, FaTrashCan, FaUserGroup, FaChalkboardUser, Fa
 import { LuUserX } from 'react-icons/lu';
 import { Project } from '../../../../redux/slices/projectsSlice';
 import { formatShortDate } from '../../../utils/formatters';
-import { resolveMemberDisplayName } from '../../../utils/userUtils';
+import { resolveMemberDisplayName, resolveMemberEmail } from '../../../utils/userUtils';
 
 const ProjectDescription: React.FC<{ description: string }> = ({ description }) => {
   const [expanded, setExpanded] = useState(false);
@@ -124,6 +124,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   // Resuelve el nombre completo o email de un miembro por su ID de usuario o descriptor de objeto
   const getMemberName = (member: any) => resolveMemberDisplayName(member, users, '');
+  const getMemberEmail = (member: any) => resolveMemberEmail(member, users);
+  const getMemberLabel = (member: any) => {
+    const name = getMemberName(member);
+    const email = getMemberEmail(member);
+    return email ? `${name || 'Usuario'} — ${email}` : name;
+  };
 
   // Obtiene el identificador primitivo de un miembro para acciones de eliminación
   const getRawMemberId = (member: any): string => {
@@ -432,7 +438,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         return (
                           <ul className="projects-member-list">
                             {assignedStudents.map((member, idx) => {
-                              const name = getMemberName(member);
+                              const name = getMemberLabel(member);
                               const memberId = getRawMemberId(member) || String(idx);
                               return (
                                 <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
@@ -460,7 +466,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         return (
                           <ul className="projects-member-list">
                             {assignedTeachers.map((member, idx) => {
-                              const name = getMemberName(member);
+                              const name = getMemberLabel(member);
                               const memberId = getRawMemberId(member) || String(idx);
                               return (
                                 <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
