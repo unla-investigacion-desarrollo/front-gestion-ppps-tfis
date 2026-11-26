@@ -356,23 +356,27 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <table className="projects-table">
         <thead>
           <tr>
-            <th style={{ width: effectiveIsTutor ? '30%' : '25%' }}>Proyecto</th>
-            <th style={{ width: '16%' }}>Alumnos Asignados</th>
-            <th style={{ width: '15%' }}>Docentes</th>
-            <th style={{ width: '10%' }}>Estado</th>
+            <th style={{ width: effectiveIsTutor ? '60%' : '25%' }}>Proyecto</th>
+            {!effectiveIsTutor && (
+              <>
+                <th style={{ width: '16%' }}>Alumnos Asignados</th>
+                <th style={{ width: '15%' }}>Docentes</th>
+              </>
+            )}
+            <th style={{ width: effectiveIsTutor ? '20%' : '10%' }}>Estado</th>
             {!effectiveIsTutor && (
               <>
                 <th style={{ width: '13%' }}>Última revisión Evaluador</th>
                 <th style={{ width: '13%' }}>Última revisión Tutor</th>
               </>
             )}
-            <th style={{ width: '8%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
+            <th style={{ width: effectiveIsTutor ? '20%' : '8%', textAlign: 'right', paddingRight: '24px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {projects.length === 0 ? (
             <tr>
-              <td colSpan={effectiveIsTutor ? 5 : 7} className="text-center py-5 text-muted">
+              <td colSpan={effectiveIsTutor ? 3 : 7} className="text-center py-5 text-muted">
                 No se encontraron proyectos activos con los filtros indicados.
               </td>
             </tr>
@@ -388,10 +392,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     const targetUrl = isPPP
                       ? `/ppp/${encodeURIComponent(project.id)}`
                       : `/proyectos/${encodeURIComponent(project.id)}/trabajo?from=proyectos`;
-                    return (
+                    const canViewProject =
+                      !effectiveIsTutor || Boolean(activeProjectIds?.has(String(project.id)));
+                    return canViewProject ? (
                       <Link to={targetUrl} state={{ from: 'proyectos' }} className="projects-table-title-link">
                         {project.titulo}
                       </Link>
+                    ) : (
+                      <span className="projects-table-title-text">{project.titulo}</span>
                     );
                   })()}
                   {renderCategoryBadge(project.categoria)}
@@ -407,61 +415,65 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   )}
                 </td>
 
-                {/* Columna: Alumnos asignados */}
-                <td>
-                  {(() => {
-                    const assignedStudents = getProjectStudents(project);
-                    if (assignedStudents.length === 0) {
-                      return (
-                        <span className="empty-cell-muted">
-                          <FaUserGroup size={12} />
-                          <span>Sin alumnos</span>
-                        </span>
-                      );
-                    }
-                    return (
-                      <ul className="projects-member-list">
-                        {assignedStudents.map((member, idx) => {
-                          const name = getMemberName(member);
-                          const memberId = getRawMemberId(member) || String(idx);
+                {!effectiveIsTutor && (
+                  <>
+                    {/* Columna: Alumnos asignados */}
+                    <td>
+                      {(() => {
+                        const assignedStudents = getProjectStudents(project);
+                        if (assignedStudents.length === 0) {
                           return (
-                            <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
-                              {name}
-                            </li>
+                            <span className="empty-cell-muted">
+                              <FaUserGroup size={12} />
+                              <span>Sin alumnos</span>
+                            </span>
                           );
-                        })}
-                      </ul>
-                    );
-                  })()}
-                </td>
+                        }
+                        return (
+                          <ul className="projects-member-list">
+                            {assignedStudents.map((member, idx) => {
+                              const name = getMemberName(member);
+                              const memberId = getRawMemberId(member) || String(idx);
+                              return (
+                                <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
+                                  {name}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        );
+                      })()}
+                    </td>
 
-                {/* Columna: Docentes */}
-                <td>
-                  {(() => {
-                    const assignedTeachers = getProjectTeachers(project);
-                    if (assignedTeachers.length === 0) {
-                      return (
-                        <span className="empty-cell-muted">
-                          <FaChalkboardUser size={12} />
-                          <span>Sin tutor asignado</span>
-                        </span>
-                      );
-                    }
-                    return (
-                      <ul className="projects-member-list">
-                        {assignedTeachers.map((member, idx) => {
-                          const name = getMemberName(member);
-                          const memberId = getRawMemberId(member) || String(idx);
+                    {/* Columna: Docentes */}
+                    <td>
+                      {(() => {
+                        const assignedTeachers = getProjectTeachers(project);
+                        if (assignedTeachers.length === 0) {
                           return (
-                            <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
-                              {name}
-                            </li>
+                            <span className="empty-cell-muted">
+                              <FaChalkboardUser size={12} />
+                              <span>Sin tutor asignado</span>
+                            </span>
                           );
-                        })}
-                      </ul>
-                    );
-                  })()}
-                </td>
+                        }
+                        return (
+                          <ul className="projects-member-list">
+                            {assignedTeachers.map((member, idx) => {
+                              const name = getMemberName(member);
+                              const memberId = getRawMemberId(member) || String(idx);
+                              return (
+                                <li key={`${memberId}-${idx}`} className="projects-member-name text-truncate" style={{ maxWidth: '180px' }} title={name}>
+                                  {name}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        );
+                      })()}
+                    </td>
+                  </>
+                )}
 
                 {/* Columna: Estado de la entrega (studentWork.status) */}
                 <td>
@@ -543,38 +555,44 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 <td style={{ textAlign: 'right', paddingRight: '20px' }}>
                   {effectiveIsTutor ? (
                     <div className="tutor-actions-group">
-                      {onRequestJoinClick && (() => {
-                        const isMember = activeProjectIds?.has(String(project.id));
-                        const isPending = pendingProjectIds?.has(String(project.id));
+                      {(() => {
+                        const isMember = Boolean(activeProjectIds?.has(String(project.id)));
+                        const isPending = Boolean(pendingProjectIds?.has(String(project.id)));
                         return (
-                          <button
-                            type="button"
-                            className="btn-tutor-join"
-                            disabled={Boolean(isMember || isPending)}
-                            onClick={() => onRequestJoinClick(project)}
-                            title={
-                              isMember
-                                ? 'Ya sos miembro'
-                                : isPending
-                                  ? 'Solicitud pendiente'
-                                  : 'Postularse al proyecto'
-                            }
-                            aria-label="Postularse al proyecto"
-                          >
-                            <FaPaperPlane size={13} />
-                            <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Postularse'}</span>
-                          </button>
+                          <>
+                            {onRequestJoinClick && (
+                              <button
+                                type="button"
+                                className="btn-tutor-join"
+                                disabled={isMember || isPending}
+                                onClick={() => onRequestJoinClick(project)}
+                                title={
+                                  isMember
+                                    ? 'Ya sos miembro'
+                                    : isPending
+                                      ? 'Solicitud pendiente'
+                                      : 'Postularse al proyecto'
+                                }
+                                aria-label="Postularse al proyecto"
+                              >
+                                <FaPaperPlane size={13} />
+                                <span>{isMember ? 'Miembro' : isPending ? 'Pendiente' : 'Postularse'}</span>
+                              </button>
+                            )}
+                            {isMember && (
+                              <button
+                                type="button"
+                                className="btn-tutor-icon-action btn-tutor-view"
+                                onClick={() => handleViewProject(project)}
+                                title="Ver proyecto"
+                                aria-label="Ver proyecto"
+                              >
+                                <FaEye size={16} />
+                              </button>
+                            )}
+                          </>
                         );
                       })()}
-                      <button
-                        type="button"
-                        className="btn-tutor-icon-action btn-tutor-view"
-                        onClick={() => handleViewProject(project)}
-                        title="Ver proyecto"
-                        aria-label="Ver proyecto"
-                      >
-                        <FaEye size={16} />
-                      </button>
                     </div>
                   ) : (
                     <div className="tutor-actions-group">
