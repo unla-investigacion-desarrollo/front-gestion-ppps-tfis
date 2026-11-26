@@ -1,10 +1,56 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCalendarDays, FaPencil, FaTrashCan, FaUserGroup, FaChalkboardUser, FaEye, FaPaperPlane } from 'react-icons/fa6';
 import { LuUserX } from 'react-icons/lu';
 import { Project } from '../../../../redux/slices/projectsSlice';
 import { formatShortDate } from '../../../utils/formatters';
 import { resolveMemberDisplayName } from '../../../utils/userUtils';
+
+const ProjectDescription: React.FC<{ description: string }> = ({ description }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = descriptionRef.current;
+    if (!element || expanded) return;
+
+    const measureOverflow = () => {
+      setHasMore(element.scrollHeight > element.clientHeight + 1);
+    };
+
+    measureOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measureOverflow);
+      return () => window.removeEventListener('resize', measureOverflow);
+    }
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [description, expanded]);
+
+  return (
+    <>
+      <p
+        ref={descriptionRef}
+        className={`project-description-text mb-1${expanded ? ' expanded' : ''}`}
+      >
+        {description}
+      </p>
+      {(hasMore || expanded) && (
+        <button
+          type="button"
+          className="project-description-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((isExpanded) => !isExpanded)}
+        >
+          Mostrar {expanded ? 'menos' : 'más'}
+        </button>
+      )}
+    </>
+  );
+};
 
 // Propiedades recibidas por el componente ProjectTable
 interface ProjectTableProps {
@@ -310,7 +356,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <table className="projects-table">
         <thead>
           <tr>
-            <th style={{ width: '25%' }}>Proyecto</th>
+            <th style={{ width: effectiveIsTutor ? '30%' : '25%' }}>Proyecto</th>
             <th style={{ width: '16%' }}>Alumnos Asignados</th>
             <th style={{ width: '15%' }}>Docentes</th>
             <th style={{ width: '10%' }}>Estado</th>
@@ -350,7 +396,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   })()}
                   {renderCategoryBadge(project.categoria)}
                   {project.descripcion && (
-                    <p className="project-description-text mb-1">{project.descripcion}</p>
+                    <ProjectDescription description={project.descripcion} />
                   )}
 
                   {project.createdAt && (
