@@ -28,7 +28,7 @@ export interface TutorProjectRecord {
   estudiantesExtras: string;
   estudiantesAsignados: string[];
   docentesAsignados: string[];
-  estado: 'En curso' | 'Pendiente' | 'Finalizado';
+  estado: 'En curso' | 'Pendiente' | 'Finalizado' | 'Cancelado';
   estadoClass: 'curso' | 'revision' | 'finalizado';
   ultimaTutoria: string;
   tutoringRequested: boolean;
