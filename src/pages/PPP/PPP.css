@@ -549,6 +549,40 @@
   background-color: #f8fafc;
 }
 
+.ppp-description-text {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #475569;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ppp-description-text.expanded {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+.ppp-description-toggle {
+  display: block;
+  margin: 2px auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--unla-primary, #64001d);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ppp-description-toggle:hover {
+  text-decoration: underline;
+}
+
 /* Paginación de Expedientes PPP */
 .ppp-pagination-footer {
   display: flex;

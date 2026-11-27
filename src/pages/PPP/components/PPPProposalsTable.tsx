@@ -1,8 +1,54 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaEye, FaFolderOpen, FaLock, FaPencil, FaPowerOff, FaTrashCan, FaUsers } from 'react-icons/fa6';
 import { PPPProposal } from '../../../services/pppService';
 import Pagination from '../../../components/Pagination';
 import '../../Teacher/TeacherProjectsList.css';
+
+const PPPProposalDescription: React.FC<{ description: string }> = ({ description }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = descriptionRef.current;
+    if (!element || expanded) return;
+
+    const measureOverflow = () => {
+      setHasMore(element.scrollHeight > element.clientHeight + 1);
+    };
+
+    measureOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measureOverflow);
+      return () => window.removeEventListener('resize', measureOverflow);
+    }
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [description, expanded]);
+
+  return (
+    <>
+      <p
+        ref={descriptionRef}
+        className={`ppp-description-text${expanded ? ' expanded' : ''}`}
+      >
+        {description}
+      </p>
+      {(hasMore || expanded) && (
+        <button
+          type="button"
+          className="ppp-description-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((isExpanded) => !isExpanded)}
+        >
+          Ver {expanded ? 'menos' : 'más'}
+        </button>
+      )}
+    </>
+  );
+};
 
 export interface PPPProposalsTableProps {
   proposals: PPPProposal[];
@@ -125,19 +171,9 @@ export const PPPProposalsTable: React.FC<PPPProposalsTableProps> = ({
 
                 {/* Columna: Descripción */}
                 <td>
-                  <div
-                    className="text-secondary small"
-                    style={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      lineHeight: '1.45',
-                    }}
-                    title={proposalItem.description}
-                  >
-                    {proposalItem.description || 'Sin descripción detallada.'}
-                  </div>
+                  <PPPProposalDescription
+                    description={proposalItem.description || 'Sin descripción detallada.'}
+                  />
                 </td>
 
                 {/* Columna: Estado de Convocatoria */}
