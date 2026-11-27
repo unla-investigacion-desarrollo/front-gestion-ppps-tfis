@@ -95,7 +95,22 @@ const ApprovalQueue: React.FC = () => {
             ''
         );
         const isExternal = exp.type === 'externa' || exp.type === 'external';
-        const rawStudent = exp.student?.user || exp.student || exp.user || exp.estudiante || exp.alumno;
+        const proposalApplicant = matchedProposal?.applicants?.find((applicant) => {
+          const applicantStudentId =
+            applicant.student?.id_user ?? applicant.student?.id ?? applicant.studentId;
+          const applicantEmail = applicant.student?.email || applicant.studentEmail;
+          return (
+            (studentId && String(applicantStudentId) === studentId) ||
+            (exp.studentEmail && applicantEmail?.toLowerCase() === exp.studentEmail.toLowerCase())
+          );
+        });
+        const rawStudent =
+          proposalApplicant?.student ||
+          exp.student?.user ||
+          exp.student ||
+          exp.user ||
+          exp.estudiante ||
+          exp.alumno;
 
         return {
           id: `ppp-${exp.id}`,
@@ -106,8 +121,16 @@ const ApprovalQueue: React.FC = () => {
           applicantId: studentId,
           applicantRole: 'student',
           applicantRoleLabel: 'Estudiante',
-          applicantName: exp.studentName || 'Estudiante',
-          applicantEmail: exp.studentEmail || '',
+          applicantName:
+            exp.studentName ||
+            proposalApplicant?.student?.fullName ||
+            proposalApplicant?.studentName ||
+            'Estudiante',
+          applicantEmail:
+            exp.studentEmail ||
+            proposalApplicant?.student?.email ||
+            proposalApplicant?.studentEmail ||
+            '',
           createdAt: exp.createdAt,
           rawApplicant: rawStudent,
         };

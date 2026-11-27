@@ -56,10 +56,10 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
     const email = req.applicantEmail || found?.email || '—';
 
     let detail = '';
+    const dni = found?.dni || req.rawApplicant?.dni;
     if (req.applicantRole === 'professor') {
       detail = req.specialization ? `Especialidad: ${req.specialization}` : 'Docente postulado';
     } else {
-      const dni = found?.dni;
       if (req.yearOfAdmission) {
         detail = `Ingreso: ${req.yearOfAdmission}${dni ? ` | DNI: ${dni}` : ''}`;
       } else if (dni) {
@@ -81,6 +81,18 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
       role: req.applicantRole || 'student',
       roleLabel: req.applicantRoleLabel || (req.applicantRole === 'professor' ? 'Docente' : 'Estudiante'),
       rawUser: found,
+      dni,
+      academicData: {
+        cohort:
+          found?.yearOfAdmission ??
+          req.yearOfAdmission ??
+          req.rawApplicant?.cohort ??
+          req.rawApplicant?.yearOfAdmission,
+        coursesWithFinal:
+          found?.completedCoursesWithFinal ?? req.rawApplicant?.completedCoursesWithFinal,
+        coursesWithoutFinal:
+          found?.completedCoursesWithoutFinal ?? req.rawApplicant?.completedCoursesWithoutFinal,
+      },
     };
   };
 
@@ -315,9 +327,27 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                       </span>
                     </div>
                     <div className="approvals-user-email">{selectedApplicant?.email}</div>
-                    <div className="approvals-user-sub">{selectedApplicant?.detail}</div>
+                    <div className="approvals-user-sub">
+                      {selectedApplicant?.dni ? `DNI: ${selectedApplicant.dni}` : selectedApplicant?.detail}
+                    </div>
                   </div>
                 </div>
+                {selectedApplicant?.role === 'student' && (
+                  <div className="modal-applicant-academic-data">
+                    <div className="modal-applicant-academic-item">
+                      <span>Cohorte</span>
+                      <strong>{selectedApplicant.academicData.cohort ?? '—'}</strong>
+                    </div>
+                    <div className="modal-applicant-academic-item">
+                      <span>Materias cursadas con final</span>
+                      <strong>{selectedApplicant.academicData.coursesWithFinal ?? '—'}</strong>
+                    </div>
+                    <div className="modal-applicant-academic-item">
+                      <span>Materias sin final</span>
+                      <strong>{selectedApplicant.academicData.coursesWithoutFinal ?? '—'}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Sección Proyecto */}
