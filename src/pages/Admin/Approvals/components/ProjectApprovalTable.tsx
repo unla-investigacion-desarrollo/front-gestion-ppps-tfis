@@ -5,6 +5,52 @@ import { User } from '../../../../../redux/slices/usersSlice';
 import { getUserInitials } from '../../../../utils/userUtils';
 import { formatTwoDigitShortDate } from '../../../../utils/formatters';
 
+const PreviousKnowledge: React.FC<{ text: string }> = ({ text }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = textRef.current;
+    if (!element || expanded) return;
+
+    const measureOverflow = () => {
+      setHasMore(element.scrollHeight > element.clientHeight + 1);
+    };
+
+    measureOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measureOverflow);
+      return () => window.removeEventListener('resize', measureOverflow);
+    }
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [text, expanded]);
+
+  return (
+    <>
+      <p
+        ref={textRef}
+        className={`modal-applicant-previous-knowledge-text${expanded ? ' expanded' : ''}`}
+      >
+        {text}
+      </p>
+      {(hasMore || expanded) && (
+        <button
+          type="button"
+          className="modal-applicant-previous-knowledge-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((isExpanded) => !isExpanded)}
+        >
+          Ver {expanded ? 'menos' : 'más'}
+        </button>
+      )}
+    </>
+  );
+};
+
 interface ProjectApprovalTableProps {
   requests: UnifiedPendingRequest[];
   users: User[];
@@ -56,10 +102,10 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
     const email = req.applicantEmail || found?.email || '—';
 
     let detail = '';
+    const dni = found?.dni || req.rawApplicant?.dni;
     if (req.applicantRole === 'professor') {
       detail = req.specialization ? `Especialidad: ${req.specialization}` : 'Docente postulado';
     } else {
-      const dni = found?.dni;
       if (req.yearOfAdmission) {
         detail = `Ingreso: ${req.yearOfAdmission}${dni ? ` | DNI: ${dni}` : ''}`;
       } else if (dni) {
@@ -81,6 +127,19 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
       role: req.applicantRole || 'student',
       roleLabel: req.applicantRoleLabel || (req.applicantRole === 'professor' ? 'Docente' : 'Estudiante'),
       rawUser: found,
+      dni,
+      previousKnowledge: req.previousKnowledge ?? req.rawApplicant?.previousKnowledge,
+      academicData: {
+        cohort:
+          found?.yearOfAdmission ??
+          req.yearOfAdmission ??
+          req.rawApplicant?.cohort ??
+          req.rawApplicant?.yearOfAdmission,
+        coursesWithFinal:
+          found?.completedCoursesWithFinal ?? req.rawApplicant?.completedCoursesWithFinal,
+        coursesWithoutFinal:
+          found?.completedCoursesWithoutFinal ?? req.rawApplicant?.completedCoursesWithoutFinal,
+      },
     };
   };
 
@@ -315,9 +374,36 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                       </span>
                     </div>
                     <div className="approvals-user-email">{selectedApplicant?.email}</div>
-                    <div className="approvals-user-sub">{selectedApplicant?.detail}</div>
+                    <div className="approvals-user-sub">
+                      {selectedApplicant?.dni ? `DNI: ${selectedApplicant.dni}` : selectedApplicant?.detail}
+                    </div>
                   </div>
                 </div>
+                {viewingRequest.projectType.startsWith('PPP') && (
+                  <div className="modal-applicant-previous-knowledge">
+                    <div className="modal-applicant-previous-knowledge-title">Conocimientos previos</div>
+                    <PreviousKnowledge
+                      key={viewingRequest.id}
+                      text={selectedApplicant?.previousKnowledge?.trim() || 'No se informaron conocimientos previos.'}
+                    />
+                  </div>
+                )}
+                {selectedApplicant?.role === 'student' && (
+                  <div className="modal-applicant-academic-data">
+                    <div className="modal-applicant-academic-item">
+                      <span>Cohorte</span>
+                      <strong>{selectedApplicant.academicData.cohort ?? '—'}</strong>
+                    </div>
+                    <div className="modal-applicant-academic-item">
+                      <span>Materias cursadas con final</span>
+                      <strong>{selectedApplicant.academicData.coursesWithFinal ?? '—'}</strong>
+                    </div>
+                    <div className="modal-applicant-academic-item">
+                      <span>Materias sin final</span>
+                      <strong>{selectedApplicant.academicData.coursesWithoutFinal ?? '—'}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Sección Proyecto */}

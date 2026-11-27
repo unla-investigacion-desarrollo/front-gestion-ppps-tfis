@@ -193,6 +193,7 @@ export interface UnifiedPendingRequest {
   applicantRoleLabel: string;
   specialization?: string;
   yearOfAdmission?: number;
+  previousKnowledge?: string;
   active: boolean;
   createdAt?: string;
   rawApplicant?: PendingApplicant | any;

@@ -102,7 +102,7 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
           activo,
           dni: u.dni,
           legajo: u.fileNumber || u.legajo,
-          yearOfAdmission: u.yearOfAdmission,
+          yearOfAdmission: u.yearOfAdmission ?? u.cohort,
           completedCoursesWithFinal: u.completedCoursesWithFinal,
           completedCoursesWithoutFinal: u.completedCoursesWithoutFinal,
           specialization: u.specialization || u.categoria,
