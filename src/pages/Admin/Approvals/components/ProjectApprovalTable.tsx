@@ -5,6 +5,52 @@ import { User } from '../../../../../redux/slices/usersSlice';
 import { getUserInitials } from '../../../../utils/userUtils';
 import { formatTwoDigitShortDate } from '../../../../utils/formatters';
 
+const PreviousKnowledge: React.FC<{ text: string }> = ({ text }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = textRef.current;
+    if (!element || expanded) return;
+
+    const measureOverflow = () => {
+      setHasMore(element.scrollHeight > element.clientHeight + 1);
+    };
+
+    measureOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measureOverflow);
+      return () => window.removeEventListener('resize', measureOverflow);
+    }
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [text, expanded]);
+
+  return (
+    <>
+      <p
+        ref={textRef}
+        className={`modal-applicant-previous-knowledge-text${expanded ? ' expanded' : ''}`}
+      >
+        {text}
+      </p>
+      {(hasMore || expanded) && (
+        <button
+          type="button"
+          className="modal-applicant-previous-knowledge-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((isExpanded) => !isExpanded)}
+        >
+          Ver {expanded ? 'menos' : 'más'}
+        </button>
+      )}
+    </>
+  );
+};
+
 interface ProjectApprovalTableProps {
   requests: UnifiedPendingRequest[];
   users: User[];
@@ -82,6 +128,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
       roleLabel: req.applicantRoleLabel || (req.applicantRole === 'professor' ? 'Docente' : 'Estudiante'),
       rawUser: found,
       dni,
+      previousKnowledge: req.previousKnowledge ?? req.rawApplicant?.previousKnowledge,
       academicData: {
         cohort:
           found?.yearOfAdmission ??
@@ -332,6 +379,15 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                     </div>
                   </div>
                 </div>
+                {viewingRequest.projectType.startsWith('PPP') && (
+                  <div className="modal-applicant-previous-knowledge">
+                    <div className="modal-applicant-previous-knowledge-title">Conocimientos previos</div>
+                    <PreviousKnowledge
+                      key={viewingRequest.id}
+                      text={selectedApplicant?.previousKnowledge?.trim() || 'No se informaron conocimientos previos.'}
+                    />
+                  </div>
+                )}
                 {selectedApplicant?.role === 'student' && (
                   <div className="modal-applicant-academic-data">
                     <div className="modal-applicant-academic-item">

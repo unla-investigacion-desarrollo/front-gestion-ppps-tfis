@@ -131,6 +131,7 @@ const ApprovalQueue: React.FC = () => {
             proposalApplicant?.student?.email ||
             proposalApplicant?.studentEmail ||
             '',
+          previousKnowledge: exp.previousKnowledge ?? proposalApplicant?.previousKnowledge,
           createdAt: exp.createdAt,
           rawApplicant: rawStudent,
         };
