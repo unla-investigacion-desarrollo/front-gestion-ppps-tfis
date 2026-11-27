@@ -5,7 +5,11 @@ import { User } from '../../../../../redux/slices/usersSlice';
 import { getUserInitials } from '../../../../utils/userUtils';
 import { formatTwoDigitShortDate } from '../../../../utils/formatters';
 
-const PreviousKnowledge: React.FC<{ text: string }> = ({ text }) => {
+const ExpandableText: React.FC<{
+  text: string;
+  textClassName: string;
+  toggleClassName: string;
+}> = ({ text, textClassName, toggleClassName }) => {
   const [expanded, setExpanded] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
@@ -33,14 +37,14 @@ const PreviousKnowledge: React.FC<{ text: string }> = ({ text }) => {
     <>
       <p
         ref={textRef}
-        className={`modal-applicant-previous-knowledge-text${expanded ? ' expanded' : ''}`}
+        className={`${textClassName}${expanded ? ' expanded' : ''}`}
       >
         {text}
       </p>
       {(hasMore || expanded) && (
         <button
           type="button"
-          className="modal-applicant-previous-knowledge-toggle"
+          className={toggleClassName}
           aria-expanded={expanded}
           onClick={() => setExpanded((isExpanded) => !isExpanded)}
         >
@@ -366,7 +370,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                   <div className="approvals-user-avatar" style={{ width: 44, height: 44, fontSize: '1rem' }}>
                     {selectedApplicant?.initials}
                   </div>
-                  <div>
+                  <div className="modal-applicant-user-info">
                     <div className="d-flex align-items-center flex-wrap gap-1">
                       <span className="approvals-user-name" style={{ fontSize: '1rem' }}>{selectedApplicant?.fullName}</span>
                       <span className={`approvals-role-badge ${selectedApplicant?.role === 'professor' ? 'teacher' : 'student'}`}>
@@ -377,31 +381,33 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                     <div className="approvals-user-sub">
                       {selectedApplicant?.dni ? `DNI: ${selectedApplicant.dni}` : selectedApplicant?.detail}
                     </div>
+                    {selectedApplicant?.role === 'student' && (
+                      <div className="modal-applicant-academic-data">
+                        <div className="modal-applicant-academic-item">
+                          <span>Cohorte</span>
+                          <strong>{selectedApplicant.academicData.cohort ?? '—'}</strong>
+                        </div>
+                        <div className="modal-applicant-academic-item">
+                          <span>Materias cursadas con final</span>
+                          <strong>{selectedApplicant.academicData.coursesWithFinal ?? '—'}</strong>
+                        </div>
+                        <div className="modal-applicant-academic-item">
+                          <span>Materias sin final</span>
+                          <strong>{selectedApplicant.academicData.coursesWithoutFinal ?? '—'}</strong>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {viewingRequest.projectType.startsWith('PPP') && (
                   <div className="modal-applicant-previous-knowledge">
                     <div className="modal-applicant-previous-knowledge-title">Conocimientos previos</div>
-                    <PreviousKnowledge
+                    <ExpandableText
                       key={viewingRequest.id}
                       text={selectedApplicant?.previousKnowledge?.trim() || 'No se informaron conocimientos previos.'}
+                      textClassName="modal-applicant-previous-knowledge-text"
+                      toggleClassName="modal-applicant-previous-knowledge-toggle"
                     />
-                  </div>
-                )}
-                {selectedApplicant?.role === 'student' && (
-                  <div className="modal-applicant-academic-data">
-                    <div className="modal-applicant-academic-item">
-                      <span>Cohorte</span>
-                      <strong>{selectedApplicant.academicData.cohort ?? '—'}</strong>
-                    </div>
-                    <div className="modal-applicant-academic-item">
-                      <span>Materias cursadas con final</span>
-                      <strong>{selectedApplicant.academicData.coursesWithFinal ?? '—'}</strong>
-                    </div>
-                    <div className="modal-applicant-academic-item">
-                      <span>Materias sin final</span>
-                      <strong>{selectedApplicant.academicData.coursesWithoutFinal ?? '—'}</strong>
-                    </div>
                   </div>
                 )}
               </div>
@@ -418,9 +424,22 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                       {viewingRequest.projectType}
                     </span>
                   </div>
-                  <p className="text-muted small mb-0" style={{ lineHeight: 1.5 }}>
-                    {selectedProject?.descripcion || selectedProject?.description || 'Proyecto registrado en el sistema institucional de Trabajos Finales de Integración (TFI).'}
-                  </p>
+                  {viewingRequest.projectType.startsWith('PPP') ? (
+                    <ExpandableText
+                      key={viewingRequest.id}
+                      text={
+                        selectedProject?.descripcion ||
+                        selectedProject?.description ||
+                        'Proyecto registrado en el sistema institucional de Trabajos Finales de Integración (TFI).'
+                      }
+                      textClassName="modal-project-description-text"
+                      toggleClassName="modal-applicant-previous-knowledge-toggle"
+                    />
+                  ) : (
+                    <p className="text-muted small mb-0" style={{ lineHeight: 1.5 }}>
+                      {selectedProject?.descripcion || selectedProject?.description || 'Proyecto registrado en el sistema institucional de Trabajos Finales de Integración (TFI).'}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

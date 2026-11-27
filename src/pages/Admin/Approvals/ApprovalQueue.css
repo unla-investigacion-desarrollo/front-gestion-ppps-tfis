@@ -692,8 +692,10 @@
 .modal-applicant-academic-data {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 10px;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .modal-applicant-previous-knowledge {
@@ -733,6 +735,24 @@
   -webkit-line-clamp: unset;
 }
 
+.modal-project-description-text {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.modal-project-description-text.expanded {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
 .modal-applicant-previous-knowledge-toggle {
   display: block;
   margin: 4px auto 0;
@@ -753,22 +773,23 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background-color: #f9fafb;
+  gap: 2px;
 }
 
 .modal-applicant-academic-item span {
   color: #6b7280;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   line-height: 1.3;
 }
 
 .modal-applicant-academic-item strong {
   color: #111827;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+}
+
+.modal-applicant-user-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .modal-expediente-footer {
