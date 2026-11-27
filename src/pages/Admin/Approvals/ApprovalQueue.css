@@ -733,6 +733,24 @@
   -webkit-line-clamp: unset;
 }
 
+.modal-project-description-text {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.modal-project-description-text.expanded {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
 .modal-applicant-previous-knowledge-toggle {
   display: block;
   margin: 4px auto 0;
