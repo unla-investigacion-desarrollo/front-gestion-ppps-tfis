@@ -370,7 +370,7 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                   <div className="approvals-user-avatar" style={{ width: 44, height: 44, fontSize: '1rem' }}>
                     {selectedApplicant?.initials}
                   </div>
-                  <div>
+                  <div className="modal-applicant-user-info">
                     <div className="d-flex align-items-center flex-wrap gap-1">
                       <span className="approvals-user-name" style={{ fontSize: '1rem' }}>{selectedApplicant?.fullName}</span>
                       <span className={`approvals-role-badge ${selectedApplicant?.role === 'professor' ? 'teacher' : 'student'}`}>
@@ -381,6 +381,22 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                     <div className="approvals-user-sub">
                       {selectedApplicant?.dni ? `DNI: ${selectedApplicant.dni}` : selectedApplicant?.detail}
                     </div>
+                    {selectedApplicant?.role === 'student' && (
+                      <div className="modal-applicant-academic-data">
+                        <div className="modal-applicant-academic-item">
+                          <span>Cohorte</span>
+                          <strong>{selectedApplicant.academicData.cohort ?? '—'}</strong>
+                        </div>
+                        <div className="modal-applicant-academic-item">
+                          <span>Materias cursadas con final</span>
+                          <strong>{selectedApplicant.academicData.coursesWithFinal ?? '—'}</strong>
+                        </div>
+                        <div className="modal-applicant-academic-item">
+                          <span>Materias sin final</span>
+                          <strong>{selectedApplicant.academicData.coursesWithoutFinal ?? '—'}</strong>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {viewingRequest.projectType.startsWith('PPP') && (
@@ -392,22 +408,6 @@ export const ProjectApprovalTable: React.FC<ProjectApprovalTableProps> = ({
                       textClassName="modal-applicant-previous-knowledge-text"
                       toggleClassName="modal-applicant-previous-knowledge-toggle"
                     />
-                  </div>
-                )}
-                {selectedApplicant?.role === 'student' && (
-                  <div className="modal-applicant-academic-data">
-                    <div className="modal-applicant-academic-item">
-                      <span>Cohorte</span>
-                      <strong>{selectedApplicant.academicData.cohort ?? '—'}</strong>
-                    </div>
-                    <div className="modal-applicant-academic-item">
-                      <span>Materias cursadas con final</span>
-                      <strong>{selectedApplicant.academicData.coursesWithFinal ?? '—'}</strong>
-                    </div>
-                    <div className="modal-applicant-academic-item">
-                      <span>Materias sin final</span>
-                      <strong>{selectedApplicant.academicData.coursesWithoutFinal ?? '—'}</strong>
-                    </div>
                   </div>
                 )}
               </div>
