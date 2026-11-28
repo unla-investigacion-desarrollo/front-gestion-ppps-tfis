@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { showToast } from '../../../../utils/toast';
 
 interface CreateTeacherModalProps {
@@ -52,7 +53,7 @@ const createInitialFormState = (rol: 'DOCENTE' | 'ADMIN' = 'DOCENTE') => ({
   apellido: '',
   dni: '',
   email: '',
-  password: '',
+  password: '123456',
   specialization: '',
   isTutor: false,
   rol,
@@ -71,12 +72,14 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const resetFormState = () => {
     setForm(createInitialFormState(role));
     setFieldErrors({});
     setGeneralError(null);
     setSubmitting(false);
+    setShowPassword(false);
   };
 
   // Siempre que se abre el modal, reiniciar todos los campos y errores
@@ -305,16 +308,39 @@ const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
 
                 <div>
                   <label className="form-label" style={{ fontWeight: 500 }}>Contraseña</label>
-                  <input
-                    type="password"
-                    className={`form-control ${fieldErrors.password ? 'is-invalid' : ''}`}
-                    autoComplete="new-password"
-                    value={form.password}
-                    onChange={(e) => {
-                      clearFieldError('password');
-                      setForm(prev => ({ ...prev, password: e.target.value }));
-                    }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className={`form-control ${fieldErrors.password ? 'is-invalid' : ''}`}
+                      style={{ paddingRight: '44px' }}
+                      autoComplete="new-password"
+                      value={form.password}
+                      onChange={(e) => {
+                        clearFieldError('password');
+                        setForm(prev => ({ ...prev, password: e.target.value }));
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        border: 0,
+                        background: 'transparent',
+                        color: '#64748b',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                    </button>
+                  </div>
                   {fieldErrors.password && <div className="invalid-feedback d-block">{fieldErrors.password}</div>}
                 </div>
 
