@@ -655,8 +655,21 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             className={`btn-tutor-icon-action ${
                               isProjectCancelled ? 'btn-tutor-view' : 'btn-ppp-delete'
                             }`}
-                            onClick={() => onCancelClick(project)}
-                            disabled={isCancellationBlocked}
+                            onClick={() => {
+                              if (isCancellationBlocked) {
+                                window.dispatchEvent(
+                                  new CustomEvent('toast', {
+                                    detail: {
+                                      message:
+                                        'No se puede cancelar si hay estudiantes o docentes asignados al proyecto. Primero se deben desvincular.',
+                                      type: 'error',
+                                    },
+                                  })
+                                );
+                                return;
+                              }
+                              onCancelClick(project);
+                            }}
                             title={
                               isCancellationBlocked
                                 ? undefined
@@ -665,11 +678,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   : 'Cancelar Proyecto'
                             }
                             aria-label={
-                              isCancellationBlocked
-                                ? 'No se puede cancelar: desvinculá alumnos y profesores'
-                                : isProjectCancelled
-                                  ? 'Reactivar Proyecto'
-                                  : 'Cancelar Proyecto'
+                              isProjectCancelled ? 'Reactivar Proyecto' : 'Cancelar Proyecto'
                             }
                           >
                             {isProjectCancelled ? <FaRotateLeft size={14} /> : <FaBan size={14} />}
