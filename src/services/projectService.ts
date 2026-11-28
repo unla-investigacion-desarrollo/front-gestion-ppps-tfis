@@ -263,6 +263,28 @@ export const projectService = {
   },
 
   /**
+   * Cancela un proyecto (PATCH /project/:id/cancel). Requiere rol ADMIN.
+   */
+  cancelProject: async (id: number | string, token: string): Promise<void> => {
+    const res = await fetch(`${API_URL}/project/${id}/cancel`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      let parsedError;
+      try {
+        parsedError = JSON.parse(text);
+      } catch {}
+      throw new Error(parsedError?.message || text || `Error ${res.status}: Falló la cancelación del proyecto`);
+    }
+  },
+
+  /**
    * Solicitud de estudiante para unirse a un proyecto.
    */
   requestJoinAsStudent: async (projectId: number | string, token: string) => {

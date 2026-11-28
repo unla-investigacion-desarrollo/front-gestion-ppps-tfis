@@ -11,6 +11,7 @@ import {
   fetchProjectTypes,
   updateProject,
   deleteProject,
+  cancelProject,
   removeStudentFromProject,
   removeCoTeacher,
   selectProjects,
@@ -39,6 +40,13 @@ import { projectService } from '../../services/projectService';
 // Constante para la clave de almacenamiento local de actividad
 const ACTIVITY_STORAGE_KEY = 'projectActivity';
 
+const isProjectCancelled = (project: Project) =>
+  ['cancelled', 'canceled'].includes(
+    String(project.estado || project.raw?.status || project.raw?.estado || '')
+      .toLowerCase()
+      .trim()
+  );
+
 /**
  * Componente Principal para la Gestión de Proyectos por parte del Docente.
  * Orquesta la carga de proyectos desde la base de datos, filtros avanzados, paginación,
@@ -57,19 +65,22 @@ const TeacherProjectsList: React.FC = () => {
   const { isTutor: userIsTutor, isProfessor } = useUserProfile();
   const isTutor = Boolean(currentUser?.isTutor ?? userIsTutor);
 
-  // Determinar si el usuario actual es ADMIN o SUPERADMIN
-  const isAdminOrSuperAdmin = useMemo(() => {
-    const roles = normalizeRoles([
-      ...(Array.isArray(currentUser?.roles)
-        ? currentUser.roles
-        : currentUser?.roles
-          ? [currentUser.roles]
-          : []),
-      (currentUser as any)?.role,
-      (currentUser as any)?.rol,
-    ]);
-    return roles.includes('ADMIN') || roles.includes('SUPERADMIN');
-  }, [currentUser]);
+  const currentUserRoles = useMemo(
+    () =>
+      normalizeRoles([
+        ...(Array.isArray(currentUser?.roles)
+          ? currentUser.roles
+          : currentUser?.roles
+            ? [currentUser.roles]
+            : []),
+        (currentUser as any)?.role,
+        (currentUser as any)?.rol,
+      ]),
+    [currentUser]
+  );
+  const isAdminOrSuperAdmin =
+    currentUserRoles.includes('ADMIN') || currentUserRoles.includes('SUPERADMIN');
+  const canCancelProjects = isAdminOrSuperAdmin;
 
   // --- FILTROS Y ESTADO DE PAGINACIÓN ---
   const [filters, setFilters] = useState<ProjectFiltersState>({
@@ -92,6 +103,8 @@ const TeacherProjectsList: React.FC = () => {
   const [isRemovingMember, setIsRemovingMember] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [projectToCancel, setProjectToCancel] = useState<Project | null>(null);
+  const [isCancellingProject, setIsCancellingProject] = useState(false);
 
   // --- SOLICITUDES Y PROYECTOS ACTIVOS DEL USUARIO ---
   const [myRequests, setMyRequests] = useState<any[]>([]);
@@ -464,7 +477,32 @@ const TeacherProjectsList: React.FC = () => {
     }
   };
 
+  const handleConfirmProjectCancellation = async () => {
+    if (!projectToCancel || isCancellingProject) return;
 
+    const isCancelled = isProjectCancelled(projectToCancel);
+    setIsCancellingProject(true);
+    try {
+      const response = await dispatch(cancelProject({ projectId: String(projectToCancel.id) }));
+      const hasError = Boolean((response as any).error);
+
+      window.dispatchEvent(
+        new CustomEvent('toast', {
+          detail: {
+            message: hasError
+              ? (response as any).payload || `Error al ${isCancelled ? 'reactivar' : 'cancelar'} el proyecto`
+              : `Proyecto ${isCancelled ? 'reactivado' : 'cancelado'} exitosamente`,
+            type: hasError ? 'error' : 'success',
+          },
+        })
+      );
+      if (!hasError) setProjectToCancel(null);
+    } finally {
+      setIsCancellingProject(false);
+    }
+  };
+
+  const isProjectToCancelCancelled = projectToCancel ? isProjectCancelled(projectToCancel) : false;
 
   // Restablecer filtros a su estado inicial
   const handleClearAllFilters = () => {
@@ -513,11 +551,13 @@ const TeacherProjectsList: React.FC = () => {
           isTutor={isTutor}
           canRemoveProjectMembers={isAdminOrSuperAdmin || (isProfessor && !isTutor)}
           canDeleteProject={isAdminOrSuperAdmin}
+          canCancelProject={canCancelProjects}
           onRemoveStudent={handleRemoveStudent}
           onRemoveCoTeacher={handleRemoveCoTeacher}
           onActivityClick={(project) => setActiveActivityProject(project)}
           onEditClick={(project) => setActiveEditProject(project)}
           onDeleteClick={isAdminOrSuperAdmin ? handleDeleteProject : undefined}
+          onCancelClick={canCancelProjects ? setProjectToCancel : undefined}
           onRequestJoinClick={isTutor ? handleRequestJoin : undefined}
           pendingProjectIds={pendingProjectIds}
           activeProjectIds={activeProjectIds}
@@ -673,6 +713,72 @@ const TeacherProjectsList: React.FC = () => {
                     disabled={isDeletingProject}
                   >
                     {isDeletingProject ? 'Eliminando...' : 'Eliminar proyecto'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="custom-modal-backdrop" />
+        </>
+      )}
+
+      {projectToCancel && (
+        <>
+          <div
+            className="modal fade show custom-modal-dialog-wrapper"
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-status-action-title"
+          >
+            <div className="modal-dialog modal-md modal-dialog-centered">
+              <div className="modal-content custom-modal-content">
+                <div className="modal-header custom-modal-header">
+                  <h5 id="project-status-action-title" className="modal-title" style={{ fontWeight: 600, color: 'var(--unla-primary, #64001d)' }}>
+                    Confirmar {isProjectToCancelCancelled ? 'reactivación' : 'cancelación'}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setProjectToCancel(null)}
+                    aria-label="Cerrar"
+                    disabled={isCancellingProject}
+                  />
+                </div>
+                <div className="modal-body custom-modal-body text-center py-4">
+                  <FaTriangleExclamation size={44} color="var(--unla-primary, #64001d)" className="mb-3" />
+                  <p className="mb-0" style={{ fontSize: '17px', fontWeight: 500 }}>
+                    ¿Seguro que querés {isProjectToCancelCancelled ? 'reactivar' : 'cancelar'} el proyecto{' '}
+                    <strong>{projectToCancel.titulo}</strong>?
+                  </p>
+                  <p className="text-muted small mt-2 mb-0">
+                    {isProjectToCancelCancelled
+                      ? 'El proyecto volverá al estado pendiente.'
+                      : 'El proyecto dejará de estar activo.'}
+                  </p>
+                </div>
+                <div className="modal-footer custom-modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setProjectToCancel(null)}
+                    disabled={isCancellingProject}
+                  >
+                    Volver
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${isProjectToCancelCancelled ? 'btn-success' : 'btn-danger'}`}
+                    onClick={handleConfirmProjectCancellation}
+                    disabled={isCancellingProject}
+                  >
+                    {isCancellingProject
+                      ? isProjectToCancelCancelled
+                        ? 'Reactivando...'
+                        : 'Cancelando...'
+                      : isProjectToCancelCancelled
+                        ? 'Reactivar proyecto'
+                        : 'Cancelar proyecto'}
                   </button>
                 </div>
               </div>

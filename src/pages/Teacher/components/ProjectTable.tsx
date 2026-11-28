@@ -1,6 +1,16 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCalendarDays, FaPencil, FaTrashCan, FaUserGroup, FaChalkboardUser, FaEye, FaPaperPlane } from 'react-icons/fa6';
+import {
+  FaCalendarDays,
+  FaPencil,
+  FaTrashCan,
+  FaUserGroup,
+  FaChalkboardUser,
+  FaEye,
+  FaPaperPlane,
+  FaBan,
+  FaRotateLeft,
+} from 'react-icons/fa6';
 import { LuUserX } from 'react-icons/lu';
 import { Project } from '../../../../redux/slices/projectsSlice';
 import { formatShortDate } from '../../../utils/formatters';
@@ -52,6 +62,11 @@ const ProjectDescription: React.FC<{ description: string }> = ({ description }) 
   );
 };
 
+const getProjectStatus = (project: Project) =>
+  String(project.estado || project.raw?.status || project.raw?.estado || '')
+    .toLowerCase()
+    .trim();
+
 // Propiedades recibidas por el componente ProjectTable
 interface ProjectTableProps {
   projects: Project[];
@@ -59,11 +74,13 @@ interface ProjectTableProps {
   isTutor?: boolean;
   canRemoveProjectMembers: boolean;
   canDeleteProject?: boolean;
+  canCancelProject?: boolean;
   onRemoveStudent: (projectId: string, studentId: string) => void;
   onRemoveCoTeacher: (projectId: string, teacherId: string) => void;
   onActivityClick?: (project: Project) => void;
   onEditClick: (project: Project) => void;
   onDeleteClick?: (project: Project) => void;
+  onCancelClick?: (project: Project) => void;
   onViewProjectClick?: (project: Project) => void;
   onRequestJoinClick?: (project: Project) => void;
   pendingProjectIds?: Set<string>;
@@ -81,11 +98,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   isTutor = false,
   canRemoveProjectMembers,
   canDeleteProject = false,
+  canCancelProject = false,
   onRemoveStudent,
   onRemoveCoTeacher,
   onActivityClick,
   onEditClick,
   onDeleteClick,
+  onCancelClick,
   onViewProjectClick,
   onRequestJoinClick,
   pendingProjectIds,
@@ -381,7 +400,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               </td>
             </tr>
           ) : (
-            projects.map((project, projectIndex) => (
+            projects.map((project) => {
+              const projectStatus = getProjectStatus(project);
+              const isProjectCancelled = ['cancelled', 'canceled'].includes(projectStatus);
+              const hasAssignedMembers =
+                getProjectStudents(project).length > 0 || getProjectTeachers(project).length > 0;
+              const isCancellationBlocked = !isProjectCancelled && hasAssignedMembers;
+
+              return (
               <tr key={project.id}>
                 {/* Columna: Proyecto (Fusión de Título, Categoría, Descripción y Fecha) */}
                 <td>
@@ -616,6 +642,41 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         <FaPencil size={14} />
                       </button>
 
+                      {canCancelProject && onCancelClick && projectStatus !== 'finalized' && (
+                        <span
+                          title={
+                            isCancellationBlocked
+                              ? 'Desvinculá a los alumnos y profesores para cancelar este proyecto.'
+                              : undefined
+                          }
+                        >
+                          <button
+                            type="button"
+                            className={`btn-tutor-icon-action ${
+                              isProjectCancelled ? 'btn-tutor-view' : 'btn-ppp-delete'
+                            }`}
+                            onClick={() => onCancelClick(project)}
+                            disabled={isCancellationBlocked}
+                            title={
+                              isCancellationBlocked
+                                ? undefined
+                                : isProjectCancelled
+                                  ? 'Reactivar Proyecto'
+                                  : 'Cancelar Proyecto'
+                            }
+                            aria-label={
+                              isCancellationBlocked
+                                ? 'No se puede cancelar: desvinculá alumnos y profesores'
+                                : isProjectCancelled
+                                  ? 'Reactivar Proyecto'
+                                  : 'Cancelar Proyecto'
+                            }
+                          >
+                            {isProjectCancelled ? <FaRotateLeft size={14} /> : <FaBan size={14} />}
+                          </button>
+                        </span>
+                      )}
+
                       {canRemoveProjectMembers && (
                         <button
                           type="button"
@@ -643,7 +704,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   )}
                 </td>
               </tr>
-            ))
+              );
+            })
           )}
         </tbody>
       </table>

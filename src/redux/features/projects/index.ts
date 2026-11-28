@@ -15,6 +15,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  cancelProject,
   assignStudentToProject,
   removeStudentFromProject,
   addCoTeacher,

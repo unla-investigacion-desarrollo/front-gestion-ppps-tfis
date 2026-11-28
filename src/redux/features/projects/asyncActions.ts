@@ -331,6 +331,21 @@ export const deleteProject = createAsyncThunk<
   }
 });
 
+export const cancelProject = createAsyncThunk<
+  string,
+  { projectId: string },
+  { rejectValue: string }
+>('projects/cancel', async ({ projectId }, { rejectWithValue, dispatch }) => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    await projectService.cancelProject(projectId, token);
+    dispatch(fetchProjects());
+    return projectId;
+  } catch (error: any) {
+    return rejectWithValue(error.message || 'Error al cancelar el proyecto');
+  }
+});
+
 export const assignStudentToProject = createAsyncThunk<
   { projectId: string; studentId: string },
   { projectId: string; studentId: string },
